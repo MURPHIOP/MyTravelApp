@@ -223,7 +223,7 @@ export default function ExpensesPage() {
   }, {});
 
   return (
-    <div className="inner py-6" style={{ paddingTop: 'calc(var(--header-height) + 16px)' }}>
+    <div className="inner py-8">
 
       {/* Header */}
       <div className="flex items-start justify-between mb-6">

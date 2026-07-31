@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import BottomNav from './BottomNav';
 import DesktopSidebar from './DesktopSidebar';
 import TopBar from './TopBar';
+import Preloader from './Preloader';
 import { gsap } from 'gsap';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -27,6 +28,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--bg)' }}>
+      <Preloader />
       <div className="hidden md:block">
         <DesktopSidebar />
       </div>

@@ -7,12 +7,12 @@ import { usePathname } from 'next/navigation';
 
 const PAGE_LABELS: Record<string, string> = {
   '/': 'Home',
-  '/itinerary': 'Journey',
-  '/trains': 'Trains',
+  '/itinerary': 'Journey Map',
+  '/trains': 'Train Info',
   '/hotels': 'Hotels',
   '/expenses': 'Expenses',
-  '/places': 'Explore',
-  '/profile': 'Profile',
+  '/places': 'Explore Places',
+  '/profile': 'My Profile',
 };
 
 export default function TopBar() {
@@ -27,8 +27,8 @@ export default function TopBar() {
       style={{
         height: 'var(--header-height)',
         background: isHome
-          ? 'transparent'
-          : 'var(--surface)',
+          ? 'linear-gradient(180deg, rgba(7,11,20,0.8) 0%, rgba(7,11,20,0) 100%)'
+          : 'var(--glass-bg)',
         backdropFilter: isHome ? 'none' : 'blur(24px)',
         WebkitBackdropFilter: isHome ? 'none' : 'blur(24px)',
         borderBottom: isHome ? 'none' : '1px solid var(--border)',
@@ -37,19 +37,20 @@ export default function TopBar() {
       {/* Location + Title */}
       <div>
         <div
-          className="flex items-center gap-1 mb-0.5"
-          style={{ color: isHome ? 'rgba(255,255,255,0.7)' : 'var(--accent)' }}
+          className="flex items-center gap-1.5 mb-0.5"
+          style={{ color: isHome ? 'rgba(255,255,255,0.75)' : 'var(--accent)' }}
         >
-          <MapPin size={10} strokeWidth={2.5} />
-          <span className="label-sm" style={{ color: 'inherit', textTransform: 'none', fontSize: 9 }}>
-            Maharashtra Tour
+          <MapPin size={11} strokeWidth={2.5} />
+          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em' }}>
+            Ancient Maharashtra Tour
           </span>
         </div>
         <div
-          className="heading-md"
           style={{
-            fontSize: '1.05rem',
-            color: isHome ? '#fff' : 'var(--text-primary)',
+            fontSize: '1.15rem',
+            fontWeight: 800,
+            color: isHome ? '#FFFFFF' : 'var(--text-primary)',
+            letterSpacing: '-0.02em',
           }}
         >
           {label}
@@ -59,32 +60,19 @@ export default function TopBar() {
       {/* Actions */}
       <div className="flex items-center gap-2">
         <button
-          id="notif-btn"
-          className="btn-icon btn relative tap"
-          aria-label="Notifications"
-          style={{ background: isHome ? 'rgba(255,255,255,0.12)' : undefined, border: isHome ? '1px solid rgba(255,255,255,0.15)' : undefined }}
-        >
-          <Bell size={17} strokeWidth={1.8} color={isHome ? '#fff' : undefined} />
-          <span
-            className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full"
-            style={{ background: '#EF4444', border: '1.5px solid var(--surface)' }}
-          />
-        </button>
-
-        <button
           id="theme-toggle-topbar"
           onClick={toggleTheme}
           className="btn-icon btn tap"
           aria-label="Toggle theme"
           style={{
-            background: isHome ? 'rgba(255,255,255,0.12)' : undefined,
-            border: isHome ? '1px solid rgba(255,255,255,0.15)' : undefined,
-            color: isHome ? '#fff' : undefined,
+            background: isHome ? 'rgba(255,255,255,0.16)' : 'var(--surface-2)',
+            border: isHome ? '1px solid rgba(255,255,255,0.2)' : '1px solid var(--border)',
+            color: isHome ? '#fff' : 'var(--text-primary)',
           }}
         >
           {isDark
-            ? <Sun size={17} strokeWidth={1.8} style={{ color: '#F59E0B' }} />
-            : <Moon size={17} strokeWidth={1.8} />
+            ? <Sun size={18} strokeWidth={2} style={{ color: '#F59E0B' }} />
+            : <Moon size={18} strokeWidth={2} style={{ color: '#3B82F6' }} />
           }
         </button>
       </div>

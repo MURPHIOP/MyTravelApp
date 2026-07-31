@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { gsap } from 'gsap';
 import { ITINERARY, TRIP_CONFIG } from '@/lib/tripData';
-import { MapPin, Clock, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { MapPin, Clock, ChevronDown, ChevronUp, Info, Map, Sparkles, Navigation } from 'lucide-react';
 
 const JourneyMap3D = dynamic(() => import('./JourneyMap3D'), { ssr: false });
 
@@ -19,25 +19,17 @@ const ACTIVITY_COLORS: Record<string, string> = {
   rest: '#64748B',
 };
 
-function ActivityDot({ type }: { type: string }) {
-  return (
-    <div
-      className="flex-shrink-0 w-2 h-2 rounded-full mt-1.5"
-      style={{ background: ACTIVITY_COLORS[type] ?? '#64748B' }}
-    />
-  );
-}
-
 export default function ItineraryPage() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
-  const cardsRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.fromTo('.day-card',
-        { opacity: 0, x: -20 },
-        { opacity: 1, x: 0, stagger: 0.05, duration: 0.45, ease: 'power3.out', delay: 0.2 }
+      gsap.fromTo(
+        '.day-card',
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, stagger: 0.06, duration: 0.5, ease: 'power3.out' }
       );
     });
     return () => ctx.revert();
@@ -50,12 +42,12 @@ export default function ItineraryPage() {
   })();
 
   return (
-    <div style={{ minHeight: '100dvh', paddingTop: 'var(--header-height)' }}>
+    <div style={{ minHeight: '100dvh' }}>
 
-      {/* ── 3D Map ────────────────────────────────────── */}
+      {/* ── 3D Interactive Map Container ────────────────── */}
       <div
-        className="relative"
-        style={{ height: 280, borderBottom: '1px solid var(--border)' }}
+        className="relative overflow-hidden"
+        style={{ height: 420, borderBottom: '1px solid var(--border)' }}
       >
         <JourneyMap3D
           selectedDay={selectedDay}
@@ -65,124 +57,125 @@ export default function ItineraryPage() {
           }}
         />
 
-        {/* Instruction overlay */}
-        <div
-          className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-          style={{
-            background: 'rgba(7,11,20,0.7)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            fontSize: 11, color: 'rgba(255,255,255,0.65)', fontWeight: 600, whiteSpace: 'nowrap',
-          }}
-        >
-          <Info size={11} /> Tap a city node to explore
+        {/* Map Header Overlay */}
+        <div className="absolute top-4 left-4 z-10">
+          <div className="glass-card px-4 py-2.5" style={{ borderRadius: 16 }}>
+            <div className="flex items-center gap-2">
+              <Navigation size={14} style={{ color: 'var(--accent)' }} />
+              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
+                3D INTERACTIVE ROADMAP
+              </span>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)', marginTop: 2 }}>
+              HWH &rarr; JLG &rarr; AUR &rarr; SRD &rarr; NK &rarr; PUNE
+            </div>
+          </div>
         </div>
 
-        {/* Map header */}
-        <div className="absolute top-4 left-4">
-          <div className="glass-card" style={{ padding: '8px 14px', borderRadius: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>ROUTE</div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>HWH → JLG → AUR → SRD → NK → PUNE</div>
-          </div>
+        {/* Instruction overlay */}
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-4 py-2 rounded-full shadow-lg"
+          style={{
+            background: 'rgba(7,11,20,0.85)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            fontSize: 12, color: '#FFFFFF', fontWeight: 700, whiteSpace: 'nowrap',
+          }}
+        >
+          <Sparkles size={14} style={{ color: '#F59E0B' }} /> Drag to rotate map &bull; Tap city node to focus
         </div>
       </div>
 
-      {/* ── Timeline ──────────────────────────────────── */}
-      <div className="inner py-5">
-        <div className="flex items-center justify-between mb-5">
+      {/* ── 11-Day Timeline Schedule ───────────────────── */}
+      <div className="inner py-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="label-sm">Complete Schedule</p>
-            <h1 className="heading-lg" style={{ fontSize: '1.3rem' }}>11-Day Itinerary</h1>
+            <p className="label-sm">Day-by-Day Journey</p>
+            <h1 className="heading-lg" style={{ marginTop: 2 }}>11-Day Itinerary Schedule</h1>
           </div>
           {today && (
-            <div className="pill pill-sm pill-green">
+            <div className="pill pill-md pill-green">
               Live: Day {today}
             </div>
           )}
         </div>
 
-        <div ref={cardsRef} className="relative flex flex-col gap-3">
-          {/* Timeline line */}
-          <div className="timeline-line" style={{ left: 23, top: 44, background: 'var(--accent)', opacity: 0.15, borderRadius: 2 }} />
+        <div ref={timelineRef} className="relative flex flex-col gap-4">
+          <div className="timeline-line" />
 
           {ITINERARY.map((day) => {
             const isToday = today === day.day;
             const isExpanded = expandedDay === day.day;
-            const isPast = today !== null && day.day < today;
+            const isSelected = selectedDay === day.day;
 
             return (
-              <div
-                key={day.day}
-                className="day-card"
-                onClick={() => {
-                  setExpandedDay(isExpanded ? null : day.day);
-                  setSelectedDay(isExpanded ? null : day.day);
-                }}
-              >
+              <div key={day.day} className="day-card">
                 <div
-                  className="flex items-start gap-4 p-4 rounded-3xl tap transition-all duration-200"
+                  className="flex items-start gap-4 p-5 rounded-3xl tap transition-all duration-200"
                   style={{
                     background: isToday
                       ? 'var(--accent-light)'
-                      : selectedDay === day.day
+                      : isSelected
                       ? 'var(--surface-2)'
                       : 'var(--surface)',
                     border: isToday
+                      ? '2px solid var(--accent)'
+                      : isSelected
                       ? '1.5px solid var(--accent)'
                       : '1px solid var(--border)',
-                    boxShadow: isToday ? '0 4px 20px var(--accent-light)' : 'var(--shadow-xs)',
-                    opacity: isPast ? 0.6 : 1,
+                    boxShadow: isToday ? '0 8px 30px var(--accent-light)' : 'var(--shadow-sm)',
+                  }}
+                  onClick={() => {
+                    setExpandedDay(isExpanded ? null : day.day);
+                    setSelectedDay(isExpanded ? null : day.day);
                   }}
                 >
-                  {/* Day number + photo circle */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                  {/* Photo Thumbnail + Day Badge */}
+                  <div className="flex flex-col items-center gap-2 flex-shrink-0">
                     <div
                       style={{
-                        width: 44, height: 44, borderRadius: 14, overflow: 'hidden',
+                        width: 54, height: 54, borderRadius: 18, overflow: 'hidden',
                         backgroundImage: `url(${day.coverImage})`,
                         backgroundSize: 'cover', backgroundPosition: 'center',
-                        border: isToday ? `2px solid var(--accent)` : '2px solid transparent',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                       }}
                     />
                     <div
                       className="pill pill-sm"
                       style={{
                         background: isToday ? 'var(--accent)' : 'var(--surface-2)',
-                        color: isToday ? '#fff' : 'var(--text-muted)',
-                        border: 'none', fontSize: 9, padding: '2px 8px',
+                        color: isToday ? '#FFFFFF' : 'var(--text-muted)',
+                        fontSize: 10, padding: '3px 10px', fontWeight: 800,
+                        border: '1px solid var(--border)',
                       }}
                     >
-                      D{day.day}
+                      Day {day.day}
                     </div>
                   </div>
 
-                  {/* Content */}
+                  {/* Info Column */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontWeight: 900, fontSize: '1.05rem', color: 'var(--text-primary)', lineHeight: 1.2 }}>
                           {day.title}
                         </div>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <MapPin size={10} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>{day.location}</span>
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4, fontWeight: 500 }}>
-                          {day.date}
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <MapPin size={12} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                          <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{day.location}</span>
+                          <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>&bull;</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{day.date}</span>
                         </div>
                       </div>
-                      <div style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }}>
-                        {isExpanded
-                          ? <ChevronUp size={16} />
-                          : <ChevronDown size={16} />
-                        }
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
+                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                       </div>
                     </div>
 
-                    {/* Highlight pills */}
+                    {/* Highlights Pills */}
                     {!isExpanded && (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {day.highlights.slice(0, 2).map((h) => (
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {day.highlights.map((h) => (
                           <span key={h} className="pill pill-sm pill-muted" style={{ fontSize: 10 }}>{h}</span>
                         ))}
                       </div>
@@ -190,60 +183,56 @@ export default function ItineraryPage() {
                   </div>
                 </div>
 
-                {/* Expanded activities */}
+                {/* Expanded Details */}
                 {isExpanded && (
                   <div
-                    className="mx-3 mt-1 mb-1 rounded-2xl overflow-hidden"
-                    style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
+                    className="mt-3 p-5 rounded-3xl"
+                    style={{
+                      background: 'var(--surface-2)',
+                      border: '1px solid var(--border)',
+                      boxShadow: 'var(--shadow-inner)',
+                    }}
                   >
-                    {/* Day image */}
+                    {/* Header Image inside dropdown */}
                     <div
+                      className="rounded-2xl overflow-hidden mb-4 relative"
                       style={{
-                        height: 140,
-                        backgroundImage: `linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.7)), url(${day.coverImage})`,
+                        height: 160,
+                        backgroundImage: `linear-gradient(180deg, transparent 20%, rgba(0,0,0,0.8) 100%), url(${day.coverImage})`,
                         backgroundSize: 'cover', backgroundPosition: 'center',
-                        position: 'relative',
                       }}
                     >
-                      <div className="absolute bottom-3 left-4">
-                        <div style={{ fontSize: '1rem', fontWeight: 800, color: '#fff' }}>{day.title}</div>
-                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>{day.location}</div>
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#FFFFFF' }}>{day.title}</div>
+                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>{day.location} &bull; {day.date}</div>
                       </div>
                     </div>
 
-                    <div className="p-4">
-                      {/* Activities */}
-                      <p className="label-sm mb-3">Schedule</p>
-                      <div className="flex flex-col gap-3">
-                        {day.activities.map((a, i) => (
-                          <div key={i} className="flex items-start gap-3">
-                            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', minWidth: 42, paddingTop: 1 }}>{a.time}</span>
-                            <ActivityDot type={a.type} />
-                            <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>{a.title}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Note */}
-                      {day.note && (
-                        <div
-                          className="mt-4 p-3 rounded-2xl flex items-start gap-2"
-                          style={{ background: 'var(--accent-amber-light)', border: '1px solid rgba(245,158,11,0.2)' }}
-                        >
-                          <Info size={14} style={{ color: 'var(--accent-amber)', flexShrink: 0, marginTop: 1 }} />
-                          <p style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, lineHeight: 1.5 }}>
-                            {day.note}
-                          </p>
+                    <p className="label-sm mb-3">Activities Schedule</p>
+                    <div className="flex flex-col gap-3">
+                      {day.activities.map((act, idx) => (
+                        <div key={idx} className="flex items-start gap-3 p-2.5 rounded-xl" style={{ background: 'var(--surface)' }}>
+                          <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', minWidth: 46 }}>{act.time}</span>
+                          <div
+                            className="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0"
+                            style={{ background: ACTIVITY_COLORS[act.type] ?? 'var(--accent)' }}
+                          />
+                          <span style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 600 }}>{act.title}</span>
                         </div>
-                      )}
-
-                      {/* Highlights */}
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {day.highlights.map((h) => (
-                          <span key={h} className="pill pill-sm pill-blue">{h}</span>
-                        ))}
-                      </div>
+                      ))}
                     </div>
+
+                    {day.note && (
+                      <div
+                        className="mt-4 p-3.5 rounded-2xl flex items-start gap-2.5"
+                        style={{ background: 'var(--accent-amber-light)', border: '1px solid rgba(245,158,11,0.25)' }}
+                      >
+                        <Info size={16} style={{ color: 'var(--accent-amber)', flexShrink: 0, marginTop: 1 }} />
+                        <p style={{ fontSize: 12.5, color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.5 }}>
+                          {day.note}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -18,17 +18,19 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 pb-safe md:hidden"
+      className="fixed bottom-3 left-3 right-3 z-50 md:hidden"
       style={{
-        background: 'var(--surface)',
-        borderTop: '1px solid var(--border)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        background: 'var(--glass-bg)',
+        border: '1px solid var(--glass-border)',
+        backdropFilter: 'blur(28px) saturate(200%)',
+        WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+        borderRadius: 28,
+        boxShadow: 'var(--shadow-lg)',
       }}
     >
       <div
-        className="grid grid-cols-5 items-center"
-        style={{ height: 'var(--nav-height)', padding: '4px 8px 0' }}
+        className="grid grid-cols-5 items-center px-2 py-1.5"
+        style={{ height: 64 }}
       >
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
@@ -38,20 +40,20 @@ export default function BottomNav() {
               href={href}
               className="flex flex-col items-center justify-center gap-1 rounded-2xl tap"
               style={{
-                height: 56,
+                height: 52,
                 color: active ? 'var(--accent)' : 'var(--text-muted)',
               }}
             >
               <div
-                className="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200"
+                className="flex items-center justify-center w-10 h-8 rounded-full transition-all duration-300"
                 style={{
                   background: active ? 'var(--accent-light)' : 'transparent',
-                  transform: active ? 'scale(1.05)' : 'scale(1)',
+                  transform: active ? 'scale(1.08)' : 'scale(1)',
                 }}
               >
-                <Icon size={active ? 20 : 19} strokeWidth={active ? 2.5 : 1.8} />
+                <Icon size={ active ? 20 : 19 } strokeWidth={ active ? 2.5 : 1.8 } />
               </div>
-              <span style={{ fontSize: '9.5px', fontWeight: active ? 800 : 500, lineHeight: 1 }}>
+              <span style={{ fontSize: '10px', fontWeight: active ? 800 : 600, lineHeight: 1 }}>
                 {label}
               </span>
             </Link>

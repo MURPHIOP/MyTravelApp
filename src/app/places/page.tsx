@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { PLACES } from '@/lib/tripData';
-import { MapPin, ChevronRight, Mountain, Zap, Star, Leaf, Filter } from 'lucide-react';
+import { MapPin, Mountain, Zap, Star, Leaf } from 'lucide-react';
 import Link from 'next/link';
 
 const FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'temple', label: 'Jyotirlinga' },
+  { id: 'all', label: 'All Places' },
+  { id: 'temple', label: 'Jyotirlinga Shrines' },
   { id: 'heritage', label: 'UNESCO Heritage' },
   { id: 'experience', label: 'Experience' },
 ];
@@ -26,38 +26,38 @@ export default function PlacesPage() {
 
   useEffect(() => {
     gsap.fromTo('.place-card',
-      { opacity: 0, scale: 0.96 },
-      { opacity: 1, scale: 1, stagger: 0.07, duration: 0.4, ease: 'power3.out', delay: 0.1 }
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, stagger: 0.06, duration: 0.45, ease: 'power3.out' }
     );
   }, [filter]);
 
   const filtered = filter === 'all' ? PLACES : PLACES.filter(p => p.type === filter);
 
   return (
-    <div style={{ paddingTop: 'calc(var(--header-height) + 16px)', paddingBottom: 24 }}>
+    <div className="inner py-8">
 
       {/* Header */}
-      <div className="inner mb-5">
+      <div className="mb-6">
         <p className="label-sm">8 Destinations</p>
-        <h1 className="heading-lg">Places We're Visiting</h1>
-        <p className="body-sm mt-1">Heritage sites, Jyotirlingas, and unique experiences across Maharashtra</p>
+        <h1 className="heading-lg" style={{ marginTop: 2 }}>Places We're Visiting</h1>
+        <p className="body-sm mt-1">Sacred Jyotirlingas, UNESCO caves, and scenic vineyards across Maharashtra.</p>
       </div>
 
       {/* Filter chips */}
-      <div className="scroll-x mb-5" style={{ paddingLeft: 18, paddingRight: 18 }}>
+      <div className="scroll-x mb-6 pb-2">
         {FILTERS.map(f => (
           <button
             key={f.id}
             className="btn tap flex-shrink-0"
             style={{
               borderRadius: 999,
-              padding: '9px 18px',
+              padding: '10px 20px',
               fontSize: 13,
-              fontWeight: 700,
+              fontWeight: 800,
               background: filter === f.id ? 'var(--accent)' : 'var(--surface)',
-              color: filter === f.id ? '#fff' : 'var(--text-secondary)',
+              color: filter === f.id ? '#FFFFFF' : 'var(--text-secondary)',
               border: filter === f.id ? 'none' : '1px solid var(--border)',
-              boxShadow: filter === f.id ? '0 4px 20px rgba(59,130,246,0.3)' : 'var(--shadow-xs)',
+              boxShadow: filter === f.id ? '0 4px 16px rgba(59,130,246,0.3)' : 'var(--shadow-xs)',
             }}
             onClick={() => setFilter(f.id)}
           >
@@ -66,29 +66,24 @@ export default function PlacesPage() {
         ))}
       </div>
 
-      {/* Grid */}
-      <div
-        className="inner grid"
-        style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}
-      >
+      {/* Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((place) => (
-          <Link key={place.id} href={`/places/${place.slug}`} className="tap">
-            <div
-              className="place-card photo-card"
-              style={{ height: 220 }}
-            >
+          <Link key={place.id} href={`/places/${place.slug}`} className="tap block">
+            <div className="place-card photo-card" style={{ height: 260 }}>
               <img src={place.coverImage} alt={place.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               <div className="photo-card-overlay" />
 
-              <div className="absolute inset-0 flex flex-col justify-between p-3">
+              <div className="absolute inset-0 flex flex-col justify-between p-5">
                 {/* Top */}
                 <div className="flex items-start justify-between">
                   <div
                     style={{
-                      width: 32, height: 32, borderRadius: 10,
-                      background: `${place.accentColor}CC`,
+                      width: 36, height: 36, borderRadius: 12,
+                      background: `${place.accentColor}DD`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: '#fff', backdropFilter: 'blur(8px)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                     }}
                   >
                     <PlaceTypeIcon type={place.type} />
@@ -96,9 +91,9 @@ export default function PlacesPage() {
                   <div
                     className="pill pill-sm"
                     style={{
-                      background: 'rgba(0,0,0,0.45)', color: '#fff',
-                      backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)',
-                      fontSize: 9,
+                      background: 'rgba(0,0,0,0.5)', color: '#fff',
+                      backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)',
+                      fontSize: 10, padding: '4px 10px',
                     }}
                   >
                     Day {place.visitDay}
@@ -107,14 +102,14 @@ export default function PlacesPage() {
 
                 {/* Bottom */}
                 <div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 3 }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>
                     {place.typeLabel}
                   </div>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#fff', lineHeight: 1.3 }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#fff', lineHeight: 1.25, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
                     {place.name}
                   </div>
-                  <div className="flex items-center gap-1 mt-1" style={{ color: 'rgba(255,255,255,0.65)', fontSize: 10 }}>
-                    <MapPin size={9} /> {place.city}
+                  <div className="flex items-center gap-1.5 mt-1.5" style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>
+                    <MapPin size={11} /> {place.city}
                   </div>
                 </div>
               </div>
@@ -123,10 +118,10 @@ export default function PlacesPage() {
         ))}
       </div>
 
-      {/* Bottom summary */}
-      <div className="inner mt-6">
+      {/* Bottom Summary */}
+      <div className="mt-8">
         <div
-          className="p-4 rounded-3xl"
+          className="p-5 rounded-3xl"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}
         >
           <div className="grid grid-cols-3 gap-4 text-center">
@@ -136,8 +131,8 @@ export default function PlacesPage() {
               { val: '3', label: 'Other Spots', color: '#10B981' },
             ].map(s => (
               <div key={s.label}>
-                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: s.color, letterSpacing: '-0.04em' }}>{s.val}</div>
-                <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', marginTop: 2 }}>{s.label}</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 900, color: s.color, letterSpacing: '-0.04em' }}>{s.val}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', marginTop: 2 }}>{s.label}</div>
               </div>
             ))}
           </div>
