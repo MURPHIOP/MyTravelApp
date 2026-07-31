@@ -7,7 +7,7 @@ import Image from 'next/image';
 import {
   MapPin, Train, Hotel, Wallet, Compass, ArrowRight,
   ChevronRight, Calendar, Users, Zap, Clock,
-  Mountain, Waves, Leaf, Star, Map
+  Mountain, Waves, Leaf, Star, Map, LucideIcon
 } from 'lucide-react';
 import { ITINERARY, TRIP_CONFIG, HOTELS, TRAINS, PLACES, PLACE_IMAGES } from '@/lib/tripData';
 
@@ -90,7 +90,7 @@ function RouteChip({ code, active }: { code: string; active?: boolean }) {
 
 // ── Quick Link ────────────────────────────────────────────
 function QuickLink({ href, icon: Icon, label, sub, color, id }: {
-  href: string; icon: React.ElementType; label: string; sub: string; color: string; id: string;
+  href: string; icon: LucideIcon; label: string; sub: string; color: string; id: string;
 }) {
   return (
     <Link href={href} className="tap flex-shrink-0" id={id}>
