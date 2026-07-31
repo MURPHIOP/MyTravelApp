@@ -17,6 +17,7 @@ if (typeof window !== 'undefined') {
 
 // ── Countdown Hook ────────────────────────────────────────
 function useCountdown(target: string) {
+  const [mounted, setMounted] = useState(false);
   const calc = () => {
     const now = Date.now();
     const start = new Date(TRIP_CONFIG.departureDate).getTime();
@@ -34,10 +35,12 @@ function useCountdown(target: string) {
   };
   const [t, setT] = useState(calc());
   useEffect(() => {
+    setMounted(true);
     const id = setInterval(() => setT(calc()), 1000);
     return () => clearInterval(id);
   }, []);
-  return t;
+
+  return mounted ? t : { live: false, over: false, d: 0, h: 0, m: 0, s: 0 };
 }
 
 // ── Countdown Digit ──────────────────────────────────────
