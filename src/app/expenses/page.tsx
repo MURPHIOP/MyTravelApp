@@ -262,21 +262,28 @@ export default function ExpensesPage() {
         </div>
       </div>
 
-      {/* PIN Login Modal */}
+      {/* PIN Login Modal - CENTERED POPUP */}
       {showPin && (
-        <div className="bottom-sheet-overlay" onClick={() => setShowPin(false)}>
-          <div className="bottom-sheet p-6" onClick={e => e.stopPropagation()}>
-            <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: 'var(--border)' }} />
-            <div className="flex items-center gap-3 mb-5">
-              <div className="flex items-center justify-center w-10 h-10 rounded-2xl" style={{ background: 'var(--accent-light)' }}>
-                <Lock size={18} style={{ color: 'var(--accent)' }} />
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.68)', backdropFilter: 'blur(10px)' }}
+          onClick={() => setShowPin(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl p-6 shadow-2xl"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3.5 mb-4">
+              <div className="flex items-center justify-center w-11 h-11 rounded-2xl" style={{ background: 'var(--accent-light)' }}>
+                <Lock size={20} style={{ color: 'var(--accent)' }} />
               </div>
               <div>
                 <h3 className="heading-md">Family Head Access</h3>
-                <p className="body-sm">Enter your 4-digit PIN to add expenses</p>
+                <p className="body-sm" style={{ fontSize: 12 }}>Enter 4-digit PIN to manage expenses</p>
               </div>
             </div>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3.5">
               <input
                 type="password"
                 placeholder="Enter PIN (4 digits)"
@@ -287,11 +294,11 @@ export default function ExpensesPage() {
                 className="field"
                 style={{ letterSpacing: '0.3em', fontSize: 20, textAlign: 'center' }}
               />
-              <button className="btn btn-primary tap" style={{ borderRadius: 16, padding: '14px' }} onClick={handlePinLogin}>
+              <button className="btn btn-primary tap" style={{ borderRadius: 16, padding: '14px', fontSize: 15 }} onClick={handlePinLogin}>
                 Access Expense Manager
               </button>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', marginTop: 4 }}>
-                Mitra Family: 1234 &bull; Ghosh Family: 5678
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', marginTop: 2 }}>
+                Mitra Family: 1234 • Ghosh Family: 5678
               </p>
             </div>
           </div>

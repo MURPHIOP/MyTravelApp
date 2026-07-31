@@ -7,7 +7,7 @@ import Link from 'next/link';
 import {
   MapPin, Train, Hotel, Wallet, Compass, ArrowRight,
   ChevronRight, Calendar, Users, Zap, Clock,
-  Mountain, Star, Leaf, Map, Sparkles, ShieldCheck, LucideIcon
+  Mountain, Star, Leaf, Map, LucideIcon
 } from 'lucide-react';
 import { ITINERARY, TRIP_CONFIG, HOTELS, TRAINS, PLACES, PLACE_IMAGES } from '@/lib/tripData';
 
@@ -46,7 +46,7 @@ function useCountdown(target: string) {
 // ── Countdown Digit ──────────────────────────────────────
 function Digit({ val, label }: { val: number; label: string }) {
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1.5">
       <div
         className="flex items-center justify-center rounded-2xl"
         style={{
@@ -64,7 +64,7 @@ function Digit({ val, label }: { val: number; label: string }) {
       >
         {String(val).padStart(2, '0')}
       </div>
-      <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+      <span style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
         {label}
       </span>
     </div>
@@ -80,34 +80,33 @@ function PlaceTypeIcon({ type }: { type: string }) {
   return <Leaf {...props} />;
 }
 
-// ── Quick Link Card ───────────────────────────────────────
+// ── Quick Link Card - SQUARE ICON & CENTER ALIGNED ───────
 function QuickLinkCard({ href, icon: Icon, label, sub, color, id }: {
   href: string; icon: LucideIcon; label: string; sub: string; color: string; id: string;
 }) {
   return (
-    <Link href={href} className="tap flex-shrink-0" id={id}>
+    <Link href={href} className="tap flex-shrink-0 block" id={id}>
       <div
-        className="flex flex-col gap-3.5 transition-all duration-300 hover:-translate-y-1"
+        className="flex flex-col items-center justify-center text-center gap-3 p-4 transition-all duration-200 hover:-translate-y-1"
         style={{
-          width: 140,
+          width: 135,
           background: 'var(--surface)',
           border: '1px solid var(--border)',
           borderRadius: 22,
-          padding: '18px 16px',
           boxShadow: 'var(--shadow-sm)',
         }}
       >
         <div
-          className="flex items-center justify-center w-11 h-11 rounded-2xl"
+          className="flex items-center justify-center w-12 h-12 rounded-2xl flex-shrink-0"
           style={{ background: `${color}16`, color }}
         >
           <Icon size={22} strokeWidth={2} />
         </div>
         <div>
-          <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: 1.2 }}>
+          <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: 1.2 }}>
             {label}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginTop: 3 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginTop: 2 }}>
             {sub}
           </div>
         </div>
@@ -137,25 +136,20 @@ function SectionHeader({ label, title, href }: { label: string; title: string; h
 export default function HomePage() {
   const t = useCountdown(TRIP_CONFIG.departureDate);
   const heroRef = useRef<HTMLDivElement>(null);
-  const heroBgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Hero elements animation
       gsap.fromTo(
         '.hero-el',
         { opacity: 0, y: 24 },
         { opacity: 1, y: 0, duration: 0.7, stagger: 0.1, ease: 'power3.out' }
       );
-
-      // Section animations
       gsap.fromTo(
         '.home-section',
         { opacity: 0, y: 30 },
         { opacity: 1, y: 0, duration: 0.6, stagger: 0.15, ease: 'power3.out', delay: 0.3 }
       );
     });
-
     return () => ctx.revert();
   }, []);
 
@@ -168,7 +162,7 @@ export default function HomePage() {
   return (
     <div style={{ minHeight: '100dvh' }}>
 
-      {/* ─── HERO WITH PARALLAX ──────────────────────── */}
+      {/* ─── HERO BANNER ──────────────────────────────── */}
       <div
         ref={heroRef}
         className="relative overflow-hidden"
@@ -178,13 +172,11 @@ export default function HomePage() {
           paddingBottom: 40,
         }}
       >
-        {/* Parallax Background photo */}
         <div
-          ref={heroBgRef}
-          className="absolute inset-0 z-0 scale-105 transition-transform duration-700"
+          className="absolute inset-0 z-0"
           style={{
             backgroundImage: `
-              linear-gradient(180deg, rgba(7,11,20,0.3) 0%, rgba(7,11,20,0.65) 55%, rgba(7,11,20,0.98) 100%),
+              linear-gradient(180deg, rgba(7,11,20,0.35) 0%, rgba(7,11,20,0.7) 50%, rgba(7,11,20,0.98) 100%),
               url(${PLACE_IMAGES.hero})
             `,
             backgroundSize: 'cover',
@@ -192,21 +184,20 @@ export default function HomePage() {
           }}
         />
 
-        {/* Hero Content Container */}
         <div className="relative z-10 inner flex flex-col gap-5">
 
-          {/* Status pill */}
+          {/* Status badge */}
           <div className="hero-el">
             <div
               className="pill pill-sm inline-flex items-center gap-2"
               style={{
-                background: t.live ? 'rgba(16,185,129,0.9)' : 'rgba(245,158,11,0.9)',
+                background: t.live ? 'rgba(16,185,129,0.95)' : 'rgba(245,158,11,0.95)',
                 color: '#FFFFFF',
-                border: '1px solid rgba(255,255,255,0.25)',
-                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                backdropFilter: 'blur(16px)',
                 fontSize: 11,
                 padding: '6px 14px',
-                boxShadow: '0 8px 20px rgba(0,0,0,0.25)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
               }}
             >
               <span
@@ -217,16 +208,16 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Title */}
+          {/* Main Title */}
           <div className="hero-el">
             <h1
               style={{
-                fontSize: 'clamp(2rem, 6vw, 3rem)',
+                fontSize: 'clamp(2.1rem, 5.5vw, 3.2rem)',
                 fontWeight: 900,
                 color: '#FFFFFF',
                 lineHeight: 1.1,
                 letterSpacing: '-0.04em',
-                textShadow: '0 4px 20px rgba(0,0,0,0.4)',
+                textShadow: '0 4px 24px rgba(0,0,0,0.5)',
               }}
             >
               Ancient{' '}
@@ -242,8 +233,8 @@ export default function HomePage() {
               </span>{' '}
               Tour
             </h1>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 8, fontWeight: 500, lineHeight: 1.5 }}>
-              Mitra Family &bull; Ghosh Family &bull; {TRIP_CONFIG.totalDays} Days &bull; 3 Jyotirlingas &bull; Oct 16, 2026
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', marginTop: 8, fontWeight: 500, lineHeight: 1.5 }}>
+              Mitra Family • Ghosh Family • 11 Days Tour • Starts Oct 16, 2026
             </p>
           </div>
 
@@ -251,7 +242,7 @@ export default function HomePage() {
           <div className="hero-el flex items-center gap-2 flex-wrap">
             {['HWH', '→', 'JLG', '→', 'AUR', '→', 'SRD', '→', 'NK', '→', 'PUNE', '→', 'HWH'].map((c, i) =>
               c === '→' ? (
-                <span key={i} style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>→</span>
+                <span key={i} style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>→</span>
               ) : (
                 <span
                   key={i}
@@ -260,13 +251,13 @@ export default function HomePage() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     borderRadius: 10,
-                    padding: '4px 10px',
-                    background: c === 'HWH' ? 'rgba(59,130,246,0.9)' : 'rgba(255,255,255,0.15)',
-                    border: `1px solid ${c === 'HWH' ? 'rgba(59,130,246,0.6)' : 'rgba(255,255,255,0.2)'}`,
-                    fontSize: 11,
+                    padding: '5px 12px',
+                    background: c === 'HWH' ? 'rgba(59,130,246,0.9)' : 'rgba(255,255,255,0.16)',
+                    border: `1px solid ${c === 'HWH' ? 'rgba(59,130,246,0.6)' : 'rgba(255,255,255,0.22)'}`,
+                    fontSize: 12,
                     fontWeight: 800,
                     color: '#FFFFFF',
-                    backdropFilter: 'blur(8px)',
+                    backdropFilter: 'blur(10px)',
                   }}
                 >
                   {c}
@@ -277,38 +268,38 @@ export default function HomePage() {
 
           {/* Countdown timer */}
           {!t.live && !t.over && (
-            <div className="hero-el flex items-center gap-3.5 mt-1">
+            <div className="hero-el flex items-center gap-4 mt-1">
               <Digit val={t.d} label="Days" />
-              <span style={{ fontSize: '1.5rem', color: 'rgba(255,255,255,0.3)', marginBottom: 20 }}>:</span>
+              <span style={{ fontSize: '1.5rem', color: 'rgba(255,255,255,0.35)', marginBottom: 22 }}>:</span>
               <Digit val={t.h} label="Hours" />
-              <span style={{ fontSize: '1.5rem', color: 'rgba(255,255,255,0.3)', marginBottom: 20 }}>:</span>
+              <span style={{ fontSize: '1.5rem', color: 'rgba(255,255,255,0.35)', marginBottom: 22 }}>:</span>
               <Digit val={t.m} label="Mins" />
-              <span style={{ fontSize: '1.5rem', color: 'rgba(255,255,255,0.3)', marginBottom: 20 }}>:</span>
+              <span style={{ fontSize: '1.5rem', color: 'rgba(255,255,255,0.35)', marginBottom: 22 }}>:</span>
               <Digit val={t.s} label="Secs" />
             </div>
           )}
 
-          {/* Families */}
-          <div className="hero-el flex items-center gap-4 pt-2">
+          {/* Family Heads */}
+          <div className="hero-el flex items-center gap-6 pt-1">
             {TRIP_CONFIG.families.map((f) => (
-              <div key={f.id} className="flex items-center gap-2.5">
+              <div key={f.id} className="flex items-center gap-3">
                 <div
                   style={{
-                    width: 34, height: 34, borderRadius: '50%',
+                    width: 36, height: 36, borderRadius: '50%',
                     background: f.color,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 12, fontWeight: 800, color: '#FFFFFF',
+                    fontSize: 12, fontWeight: 900, color: '#FFFFFF',
                     border: '2px solid rgba(255,255,255,0.4)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
                   }}
                 >
                   {f.avatar}
                 </div>
                 <div>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF', display: 'block', lineHeight: 1.2 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#FFFFFF', display: 'block', lineHeight: 1.2 }}>
                     {f.family}
                   </span>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', fontWeight: 500 }}>
                     {f.head}
                   </span>
                 </div>
@@ -318,13 +309,13 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ─── BODY CONTAINER ────────────────────────── */}
-      <div className="inner flex flex-col gap-10 py-8" style={{ paddingBottom: 32 }}>
+      {/* ─── MAIN CONTENT AREA ────────────────────────── */}
+      <div className="inner flex flex-col gap-9 py-6" style={{ paddingBottom: 40 }}>
 
-        {/* Quick Access Grid */}
+        {/* Quick Access SLIDING Strip (Square icons + Center aligned) */}
         <div className="home-section">
-          <p className="label-sm mb-3">Quick Navigation</p>
-          <div className="scroll-x pb-2">
+          <p className="label-sm mb-3">Quick Access</p>
+          <div className="scroll-x">
             <QuickLinkCard href="/itinerary" icon={Map} label="Journey Map" sub="11 Days Plan" color="#3B82F6" id="ql-itinerary" />
             <QuickLinkCard href="/trains" icon={Train} label="Train Info" sub="2 Journeys" color="#8B5CF6" id="ql-trains" />
             <QuickLinkCard href="/hotels" icon={Hotel} label="Hotels" sub="5 Stays" color="#F59E0B" id="ql-hotels" />
@@ -333,150 +324,118 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Today's highlight (if live) */}
-        {t.live && todayDay && (
-          <div className="home-section">
-            <div className="card-elevated overflow-hidden" style={{ borderRadius: 28 }}>
-              <div
-                className="relative"
-                style={{
-                  height: 180,
-                  backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.85)), url(${todayDay.coverImage})`,
-                  backgroundSize: 'cover', backgroundPosition: 'center',
-                }}
-              >
-                <div className="absolute bottom-4 left-5 right-5">
-                  <div className="pill pill-sm pill-green mb-2">Day {todayDay.day} — Happening Today</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff' }}>{todayDay.title}</div>
-                  <div className="flex items-center gap-1 mt-1" style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>
-                    <MapPin size={12} /> {todayDay.location}
-                  </div>
-                </div>
-              </div>
-              <div className="p-5 flex flex-col gap-3">
-                {todayDay.activities.slice(0, 3).map((a, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', minWidth: 44 }}>{a.time}</span>
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: 'var(--accent)' }} />
-                    <span style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 500 }}>{a.title}</span>
-                  </div>
-                ))}
-                <Link href="/itinerary" className="flex items-center gap-1.5 mt-2" style={{ color: 'var(--accent)', fontSize: 14, fontWeight: 700 }}>
-                  View Full Schedule <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Upcoming Train Card - CLEAN RESPONSIVE DESIGN */}
+        {/* Departure Train Card - REFINED MARGINS & COMPACT PROPORTIONS */}
         <div className="home-section">
           <SectionHeader label="Train Journey" title="Departure Train" href="/trains" />
           <Link href="/trains" className="tap block">
             <div
-              className="relative overflow-hidden rounded-3xl p-6"
+              className="relative overflow-hidden rounded-3xl p-5 sm:p-6"
               style={{
-                background: 'linear-gradient(135deg, #1E40AF 0%, #4338CA 100%)',
-                boxShadow: '0 16px 48px rgba(30,64,175,0.35)',
+                background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
                 color: '#FFFFFF',
+                boxShadow: '0 12px 36px rgba(30,64,175,0.25)',
               }}
             >
-              <div className="orb" style={{ width: 220, height: 220, top: -80, right: -60, background: 'radial-gradient(circle, rgba(99,102,241,0.5) 0%, transparent 70%)' }} />
-
-              {/* Train Header */}
-              <div className="flex items-center justify-between mb-6 relative z-10 gap-3">
-                <div>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.08em' }}>
+              {/* Header Row */}
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex flex-col">
+                  <span style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                     TRAIN #{TRAINS[0].number}
                   </span>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#FFFFFF', marginTop: 2 }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#FFFFFF', marginTop: 2, lineHeight: 1.2 }}>
                     {TRAINS[0].name}
                   </h3>
                 </div>
-                <div
-                  className="pill pill-sm"
-                  style={{
-                    background: 'rgba(255,255,255,0.18)',
-                    color: '#FFFFFF',
-                    border: '1px solid rgba(255,255,255,0.25)',
-                    padding: '6px 12px',
-                    fontSize: 11,
-                  }}
-                >
-                  {TRAINS[0].classes.join(' &bull; ')}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {TRAINS[0].classes.map((c) => (
+                    <span
+                      key={c}
+                      style={{
+                        background: 'rgba(255,255,255,0.2)',
+                        borderRadius: 8,
+                        padding: '3px 9px',
+                        fontSize: 11,
+                        fontWeight: 800,
+                        color: '#FFFFFF',
+                        border: '1px solid rgba(255,255,255,0.3)',
+                      }}
+                    >
+                      {c}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              {/* Stations & Duration Row */}
-              <div className="grid grid-cols-3 items-center gap-2 relative z-10 mb-6 text-center">
-                {/* From Station */}
-                <div className="text-left">
-                  <div style={{ fontSize: '2.25rem', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.05em', lineHeight: 1 }}>
+              {/* Station Row */}
+              <div className="flex items-center justify-between gap-3 my-4">
+                {/* Departure */}
+                <div className="flex flex-col items-start min-w-[90px]">
+                  <span style={{ fontSize: '1.85rem', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.04em', lineHeight: 1 }}>
                     {TRAINS[0].fromCode}
-                  </div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: 500, marginTop: 4 }}>
+                  </span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>
                     {TRAINS[0].from}
-                  </div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#FFFFFF', marginTop: 6 }}>
+                  </span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF', marginTop: 6 }}>
                     {TRAINS[0].departure}
-                  </div>
+                  </span>
                 </div>
 
-                {/* Duration Line */}
-                <div className="flex flex-col items-center gap-1.5 px-2">
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 700 }}>
-                    {TRAINS[0].duration}
+                {/* Center Line */}
+                <div className="flex-1 flex flex-col items-center px-2">
+                  <span className="pill pill-sm" style={{ background: 'rgba(255,255,255,0.2)', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.25)', backdropFilter: 'blur(8px)', fontSize: 10, padding: '3px 10px', marginBottom: 6 }}>
+                    <Clock size={11} /> {TRAINS[0].duration}
                   </span>
                   <div className="flex items-center w-full gap-2">
                     <div className="flex-1 h-0.5" style={{ background: 'rgba(255,255,255,0.3)' }} />
-                    <Train size={18} color="#FFFFFF" />
+                    <Train size={16} color="#FFFFFF" className="flex-shrink-0" />
                     <div className="flex-1 h-0.5" style={{ background: 'rgba(255,255,255,0.3)' }} />
                   </div>
                 </div>
 
-                {/* To Station */}
-                <div className="text-right">
-                  <div style={{ fontSize: '2.25rem', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.05em', lineHeight: 1 }}>
+                {/* Arrival */}
+                <div className="flex flex-col items-end text-right min-w-[90px]">
+                  <span style={{ fontSize: '1.85rem', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.04em', lineHeight: 1 }}>
                     {TRAINS[0].toCode}
-                  </div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: 500, marginTop: 4 }}>
+                  </span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>
                     {TRAINS[0].to}
-                  </div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#FFFFFF', marginTop: 6 }}>
+                  </span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF', marginTop: 6 }}>
                     {TRAINS[0].arrival}
-                  </div>
+                  </span>
                 </div>
               </div>
 
-              {/* Bottom Info Bar */}
+              {/* Footer Row */}
               <div
-                className="flex items-center justify-between pt-4 relative z-10"
-                style={{ borderTop: '1px solid rgba(255,255,255,0.18)' }}
+                className="flex items-center justify-between pt-3.5 mt-3 text-xs font-semibold text-white/90"
+                style={{ borderTop: '1px solid rgba(255,255,255,0.2)' }}
               >
-                <div className="flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13 }}>
-                  <Calendar size={14} />
-                  <span>Departs: <strong>{TRAINS[0].departureDate}</strong></span>
+                <div className="flex items-center gap-1.5">
+                  <Calendar size={13} style={{ color: 'rgba(255,255,255,0.75)' }} />
+                  <span>Departs: <strong style={{ color: '#FFFFFF' }}>{TRAINS[0].departureDate}</strong></span>
                 </div>
-                <div className="flex items-center gap-1" style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 800 }}>
-                  View Ticket <ChevronRight size={15} />
+                <div className="flex items-center gap-1 font-extrabold" style={{ color: '#FFFFFF' }}>
+                  <span>View Ticket &amp; Passes</span>
+                  <ChevronRight size={14} />
                 </div>
               </div>
             </div>
           </Link>
         </div>
 
-        {/* First Hotel Card - CLEAN DESIGN */}
+        {/* First Hotel Card */}
         <div className="home-section">
           <SectionHeader label="First Accommodation" title="Hotel Stay" href="/hotels" />
           <Link href="/hotels" className="tap block">
             <div className="card-elevated overflow-hidden" style={{ borderRadius: 28 }}>
-              {/* Hotel Header Image */}
               <div
                 className="relative"
                 style={{
                   height: 200,
                   backgroundImage: `
-                    linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.92) 100%),
+                    linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 45%, rgba(0,0,0,0.92) 100%),
                     url(${HOTELS[0].coverImage})
                   `,
                   backgroundSize: 'cover',
@@ -487,14 +446,14 @@ export default function HomePage() {
                   <div
                     className="pill pill-sm"
                     style={{
-                      background: 'rgba(245,158,11,0.9)',
+                      background: 'rgba(245,158,11,0.95)',
                       color: '#FFFFFF',
                       backdropFilter: 'blur(12px)',
                       border: '1px solid rgba(255,255,255,0.25)',
                       padding: '6px 12px',
                     }}
                   >
-                    <Calendar size={11} /> {HOTELS[0].nights} Night Stay
+                    <Calendar size={12} /> {HOTELS[0].nights} Night Stay
                   </div>
                 </div>
                 <div className="absolute bottom-4 left-5 right-5">
@@ -504,25 +463,24 @@ export default function HomePage() {
                       fontWeight: 900,
                       color: '#FFFFFF',
                       lineHeight: 1.2,
-                      textShadow: '0 2px 10px rgba(0,0,0,0.5)',
+                      textShadow: '0 2px 12px rgba(0,0,0,0.6)',
                     }}
                   >
                     {HOTELS[0].name}
                   </h3>
                   <div className="flex items-center gap-1.5 mt-1" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>
-                    <MapPin size={12} /> {HOTELS[0].city}
+                    <MapPin size={13} /> {HOTELS[0].city}
                   </div>
                 </div>
               </div>
 
-              {/* Hotel Info Body */}
               <div className="p-5">
-                <div className="flex items-center gap-2 flex-wrap mb-4">
+                <div className="flex items-center gap-2 flex-wrap mb-3.5">
                   {HOTELS[0].amenities.map((a) => (
                     <span key={a} className="pill pill-sm pill-muted">{a}</span>
                   ))}
                 </div>
-                <div className="flex items-center justify-between pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                <div className="flex flex-wrap items-center justify-between pt-3 gap-2" style={{ borderTop: '1px solid var(--border)' }}>
                   <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>
                     Check-in: <strong>{HOTELS[0].checkIn}</strong>
                   </span>
@@ -542,14 +500,14 @@ export default function HomePage() {
             {ITINERARY.slice(0, 5).map((day, i) => (
               <Link key={day.day} href="/itinerary" className="tap block">
                 <div
-                  className="flex items-center gap-4 px-5 py-4 transition-colors duration-150"
+                  className="flex items-center gap-4 px-5 py-3.5 transition-colors duration-150"
                   style={{ borderBottom: i < 4 ? '1px solid var(--border)' : 'none' }}
                 >
                   <div
                     style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: 18,
+                      width: 50,
+                      height: 50,
+                      borderRadius: 16,
                       overflow: 'hidden',
                       flexShrink: 0,
                       backgroundImage: `url(${day.coverImage})`,
@@ -559,7 +517,7 @@ export default function HomePage() {
                   />
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-0.5">
                       <span className="pill pill-sm pill-muted" style={{ fontSize: 10 }}>Day {day.day}</span>
                       <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>{day.date}</span>
                     </div>
@@ -595,20 +553,23 @@ export default function HomePage() {
           <SectionHeader label="Must-Visit Spots" title="Places &amp; Temples" href="/places" />
           <div className="scroll-x">
             {PLACES.map((place) => (
-              <Link key={place.id} href={`/places/${place.slug}`} className="tap block">
-                <div className="photo-card" style={{ width: 180, height: 230 }}>
+              <Link key={place.id} href={`/places/${place.slug}`} className="tap block flex-shrink-0">
+                <div className="photo-card" style={{ width: 190, height: 250 }}>
                   <img src={place.coverImage} alt={place.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div className="photo-card-overlay" />
 
                   <div className="absolute inset-0 flex flex-col justify-end p-4">
-                    <div className="pill pill-sm mb-2" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)', alignSelf: 'flex-start' }}>
+                    <div className="pill pill-sm mb-2" style={{ background: 'rgba(255,255,255,0.22)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)', alignSelf: 'flex-start', fontSize: 10 }}>
                       <PlaceTypeIcon type={place.type} />
                       {place.typeLabel}
                     </div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', lineHeight: 1.3 }}>
+                    <div
+                      className="line-clamp-2"
+                      style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', lineHeight: 1.3 }}
+                    >
                       {place.name}
                     </div>
-                    <div className="flex items-center gap-1 mt-1" style={{ color: 'rgba(255,255,255,0.75)', fontSize: 11 }}>
+                    <div className="flex items-center gap-1 mt-1.5" style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>
                       <MapPin size={10} /> {place.city}
                     </div>
                   </div>
@@ -618,50 +579,32 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Track Trip Expenses Banner - FIXED OVERFLOW & LAYOUT */}
+        {/* Track Trip Expenses Banner - SINGLE CLICKABLE CARD, ONLY NAME, NO SUBTEXT */}
         <div className="home-section">
-          <div
-            className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 rounded-3xl gap-4"
-            style={{
-              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              boxShadow: 'var(--shadow-md)',
-              color: '#FFFFFF',
-            }}
-          >
-            <div className="flex items-start gap-4">
-              <div
-                className="flex items-center justify-center w-12 h-12 rounded-2xl flex-shrink-0"
-                style={{ background: 'rgba(59,130,246,0.2)', color: '#3B82F6' }}
-              >
-                <Wallet size={24} strokeWidth={2} />
-              </div>
-              <div>
+          <Link href="/expenses" className="tap block">
+            <div
+              className="flex items-center justify-between p-5 rounded-3xl"
+              style={{
+                background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+                border: '1px solid rgba(255,255,255,0.14)',
+                boxShadow: 'var(--shadow-md)',
+                color: '#FFFFFF',
+              }}
+            >
+              <div className="flex items-center gap-3.5">
+                <div
+                  className="flex items-center justify-center w-11 h-11 rounded-2xl flex-shrink-0"
+                  style={{ background: 'rgba(59,130,246,0.2)', color: '#3B82F6' }}
+                >
+                  <Wallet size={22} strokeWidth={2} />
+                </div>
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
                   Auto Budget &amp; Split Calculator
                 </h3>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 3, lineHeight: 1.5 }}>
-                  Mitra Family &bull; Ghosh Family &bull; Real-time settlement &amp; downloadable invoices
-                </p>
               </div>
+              <ArrowRight size={20} style={{ color: '#3B82F6', flexShrink: 0 }} />
             </div>
-            <Link href="/expenses" className="tap flex-shrink-0 w-full sm:w-auto">
-              <div
-                className="flex items-center justify-center gap-2"
-                style={{
-                  background: 'var(--accent-gradient)',
-                  borderRadius: 16,
-                  padding: '12px 24px',
-                  color: '#FFFFFF',
-                  fontSize: 14,
-                  fontWeight: 800,
-                  boxShadow: '0 8px 24px rgba(59,130,246,0.4)',
-                }}
-              >
-                Open Calculator <ArrowRight size={16} />
-              </div>
-            </Link>
-          </div>
+          </Link>
         </div>
 
       </div>

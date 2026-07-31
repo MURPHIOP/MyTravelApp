@@ -100,8 +100,8 @@ export default function ItineraryPage() {
           )}
         </div>
 
-        <div ref={timelineRef} className="relative flex flex-col gap-4">
-          <div className="timeline-line" />
+        <div ref={timelineRef} className="relative flex flex-col gap-5">
+          <div className="timeline-line" style={{ top: 52 }} />
 
           {ITINERARY.map((day) => {
             const isToday = today === day.day;
@@ -111,7 +111,7 @@ export default function ItineraryPage() {
             return (
               <div key={day.day} className="day-card">
                 <div
-                  className="flex items-start gap-4 p-5 rounded-3xl tap transition-all duration-200"
+                  className="flex items-start gap-4 p-5 sm:p-6 rounded-3xl tap transition-all duration-200"
                   style={{
                     background: isToday
                       ? 'var(--accent-light)'
@@ -134,7 +134,7 @@ export default function ItineraryPage() {
                   <div className="flex flex-col items-center gap-2 flex-shrink-0">
                     <div
                       style={{
-                        width: 54, height: 54, borderRadius: 18, overflow: 'hidden',
+                        width: 52, height: 52, borderRadius: 16, overflow: 'hidden',
                         backgroundImage: `url(${day.coverImage})`,
                         backgroundSize: 'cover', backgroundPosition: 'center',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
@@ -145,7 +145,7 @@ export default function ItineraryPage() {
                       style={{
                         background: isToday ? 'var(--accent)' : 'var(--surface-2)',
                         color: isToday ? '#FFFFFF' : 'var(--text-muted)',
-                        fontSize: 10, padding: '3px 10px', fontWeight: 800,
+                        fontSize: 10, padding: '3px 9px', fontWeight: 800,
                         border: '1px solid var(--border)',
                       }}
                     >
@@ -157,17 +157,17 @@ export default function ItineraryPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div style={{ fontWeight: 900, fontSize: '1.05rem', color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                        <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: 1.3 }}>
                           {day.title}
                         </div>
                         <div className="flex items-center gap-1.5 mt-1">
                           <MapPin size={12} style={{ color: 'var(--accent)', flexShrink: 0 }} />
                           <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{day.location}</span>
-                          <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>&bull;</span>
+                          <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>•</span>
                           <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{day.date}</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', flexShrink: 0 }}>
                         {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                       </div>
                     </div>

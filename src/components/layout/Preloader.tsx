@@ -77,7 +77,7 @@ export default function Preloader() {
             MyTravelApp
           </h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4, fontWeight: 500 }}>
-            Ancient Maharashtra Tour &bull; Mitra &amp; Ghosh Family
+            Ancient Maharashtra Tour • Mitra &amp; Ghosh Family
           </p>
         </div>
 
