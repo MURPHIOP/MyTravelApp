@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { PLACES } from '@/lib/tripData';
-import { MapPin, Mountain, Zap, Star, Leaf } from 'lucide-react';
+import { MapPin, Mountain, Zap, Star, Leaf, Clock, Ticket, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 const FILTERS = [
@@ -40,7 +40,7 @@ export default function PlacesPage() {
       <div className="mb-6">
         <p className="label-sm">8 Destinations</p>
         <h1 className="heading-lg" style={{ marginTop: 2 }}>Places We're Visiting</h1>
-        <p className="body-sm mt-1">Sacred Jyotirlingas, UNESCO caves, and scenic vineyards across Maharashtra.</p>
+        <p className="body-sm mt-1">Detailed guides, historical backgrounds, opening hours, entry fees &amp; travel tips for all tour spots.</p>
       </div>
 
       {/* Filter chips */}
@@ -66,59 +66,89 @@ export default function PlacesPage() {
         ))}
       </div>
 
-      {/* Responsive Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {/* Responsive Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.map((place) => (
           <Link key={place.id} href={`/places/${place.slug}`} className="tap block">
-            <div className="place-card photo-card" style={{ height: 260 }}>
-              <img src={place.coverImage} alt={place.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <div className="photo-card-overlay" />
+            <div className="place-card card-elevated overflow-hidden" style={{ borderRadius: 28 }}>
+              
+              {/* Photo Header */}
+              <div className="photo-card relative" style={{ height: 220, borderRadius: 0 }}>
+                <img src={place.coverImage} alt={place.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div className="photo-card-overlay" />
 
-              <div className="absolute inset-0 flex flex-col justify-between p-5">
-                {/* Top */}
-                <div className="flex items-start justify-between">
-                  <div
-                    style={{
-                      width: 36, height: 36, borderRadius: 12,
-                      background: `${place.accentColor}DD`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: '#fff', backdropFilter: 'blur(8px)',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                    }}
-                  >
-                    <PlaceTypeIcon type={place.type} />
+                <div className="absolute inset-0 flex flex-col justify-between p-5">
+                  <div className="flex items-start justify-between">
+                    <div
+                      style={{
+                        width: 36, height: 36, borderRadius: 12,
+                        background: `${place.accentColor}DD`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff', backdropFilter: 'blur(8px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                      }}
+                    >
+                      <PlaceTypeIcon type={place.type} />
+                    </div>
+                    <div
+                      className="pill pill-sm"
+                      style={{
+                        background: 'rgba(0,0,0,0.5)', color: '#fff',
+                        backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)',
+                        fontSize: 10, padding: '4px 10px',
+                      }}
+                    >
+                      Day {place.visitDay}
+                    </div>
                   </div>
-                  <div
-                    className="pill pill-sm"
-                    style={{
-                      background: 'rgba(0,0,0,0.5)', color: '#fff',
-                      backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)',
-                      fontSize: 10, padding: '4px 10px',
-                    }}
-                  >
-                    Day {place.visitDay}
-                  </div>
-                </div>
 
-                {/* Bottom */}
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>
-                    {place.typeLabel}
-                  </div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#fff', lineHeight: 1.25, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
-                    {place.name}
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-1.5" style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>
-                    <MapPin size={11} /> {place.city}
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>
+                      {place.typeLabel}
+                    </div>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', lineHeight: 1.25, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+                      {place.name}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1.5" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>
+                      <MapPin size={11} /> {place.city}
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {/* Card Footer Preview */}
+              <div className="p-5 flex flex-col gap-3">
+                <div className="flex items-center justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <div className="flex items-center gap-1.5">
+                    <Clock size={13} style={{ color: 'var(--accent)' }} />
+                    <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>
+                      {place.timings}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Ticket size={13} style={{ color: '#F59E0B' }} />
+                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {place.entryFee.split('|')[0]}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>
+                    {place.keyAttractions.length} Main Attractions Inside
+                  </span>
+                  <div className="flex items-center gap-1" style={{ fontSize: 12, fontWeight: 800, color: 'var(--accent)' }}>
+                    Read Guide <ArrowRight size={13} />
+                  </div>
+                </div>
+              </div>
+
             </div>
           </Link>
         ))}
       </div>
 
-      {/* Bottom Summary */}
+      {/* Bottom Summary Bar */}
       <div className="mt-8">
         <div
           className="p-5 rounded-3xl"
