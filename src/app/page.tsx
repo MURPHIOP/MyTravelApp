@@ -9,7 +9,7 @@ import { MapPin, Train, Hotel, Clock, Calendar, ChevronRight, Wallet } from 'luc
 
 // ── 3D Roadmap Component ──────────────────────────────────
 function Roadmap3D() {
-  const groupRef = useRef<any>();
+  const groupRef = useRef<any>(null);
   const [currentDayIdx, setCurrentDayIdx] = useState(0);
   
   useEffect(() => {
