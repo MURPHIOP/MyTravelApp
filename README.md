@@ -15,3 +15,15 @@ Because ephemeral serverless environments destroy the local filesystem on every 
 
 ### Recommended Deployment
 Deploy this via Docker, a dedicated VPS (DigitalOcean Droplet, AWS EC2, Hetzner), or any containerized environment with persistent volume claims (Kubernetes PVC) attached to the application's root directory.
+
+## Login Credentials
+
+For testing the Role-Based Access Control (RBAC), you can use the following hardcoded credentials:
+
+**Admin Access (FAMILY_HEAD)**
+- **Username:** `admin`
+- **Password:** `mitraghosh2026`
+
+**Member Access (MEMBER)**
+- **Username:** `family`
+- **Password:** `maharashtra`
