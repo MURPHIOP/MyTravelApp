@@ -12,7 +12,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   if (pathname?.startsWith('/auth')) return <>{children}</>;
 
   return (
-    <div className="relative w-full max-w-[500px] mx-auto min-h-[100dvh] bg-[var(--bg)] shadow-2xl overflow-x-hidden">
+    <div className="relative w-full min-h-[100dvh] bg-[var(--bg)] shadow-2xl overflow-x-hidden">
       
       {/* ── MAIN CONTENT AREA ── */}
       <AnimatePresence mode="wait">

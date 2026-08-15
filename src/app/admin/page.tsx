@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldAlert, Radio, FileText, Upload, Plus, Users, Bell, ChevronRight, X } from 'lucide-react';
+import { ShieldAlert, Radio, FileText, Upload, Plus, Users, Bell, ChevronRight } from 'lucide-react';
 import TactileButton from '@/components/ui/TactileButton';
 import BottomSheet from '@/components/ui/BottomSheet';
 import FloatingActionButton from '@/components/ui/FloatingActionButton';

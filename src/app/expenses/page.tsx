@@ -6,7 +6,7 @@ import {
   IndianRupee, Plus, Download, Train, Hotel, 
   UtensilsCrossed, Ticket, ShoppingBag, Layers 
 } from 'lucide-react';
-import { TRIP_CONFIG, EXPENSE_CATEGORIES, ExpenseCategoryType } from '@/lib/tripData';
+import { TRIP_CONFIG, ExpenseCategoryType } from '@/lib/tripData';
 import BottomSheet from '@/components/ui/BottomSheet';
 import TactileButton from '@/components/ui/TactileButton';
 import FloatingActionButton from '@/components/ui/FloatingActionButton';
@@ -42,13 +42,13 @@ export default function LedgerPage() {
 
   useEffect(() => {
     const stored = localStorage.getItem('mt-expenses');
-    if (stored) setExpenses(JSON.parse(stored));
+    if (stored) setTimeout(() => setExpenses(JSON.parse(stored)), 0);
     else {
       // Mock some data if empty to show UI
-      setExpenses([
+      setTimeout(() => setExpenses([
         { id: '1', paidBy: 'f1', familyName: 'Mitra', amount: 4800, description: 'Train Tickets', category: 'transport', date: '16 Oct', splitAmong: ['f1','f2'], perHead: 2400 },
         { id: '2', paidBy: 'f2', familyName: 'Ghosh', amount: 3200, description: 'Dinner Ajanta', category: 'food', date: '16 Oct', splitAmong: ['f1','f2'], perHead: 1600 }
-      ]);
+      ]), 0);
     }
   }, []);
 
@@ -144,7 +144,7 @@ export default function LedgerPage() {
           </div>
 
           <div className="space-y-3">
-            {expenses.map((exp, idx) => (
+            {expenses.map((exp) => (
               <div key={exp.id} className="mat-paper p-4 flex items-center gap-3 transition-transform active:scale-95">
                 <div className="w-10 h-10 shrink-0 rounded-xl bg-[var(--surface-2)] flex items-center justify-center text-[var(--text-secondary)]">
                   <CatIcon cat={exp.category} />

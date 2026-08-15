@@ -40,7 +40,7 @@ export async function middleware(request: NextRequest) {
       if (payload.role !== 'FAMILY_HEAD') {
         return NextResponse.redirect(new URL('/', request.url));
       }
-    } catch (e) {
+    } catch {
       // Invalid token
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }

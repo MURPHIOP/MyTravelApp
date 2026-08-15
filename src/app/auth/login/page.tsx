@@ -30,7 +30,7 @@ export default function LoginPage() {
         setError(data.error || 'Login failed');
         setLoading(false);
       }
-    } catch (err) {
+    } catch {
       setError('Network error');
       setLoading(false);
     }
