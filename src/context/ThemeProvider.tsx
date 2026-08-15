@@ -22,7 +22,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem('travel-theme') as Theme | null;
     const initial: Theme = saved ?? 'dark';
-    setTheme(initial);
+    setTimeout(() => setTheme(initial), 0);
     document.documentElement.setAttribute('data-theme', initial);
   }, []);
 

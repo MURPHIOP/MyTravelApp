@@ -49,19 +49,19 @@ export const TRIP_CONFIG = {
 
 export const PLACE_IMAGES: Record<string, string> = {
   hero: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1400&q=85&fit=crop',
-  ajanta: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=900&q=80&fit=crop',
-  ellora: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?w=900&q=80&fit=crop',
-  grishneshwar: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=900&q=80&fit=crop',
-  shirdi: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=900&q=80&fit=crop',
-  trimbakeshwar: 'https://images.unsplash.com/photo-1517825738774-7de9363ef735?w=900&q=80&fit=crop',
-  nashik: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=900&q=80&fit=crop',
-  bhimashankar: 'https://images.unsplash.com/photo-1567407374030-c1e4b2a838c4?w=900&q=80&fit=crop',
-  panchvati: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=900&q=80&fit=crop',
-  sula: 'https://images.unsplash.com/photo-1470598211988-3e728f1e8699?w=900&q=80&fit=crop',
+  ajanta: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Ajanta_Caves_-_Cave_26.jpg/1280px-Ajanta_Caves_-_Cave_26.jpg',
+  ellora: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Kailash_Temple%2C_Ellora_Caves.jpg/1280px-Kailash_Temple%2C_Ellora_Caves.jpg',
+  grishneshwar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Grishneshwar_jyotirlinga_temple.jpg/1280px-Grishneshwar_jyotirlinga_temple.jpg',
+  shirdi: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Sai_Baba_Temple_Shirdi.jpg/1280px-Sai_Baba_Temple_Shirdi.jpg',
+  trimbakeshwar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Trimbakeshwar_Temple.jpg/1280px-Trimbakeshwar_Temple.jpg',
+  nashik: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Ramkund_Nashik.jpg/1280px-Ramkund_Nashik.jpg',
+  bhimashankar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Bhimashankar_Temple.jpg/1280px-Bhimashankar_Temple.jpg',
+  panchvati: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Godavari_river_in_Nashik.jpg/1280px-Godavari_river_in_Nashik.jpg',
+  sula: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Sula_Vineyards%2C_Nashik.jpg/1280px-Sula_Vineyards%2C_Nashik.jpg',
   pune: 'https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=900&q=80&fit=crop',
-  train: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=900&q=80&fit=crop',
+  train: 'https://images.unsplash.com/photo-1582556531390-281b3dfbf539?w=900&q=80&fit=crop', // Indian Railways
   hotel: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=80&fit=crop',
-  howrah: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=80&fit=crop',
+  howrah: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Howrah_Bridge_at_Dusk.jpg/1280px-Howrah_Bridge_at_Dusk.jpg',
 };
 
 export const ITINERARY = [

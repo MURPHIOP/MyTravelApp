@@ -35,11 +35,14 @@ export default function ItineraryPage() {
     return () => ctx.revert();
   }, []);
 
-  const today = (() => {
+  const [today, setToday] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
     const diff = Math.floor((Date.now() - new Date(TRIP_CONFIG.departureDate).getTime()) / 86400000);
-    if (diff < 0 || diff >= ITINERARY.length) return null;
-    return diff + 1;
-  })();
+    if (diff >= 0 && diff < ITINERARY.length) {
+      setToday(diff + 1);
+    }
+  }, []);
 
   return (
     <div style={{ minHeight: '100dvh' }}>

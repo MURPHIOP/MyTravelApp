@@ -11,7 +11,7 @@ export default function Preloader() {
     // Check if loaded in this session
     const hasLoaded = sessionStorage.getItem('mt-preloaded');
     if (hasLoaded) {
-      setLoaded(true);
+      setTimeout(() => setLoaded(true), 0);
       return;
     }
 

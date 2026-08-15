@@ -1,44 +1,36 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { usePathname } from 'next/navigation';
-import BottomNav from './BottomNav';
-import DesktopSidebar from './DesktopSidebar';
-import TopBar from './TopBar';
-import Preloader from './Preloader';
-import { gsap } from 'gsap';
+import FloatingNav from '@/components/ui/FloatingNav';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const mainRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!mainRef.current) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        mainRef.current,
-        { opacity: 0, y: 16 },
-        { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' }
-      );
-    });
-    return () => ctx.revert();
-  }, [pathname]);
-
+  // Assuming auth pages don't need the standard mobile shell
   if (pathname?.startsWith('/auth')) return <>{children}</>;
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--bg)' }}>
-      <Preloader />
-      <div className="hidden md:block">
-        <DesktopSidebar />
-      </div>
-      <div className="block md:hidden">
-        <TopBar />
-      </div>
-      <main ref={mainRef} className="page-content">
-        {children}
-      </main>
-      <BottomNav />
+    <div className="relative w-full max-w-[500px] mx-auto min-h-[100dvh] bg-[var(--bg)] shadow-2xl overflow-x-hidden">
+      
+      {/* ── MAIN CONTENT AREA ── */}
+      <AnimatePresence mode="wait">
+        <motion.main 
+          key={pathname}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="page-content"
+        >
+          {children}
+        </motion.main>
+      </AnimatePresence>
+
+      {/* ── FLOATING BOTTOM NAVIGATION ── */}
+      <FloatingNav />
+      
     </div>
   );
 }
