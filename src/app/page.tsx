@@ -14,7 +14,18 @@ export default function HomePage() {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   return (
-    <div className="pt-safe pb-24">
+    <div className="pt-safe pb-24 relative min-h-screen">
+      {/* ── EDITORIAL BACKGROUND ── */}
+      <div 
+        className="absolute inset-0 z-[-1] opacity-[0.85] dark:opacity-30 pointer-events-none mix-blend-multiply dark:mix-blend-screen"
+        style={{
+          backgroundImage: 'url(/destinations/hero_map.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      />
+      <div className="absolute inset-0 z-[-1] pointer-events-none bg-gradient-to-b from-[var(--bg)]/40 via-[var(--bg)]/80 to-[var(--bg)]" />
+
       
       {/* ── HEADER GREETING ── */}
       <motion.div 
@@ -48,8 +59,8 @@ export default function HomePage() {
         >
           {/* Cinematic Image */}
           <img 
-            src="https://images.unsplash.com/photo-1623596483569-450b7f833a69?auto=format&fit=crop&q=80&w=1000" 
-            alt="Aurangabad" 
+            src="/destinations/dest_ellora.jpg" 
+            alt="Maharashtra Journey" 
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 cinematic-overlay" />

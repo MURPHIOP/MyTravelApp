@@ -3,7 +3,7 @@ import { getSession } from '@/lib/session';
 import fs from 'fs/promises';
 import path from 'path';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public/uploads');
+const UPLOAD_DIR = path.join(process.cwd(), 'src/lib/private_uploads');
 const METADATA_FILE = path.join(UPLOAD_DIR, 'metadata.json');
 
 export async function DELETE(

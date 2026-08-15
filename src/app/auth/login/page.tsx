@@ -37,10 +37,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full max-w-[500px] mx-auto overflow-hidden bg-[var(--bg)] shadow-2xl">
+    <div className="relative min-h-screen w-full overflow-hidden bg-[var(--bg)] shadow-2xl">
       {/* Background Image */}
       <img 
-        src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1400&q=85&fit=crop" 
+        src="/destinations/dest_ajanta.jpg" 
         className="absolute inset-0 w-full h-full object-cover" 
         alt="Travel Background" 
       />

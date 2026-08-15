@@ -48,16 +48,16 @@ export const TRIP_CONFIG = {
 };
 
 export const PLACE_IMAGES: Record<string, string> = {
-  hero: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1400&q=85&fit=crop',
-  ajanta: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Ajanta_Caves_-_Cave_26.jpg/1280px-Ajanta_Caves_-_Cave_26.jpg',
-  ellora: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Kailash_Temple%2C_Ellora_Caves.jpg/1280px-Kailash_Temple%2C_Ellora_Caves.jpg',
-  grishneshwar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Grishneshwar_jyotirlinga_temple.jpg/1280px-Grishneshwar_jyotirlinga_temple.jpg',
-  shirdi: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Sai_Baba_Temple_Shirdi.jpg/1280px-Sai_Baba_Temple_Shirdi.jpg',
-  trimbakeshwar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Trimbakeshwar_Temple.jpg/1280px-Trimbakeshwar_Temple.jpg',
-  nashik: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Ramkund_Nashik.jpg/1280px-Ramkund_Nashik.jpg',
-  bhimashankar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Bhimashankar_Temple.jpg/1280px-Bhimashankar_Temple.jpg',
-  panchvati: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Godavari_river_in_Nashik.jpg/1280px-Godavari_river_in_Nashik.jpg',
-  sula: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Sula_Vineyards%2C_Nashik.jpg/1280px-Sula_Vineyards%2C_Nashik.jpg',
+  hero: '/destinations/hero_map.jpg',
+  ajanta: '/destinations/dest_ajanta.jpg',
+  ellora: '/destinations/dest_ellora.jpg',
+  grishneshwar: '/destinations/dest_grishneshwar.jpg',
+  shirdi: '/destinations/dest_shirdi.jpg',
+  trimbakeshwar: '/destinations/dest_trimbakeshwar.jpg',
+  nashik: '/destinations/dest_nashik.jpg',
+  bhimashankar: '/destinations/dest_bhimashankar.jpg',
+  panchvati: '/destinations/dest_panchvati.jpg',
+  sula: '/destinations/dest_sula.jpg',
   pune: 'https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=900&q=80&fit=crop',
   train: 'https://images.unsplash.com/photo-1582556531390-281b3dfbf539?w=900&q=80&fit=crop', // Indian Railways
   hotel: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=80&fit=crop',
