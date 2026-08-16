@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { QrCode, Download, ChevronRight, Plus, Search, Trash2, FileText, Loader2 } from 'lucide-react';
+import { QrCode, Download, Plus, Trash2, FileText, Loader2, Plane, Train, Hotel, ShieldCheck } from 'lucide-react';
 import BottomSheet from '@/components/ui/BottomSheet';
 import TactileButton from '@/components/ui/TactileButton';
-import FloatingActionButton from '@/components/ui/FloatingActionButton';
 
 interface VaultDocument {
   id: string;
@@ -19,56 +18,95 @@ interface VaultDocument {
   url: string;
 }
 
-function TicketCard({ title, subtitle, date, file, onClick }: {
-  title: string;
-  subtitle: string;
-  date: string;
-  file: VaultDocument;
-  onClick?: () => void;
-}) {
+function TicketCard({ doc, onClick }: { doc: VaultDocument; onClick?: () => void; }) {
+  const isTrain = doc.category === 'TRAIN TICKETS';
+  const isHotel = doc.category === 'HOTEL VOUCHERS';
+  
+  if (isTrain) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        className="cursor-pointer tap-effect mat-ticket group"
+        onClick={onClick}
+      >
+        <div className="p-6 md:p-8 flex flex-col h-full border-l-[6px] border-l-[var(--accent)] bg-[var(--surface)] relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+            <Train size={120} />
+          </div>
+          
+          <div className="text-eyebrow text-[var(--accent)] mb-6 flex justify-between items-center">
+            <span>INDIAN RAILWAYS</span>
+            <span className="text-[var(--text-muted)] font-mono text-[10px]">{(doc.size / 1024 / 1024).toFixed(1)} MB</span>
+          </div>
+
+          <div className="flex-1">
+            <h3 className="text-title-section mb-1 truncate leading-tight tracking-tight">{doc.filename.replace('.pdf', '')}</h3>
+            <div className="text-body text-[var(--text-secondary)] font-mono text-sm mt-4 uppercase">
+              {new Date(doc.uploadDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </div>
+          </div>
+
+          <div className="mt-8 pt-4 border-t border-dashed border-[rgba(0,0,0,0.1)] dark:border-[rgba(255,255,255,0.1)] flex justify-between items-end">
+             <div>
+               <div className="text-eyebrow mb-1">PASSENGER</div>
+               <div className="font-bold text-sm">{doc.uploadedBy} FAMILY</div>
+             </div>
+             <div className="text-sm font-bold text-[var(--accent)] group-hover:underline">VIEW →</div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
-      className="mb-4 cursor-pointer tap-effect"
+      className={`cursor-pointer tap-effect group h-full ${isHotel ? 'mat-paper border-t-[8px] border-t-[var(--accent-secondary)]' : 'mat-receipt'}`}
       onClick={onClick}
     >
-      <div className="mat-paper relative overflow-hidden rounded-t-[16px] rounded-b-none p-4 pb-5 border-b-0 shadow-sm">
-        <div className="absolute top-0 left-0 w-1 h-full bg-[var(--accent)]" />
-        
-        <div className="flex justify-between items-start mb-4">
-          <div className="pl-2 min-w-0 pr-2 flex-1">
-            <h3 className="text-[17px] font-bold leading-tight mb-1 text-[var(--text-primary)] truncate">{title}</h3>
-            <p className="text-xs font-semibold text-[var(--text-secondary)] truncate">{subtitle}</p>
+      <div className="p-6 md:p-8 flex flex-col h-full bg-[var(--surface)] relative overflow-hidden rounded-[inherit]">
+        <div className="flex justify-between items-start mb-8">
+          <div className="w-12 h-12 shrink-0 bg-[var(--surface-3)] rounded-full flex items-center justify-center text-[var(--text-secondary)] shadow-sm">
+            {isHotel ? <Hotel size={20} /> : <FileText size={20} />}
           </div>
-          <div className="w-8 h-8 shrink-0 bg-[var(--surface-3)] rounded-lg flex items-center justify-center text-[var(--text-secondary)]">
-            <FileText size={16} />
-          </div>
+          <div className="text-right">
+             <div className="text-eyebrow mb-1">DATE ISSUED</div>
+             <div className="font-bold text-sm text-[var(--text-primary)]">{new Date(doc.uploadDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+           </div>
         </div>
 
-        <div className="pl-2">
-           <div className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider mb-1">Uploaded On</div>
-           <div className="font-semibold text-[13px] text-[var(--text-primary)]">{new Date(date).toLocaleDateString()}</div>
+        <div className="flex-1 mb-8">
+          <h3 className="text-title-card mb-2 truncate leading-tight">{doc.filename.replace('.pdf', '')}</h3>
+          <p className="text-body text-sm truncate">Added by {doc.uploadedBy}</p>
         </div>
-      </div>
 
-      <div className="relative h-4 flex items-center overflow-hidden bg-[var(--surface)] border-x border-[rgba(255,255,255,0.05)]">
-        <div className="absolute left-[-10px] w-5 h-5 rounded-full bg-[var(--bg)] shadow-[inset_-2px_0_4px_rgba(0,0,0,0.05)] z-10" />
-        <div className="absolute right-[-10px] w-5 h-5 rounded-full bg-[var(--bg)] shadow-[inset_2px_0_4px_rgba(0,0,0,0.05)] z-10" />
-        <div className="w-full border-t-2 border-dashed border-[var(--surface-3)] mx-4" />
-      </div>
-
-      <div className="mat-paper rounded-b-[16px] rounded-t-none p-3 px-4 flex justify-between items-center bg-[var(--surface-2)] shadow-sm border-t-0">
-        <div className="pl-2 flex-1 min-w-0">
-          <div className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider mb-0.5">Size</div>
-          <div className="font-bold text-sm text-[var(--text-primary)] tracking-wide">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
-        </div>
-        <div className="w-6 h-6 shrink-0 rounded-full bg-[var(--surface)] flex items-center justify-center text-[var(--accent)] shadow-sm">
-          <ChevronRight size={14} />
+        <div className="flex justify-between items-center pt-4 border-t border-[rgba(0,0,0,0.05)] dark:border-[rgba(255,255,255,0.05)]">
+           <div className="font-mono font-bold text-xs text-[var(--text-muted)]">{(doc.size / 1024 / 1024).toFixed(1)} MB</div>
+           <div className="text-sm font-bold text-[var(--text-primary)] group-hover:underline">VIEW →</div>
         </div>
       </div>
     </motion.div>
+  );
+}
+
+function EmptyTicketState({ category, onUpload }: { category: string, onUpload: () => void }) {
+  return (
+    <div className="w-full aspect-[2/1] md:aspect-[3/1] rounded-[12px] border-2 border-dashed border-[rgba(0,0,0,0.1)] dark:border-[rgba(255,255,255,0.1)] bg-[var(--surface-2)]/50 flex flex-col items-center justify-center p-6 text-center">
+      <div className="text-eyebrow text-[var(--text-muted)] mb-2">NO {category} YET</div>
+      <p className="text-body text-sm mb-6 text-balance max-w-sm">
+        Your travel documents will appear here once uploaded by the family head.
+      </p>
+      <button 
+        onClick={onUpload}
+        className="px-6 py-2 bg-[var(--surface)] text-[var(--text-primary)] border border-[rgba(0,0,0,0.1)] dark:border-[rgba(255,255,255,0.1)] rounded-full text-xs font-bold hover:bg-[var(--surface-3)] transition-colors shadow-sm flex items-center gap-2"
+      >
+        <Plus size={14} /> ADD DOCUMENT
+      </button>
+    </div>
   );
 }
 
@@ -122,7 +160,7 @@ export default function VaultPage() {
         setUploadSheet(false);
         setFileToUpload(null);
         setUploadCat('');
-        fetchDocs(); // Refresh list
+        fetchDocs(); 
       } else {
         alert('Upload failed');
       }
@@ -139,7 +177,7 @@ export default function VaultPage() {
       const res = await fetch(`/api/documents/${selectedDoc.id}`, { method: 'DELETE' });
       if (res.ok) {
         setSelectedDoc(null);
-        fetchDocs(); // Refresh
+        fetchDocs(); 
       } else {
         alert('Failed to delete document');
       }
@@ -160,85 +198,118 @@ export default function VaultPage() {
   const categories = ['TRAIN TICKETS', 'HOTEL VOUCHERS', 'ACTIVITIES', 'OTHER'];
 
   return (
-    <div className="pt-safe pb-24">
+    <div className="pb-safe relative w-full min-h-screen">
       
-      {/* ── HEADER ── */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="px-6 pt-6 pb-4 flex items-center justify-between"
-      >
-        <div>
-          <h1 className="heading-xl">Travel Vault</h1>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-[var(--surface-2)] flex items-center justify-center border border-black/5 dark:border-white/5">
-          <Search size={18} className="text-[var(--text-secondary)]" />
-        </div>
-      </motion.div>
-
-      <div className="inner space-y-8 mt-2 px-2">
-        {loadingDocs ? (
-           <div className="flex justify-center p-8"><Loader2 className="animate-spin text-[var(--accent)]" /></div>
-        ) : (
-          categories.map(cat => {
-            const catDocs = documents.filter(d => d.category === cat);
-            return (
-              <section key={cat}>
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">{cat}</h3>
-                  <div className="h-px flex-1 bg-[var(--surface-3)]" />
-                </div>
-                {catDocs.length === 0 ? (
-                  <div className="p-6 rounded-[16px] bg-[var(--surface-2)] border border-dashed border-[var(--surface-3)] text-center text-sm font-semibold text-[var(--text-muted)]">
-                    No documents uploaded.
-                  </div>
-                ) : (
-                  catDocs.map(doc => (
-                    <TicketCard 
-                      key={doc.id}
-                      title={doc.filename}
-                      subtitle={`Uploaded by ${doc.uploadedBy}`}
-                      date={doc.uploadDate}
-                      file={doc}
-                      onClick={() => setSelectedDoc(doc)}
-                    />
-                  ))
-                )}
-              </section>
-            );
-          })
-        )}
+      {/* ── BACKGROUND ARCHIVAL AESTHETIC ── */}
+      <div className="fixed inset-0 z-[-1] pointer-events-none bg-[var(--bg)]">
+        <div 
+          className="absolute inset-0 opacity-[0.02] mix-blend-multiply"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          }}
+        />
       </div>
 
-      <FloatingActionButton 
-        icon={<Plus size={24} />} 
-        label="Upload"
-        onClick={() => setUploadSheet(true)} 
-        visible={userRole === 'FAMILY_HEAD'}
-      />
+      <div className="inner pt-safe">
+        
+        {/* ── HEADER ── */}
+        <div className="mb-16 mt-8 lg:mt-16 flex justify-between items-end">
+          <div>
+            <h1 className="text-title-main mb-2">FAMILY VAULT</h1>
+            <div className="text-title-section text-[var(--text-secondary)]">
+              Travel documents
+            </div>
+          </div>
+          
+          {userRole === 'FAMILY_HEAD' && (
+            <button 
+              onClick={() => setUploadSheet(true)}
+              className="hidden md:flex items-center gap-2 px-6 py-3 bg-[var(--text-primary)] text-[var(--bg)] rounded-full text-sm font-bold shadow-md hover:bg-[var(--text-secondary)] transition-colors"
+            >
+              <Plus size={16} /> ADD DOCUMENT
+            </button>
+          )}
+        </div>
+
+        {/* ── DOCUMENT SECTIONS ── */}
+        {loadingDocs ? (
+           <div className="flex justify-center py-32"><Loader2 className="animate-spin text-[var(--text-muted)] w-10 h-10" /></div>
+        ) : (
+          <div className="space-y-16 max-w-5xl">
+            {categories.map(cat => {
+              const catDocs = documents.filter(d => d.category === cat);
+              return (
+                <section key={cat}>
+                  <div className="flex items-center gap-4 mb-8">
+                    <h2 className="text-title-section text-[var(--text-primary)]">{cat}</h2>
+                    <div className="h-[2px] flex-1 bg-[var(--surface-3)]" />
+                  </div>
+                  
+                  {catDocs.length === 0 ? (
+                    <EmptyTicketState category={cat} onUpload={() => {
+                      if (userRole === 'FAMILY_HEAD') {
+                        setUploadCat(cat);
+                        setUploadSheet(true);
+                      }
+                    }} />
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {catDocs.map(doc => (
+                        <TicketCard 
+                          key={doc.id}
+                          doc={doc}
+                          onClick={() => setSelectedDoc(doc)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
+          </div>
+        )}
+
+      </div>
+
+      {/* Mobile action button */}
+      {userRole === 'FAMILY_HEAD' && (
+        <div className="md:hidden fixed bottom-[100px] right-6 z-40">
+          <button 
+            onClick={() => setUploadSheet(true)}
+            className="w-14 h-14 bg-[var(--text-primary)] text-[var(--bg)] rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform"
+          >
+            <Plus size={24} />
+          </button>
+        </div>
+      )}
 
       {/* ── DOCUMENT PREVIEW SHEET ── */}
-      <BottomSheet isOpen={!!selectedDoc} onClose={() => setSelectedDoc(null)} title="Document Details">
+      <BottomSheet isOpen={!!selectedDoc} onClose={() => setSelectedDoc(null)} title="Document Overview">
         {selectedDoc && (
-          <div className="flex flex-col gap-5">
-            <div className="w-full aspect-[4/3] bg-white rounded-2xl shadow-sm flex flex-col items-center justify-center p-8 border border-black/5">
-              <FileText size={80} className="text-black/20" />
-              <div className="mt-4 font-bold text-center text-black/80 truncate px-4 w-full">{selectedDoc.filename}</div>
-              <div className="mt-1 font-mono font-bold tracking-widest text-black/40 text-xs uppercase">{selectedDoc.category}</div>
+          <div className="flex flex-col gap-8 -mt-6">
+            <div className="w-full aspect-[16/10] bg-[var(--surface-2)] rounded-[24px] shadow-[var(--inset-deep)] flex flex-col items-center justify-center p-8 border border-[rgba(0,0,0,0.05)] relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
+                 <ShieldCheck size={200} />
+              </div>
+              <FileText size={64} className="text-[var(--text-muted)] mb-4" />
+              <div className="text-title-card text-center text-safe px-4">{selectedDoc.filename}</div>
+              <div className="text-eyebrow text-[var(--accent)] mt-4">{selectedDoc.category}</div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <TactileButton onClick={handleDownload}>
-                <Download size={18} /> Download PDF
+            <div className="grid grid-cols-2 gap-4">
+              <TactileButton size="lg" className="bg-[var(--text-primary)] text-[var(--bg)]" onClick={handleDownload}>
+                <Download size={18} className="mr-2" /> Download
               </TactileButton>
-              <TactileButton variant="secondary" onClick={() => window.open(selectedDoc.url, '_blank')}>
-                <QrCode size={18} /> View
+              <TactileButton variant="secondary" size="lg" onClick={() => window.open(selectedDoc.url, '_blank')}>
+                <QrCode size={18} className="mr-2" /> Preview
               </TactileButton>
             </div>
             {userRole === 'FAMILY_HEAD' && (
-              <TactileButton variant="ghost" className="text-[var(--accent-danger)] hover:bg-[var(--accent-danger)]/10" onClick={handleDelete}>
-                <Trash2 size={18} /> Delete Document
-              </TactileButton>
+              <div className="pt-4 border-t border-[rgba(0,0,0,0.05)]">
+                <TactileButton variant="ghost" className="text-[var(--accent-danger)] hover:bg-[var(--accent-danger)]/10" onClick={handleDelete}>
+                  <Trash2 size={18} className="mr-2" /> Permanently Delete
+                </TactileButton>
+              </div>
             )}
           </div>
         )}
@@ -246,49 +317,35 @@ export default function VaultPage() {
 
       {/* ── UPLOAD DOCUMENT SHEET ── */}
       <BottomSheet isOpen={uploadSheet} onClose={() => setUploadSheet(false)} title="Upload Document">
-        <div className="flex flex-col gap-4">
-          <div className="text-sm font-bold text-[var(--text-primary)] mb-1">Select Category</div>
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {categories.map(cat => (
-              <button 
-                key={cat}
-                onClick={() => setUploadCat(cat)}
-                className={`p-3 rounded-xl text-xs font-bold text-left transition-colors border ${uploadCat === cat ? 'bg-[var(--text-primary)] text-[var(--bg)] border-transparent' : 'bg-[var(--surface)] text-[var(--text-secondary)] border-black/5 dark:border-white/5'}`}
-              >
-                {cat}
-              </button>
-            ))}
+        <div className="flex flex-col gap-8">
+          <div>
+            <label className="text-eyebrow mb-4 block">DOCUMENT CATEGORY</label>
+            <div className="grid grid-cols-2 gap-4">
+              {categories.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setUploadCat(c)}
+                  className={`p-4 rounded-[16px] text-sm font-bold transition-colors text-left border ${uploadCat === c ? 'bg-[var(--accent)] text-white border-[var(--accent)]' : 'bg-[var(--surface-2)] text-[var(--text-secondary)] border-[rgba(0,0,0,0.05)]'}`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
           </div>
-
-          <label className="mat-inset h-32 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-[var(--text-muted)] cursor-pointer relative overflow-hidden">
-             <input 
-               type="file" 
-               accept="application/pdf"
-               onChange={(e) => setFileToUpload(e.target.files?.[0] || null)}
-               className="absolute inset-0 opacity-0 cursor-pointer"
-             />
-             {fileToUpload ? (
-               <div className="text-center px-4">
-                 <FileText size={20} className="text-[var(--accent)] mx-auto mb-2" />
-                 <div className="font-bold text-xs text-[var(--text-primary)] truncate max-w-full">{fileToUpload.name}</div>
-               </div>
-             ) : (
-               <>
-                <Plus size={20} className="text-[var(--text-secondary)]" />
-                <div className="font-bold text-xs text-[var(--text-secondary)]">Tap to browse PDFs</div>
-               </>
-             )}
-          </label>
-          
-          <TactileButton 
-            fullWidth 
-            size="lg" 
-            disabled={!uploadCat || !fileToUpload || isUploading} 
-            className="mt-2"
-            onClick={handleUpload}
-          >
-            {isUploading ? <Loader2 className="animate-spin" /> : 'Upload Document'}
-          </TactileButton>
+          <div>
+            <label className="text-eyebrow mb-4 block">SELECT PDF FILE</label>
+            <input 
+              type="file" 
+              accept="application/pdf"
+              onChange={(e) => setFileToUpload(e.target.files?.[0] || null)}
+              className="w-full text-body file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[var(--surface-3)] file:text-[var(--text-primary)] hover:file:bg-[var(--surface-3)] cursor-pointer bg-[var(--surface-2)] rounded-[24px] p-4 border border-[rgba(0,0,0,0.05)]"
+            />
+          </div>
+          <div className="pt-4 mt-2 border-t border-[rgba(0,0,0,0.05)]">
+            <TactileButton fullWidth onClick={handleUpload} disabled={isUploading || !fileToUpload || !uploadCat} size="lg" className="bg-[var(--text-primary)] text-[var(--bg)]">
+              {isUploading ? <Loader2 className="animate-spin" /> : 'Secure Upload'}
+            </TactileButton>
+          </div>
         </div>
       </BottomSheet>
 

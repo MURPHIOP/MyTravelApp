@@ -9,7 +9,6 @@ import {
 import { TRIP_CONFIG, ExpenseCategoryType } from '@/lib/tripData';
 import BottomSheet from '@/components/ui/BottomSheet';
 import TactileButton from '@/components/ui/TactileButton';
-import FloatingActionButton from '@/components/ui/FloatingActionButton';
 
 interface Expense {
   id: string;
@@ -24,7 +23,7 @@ interface Expense {
 }
 
 function CatIcon({ cat }: { cat: string }) {
-  const props = { size: 16, strokeWidth: 2.5 };
+  const props = { size: 18, strokeWidth: 2 };
   switch (cat) {
     case 'food': return <UtensilsCrossed {...props} />;
     case 'transport': return <Train {...props} />;
@@ -44,150 +43,137 @@ export default function LedgerPage() {
     const stored = localStorage.getItem('mt-expenses');
     if (stored) setTimeout(() => setExpenses(JSON.parse(stored)), 0);
     else {
-      // Mock some data if empty to show UI
       setTimeout(() => setExpenses([
         { id: '1', paidBy: 'f1', familyName: 'Mitra', amount: 4800, description: 'Train Tickets', category: 'transport', date: '16 Oct', splitAmong: ['f1','f2'], perHead: 2400 },
-        { id: '2', paidBy: 'f2', familyName: 'Ghosh', amount: 3200, description: 'Dinner Ajanta', category: 'food', date: '16 Oct', splitAmong: ['f1','f2'], perHead: 1600 }
+        { id: '2', paidBy: 'f2', familyName: 'Ghosh', amount: 3200, description: 'Dinner Ajanta', category: 'food', date: '16 Oct', splitAmong: ['f1','f2'], perHead: 1600 },
+        { id: '3', paidBy: 'f1', familyName: 'Mitra', amount: 12000, description: 'Taj Hotel Booking', category: 'hotel', date: '17 Oct', splitAmong: ['f1','f2'], perHead: 6000 },
       ]), 0);
     }
   }, []);
 
   const total = expenses.reduce((s, e) => s + e.amount, 0);
-
-  // Compute percentages for visual split
   const f1Total = expenses.filter(e => e.paidBy === TRIP_CONFIG.families[0].id).reduce((s,e) => s + e.amount, 0);
   const f2Total = expenses.filter(e => e.paidBy === TRIP_CONFIG.families[1].id).reduce((s,e) => s + e.amount, 0);
-  const f1Pct = total > 0 ? (f1Total / total) * 100 : 50;
-  const f2Pct = total > 0 ? (f2Total / total) * 100 : 50;
 
   return (
-    <div className="pt-safe pb-24">
+    <div className="pb-safe relative w-full min-h-screen">
       
-      {/* ── HEADER ── */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="px-6 pt-6 pb-6 flex items-center justify-between"
-      >
-        <div>
-          <div className="label-sm mb-1">Trip Spend</div>
-          <h1 className="heading-xl">Trip Ledger</h1>
-        </div>
-        <div className="w-12 h-12 rounded-full mat-metal flex items-center justify-center">
-          <IndianRupee size={20} className="text-[var(--accent-success)]" />
-        </div>
-      </motion.div>
+      {/* ── BACKGROUND ACCOUNTING AESTHETIC ── */}
+      <div className="fixed inset-0 z-[-1] pointer-events-none bg-[var(--bg)]">
+        {/* Subtle grid lines */}
+        <div 
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]"
+          style={{
+            backgroundImage: `linear-gradient(var(--text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--text-primary) 1px, transparent 1px)`,
+            backgroundSize: '40px 40px'
+          }}
+        />
+      </div>
 
-      <div className="inner space-y-8">
+      <div className="inner pt-safe">
+        
+        {/* ── HEADER ── */}
+        <div className="mb-16 mt-8 lg:mt-16">
+          <div className="text-eyebrow mb-2">TRIP EXPENDITURE</div>
+          <h1 className="text-title-main text-[var(--text-primary)] mb-4">
+            <span className="text-[var(--text-muted)] text-4xl lg:text-7xl align-top mr-2 leading-none">₹</span>
+            {total.toLocaleString('en-IN')}
+          </h1>
+          <div className="text-title-section text-[var(--text-secondary)]">TOTAL SPEND</div>
+        </div>
 
-        {/* ── FINANCIAL DASHBOARD ── */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="mat-paper p-6 relative overflow-hidden"
-        >
-          <div className="text-center mb-8">
-            <div className="label-sm mb-2">Total Expenditure</div>
-            <div className="heading-display text-[var(--text-primary)]">
-              <span className="text-[var(--text-muted)] font-medium text-3xl">₹</span>
-              {total.toLocaleString('en-IN')}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
+          
+          {/* ── LEFT COLUMN: FAMILY SPLITS ── */}
+          <div className="lg:col-span-5">
+            <div className="space-y-8">
+              <div className="flex justify-between items-baseline border-b border-[rgba(0,0,0,0.1)] dark:border-[rgba(255,255,255,0.1)] pb-4">
+                <div className="text-title-card">{TRIP_CONFIG.families[0].family} Family</div>
+                <div className="font-mono text-2xl font-bold">₹{f1Total.toLocaleString('en-IN')}</div>
+              </div>
+              <div className="flex justify-between items-baseline border-b border-[rgba(0,0,0,0.1)] dark:border-[rgba(255,255,255,0.1)] pb-4">
+                <div className="text-title-card">{TRIP_CONFIG.families[1].family} Family</div>
+                <div className="font-mono text-2xl font-bold">₹{f2Total.toLocaleString('en-IN')}</div>
+              </div>
+            </div>
+
+            <div className="mt-16 p-8 bg-[var(--surface-2)] border border-[rgba(0,0,0,0.05)] rounded-[24px]">
+               <div className="text-eyebrow mb-4">SETTLEMENT STATUS</div>
+               <div className="text-body mb-6">
+                 Currently, the <strong>{f1Total > f2Total ? TRIP_CONFIG.families[0].family : TRIP_CONFIG.families[1].family}</strong> family has paid ₹{Math.abs(f1Total - f2Total).toLocaleString('en-IN')} more.
+               </div>
+               <TactileButton variant="secondary" fullWidth className="bg-[var(--surface)]">
+                 Generate Settlement Report
+               </TactileButton>
             </div>
           </div>
 
-          <div className="space-y-4">
-            {/* Split Mitra */}
-            <div>
-              <div className="flex justify-between items-end mb-2 pl-1">
-                <div className="font-bold text-sm text-[var(--text-primary)]">{TRIP_CONFIG.families[0].family}</div>
-                <div className="font-black text-sm text-[var(--accent-success)]">₹{f1Total.toLocaleString()}</div>
-              </div>
-              <div className="h-3 w-full bg-[var(--surface-3)] rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${f1Pct}%` }}
-                  transition={{ duration: 1, delay: 0.2 }}
-                  className="h-full bg-[var(--text-primary)] rounded-full"
-                />
-              </div>
+          {/* ── RIGHT COLUMN: RECENT ACTIVITY ── */}
+          <div className="lg:col-span-7">
+            <div className="flex items-end justify-between mb-8 border-b-2 border-[var(--text-primary)] pb-4">
+              <h2 className="text-title-section">Recent Activity</h2>
+              <button 
+                onClick={() => setSheetOpen(true)}
+                className="flex items-center gap-2 text-sm font-bold text-[var(--accent)] hover:underline"
+              >
+                <Plus size={16} /> ADD EXPENSE
+              </button>
             </div>
 
-            {/* Split Ghosh */}
-            <div>
-              <div className="flex justify-between items-end mb-2 pl-1">
-                <div className="font-bold text-sm text-[var(--text-primary)]">{TRIP_CONFIG.families[1].family}</div>
-                <div className="font-black text-sm text-[var(--accent-success)]">₹{f2Total.toLocaleString()}</div>
-              </div>
-              <div className="h-3 w-full bg-[var(--surface-3)] rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${f2Pct}%` }}
-                  transition={{ duration: 1, delay: 0.4 }}
-                  className="h-full bg-[var(--text-secondary)] rounded-full"
-                />
-              </div>
-            </div>
-          </div>
-        </motion.div>
+            <div className="space-y-0">
+              {expenses.map((exp) => (
+                <div key={exp.id} className="py-6 border-b border-[rgba(0,0,0,0.05)] dark:border-[rgba(255,255,255,0.05)] flex items-start gap-6 group cursor-pointer hover:bg-[var(--surface-2)] -mx-4 px-4 rounded-xl transition-colors">
+                  <div className="w-12 h-12 shrink-0 rounded-full border border-[rgba(0,0,0,0.1)] dark:border-[rgba(255,255,255,0.1)] flex items-center justify-center text-[var(--text-secondary)] bg-[var(--surface)] mt-1">
+                    <CatIcon cat={exp.category} />
+                  </div>
+                  
+                  <div className="flex-1 min-w-0 pr-4">
+                    <div className="text-title-card mb-1 truncate text-safe">{exp.description}</div>
+                    <div className="text-body flex items-center gap-2 truncate">
+                      <span>By {exp.familyName}</span>
+                      <span className="w-1 h-1 rounded-full bg-[var(--text-muted)] shrink-0" />
+                      <span>{exp.date}</span>
+                    </div>
+                  </div>
 
-        {/* ── RECENT TRANSACTIONS ── */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <div className="flex items-center justify-between mb-4 px-2">
-            <h3 className="heading-lg">Recent Entries</h3>
-            <button className="text-[var(--accent-secondary)] font-bold text-sm flex items-center gap-1">
-              Download PDF <Download size={14} />
+                  <div className="text-right shrink-0">
+                    <div className="font-mono text-xl font-bold text-[var(--text-primary)]">₹{exp.amount.toLocaleString('en-IN')}</div>
+                    <div className="text-eyebrow mt-2 text-[var(--text-secondary)]">SPLIT 50/50</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button className="mt-8 flex items-center gap-2 text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+              <Download size={16} /> EXPORT FULL LEDGER
             </button>
           </div>
 
-          <div className="space-y-3">
-            {expenses.map((exp) => (
-              <div key={exp.id} className="mat-paper p-4 flex items-center gap-3 transition-transform active:scale-95">
-                <div className="w-10 h-10 shrink-0 rounded-xl bg-[var(--surface-2)] flex items-center justify-center text-[var(--text-secondary)]">
-                  <CatIcon cat={exp.category} />
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-[14px] text-[var(--text-primary)] mb-0.5 truncate">{exp.description}</div>
-                  <div className="text-[10px] font-semibold text-[var(--text-muted)] flex items-center gap-1.5 truncate">
-                    <span className="uppercase tracking-wider">By {exp.familyName}</span>
-                    <span className="w-1 h-1 rounded-full bg-[var(--text-muted)] shrink-0" />
-                    <span>{exp.date}</span>
-                  </div>
-                </div>
-
-                <div className="text-right shrink-0">
-                  <div className="font-black text-[15px] text-[var(--text-primary)]">₹{exp.amount}</div>
-                  <div className="text-[9px] font-bold text-[var(--accent)] mt-0.5 uppercase tracking-wider">Split 50/50</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-
+        </div>
       </div>
 
-      <FloatingActionButton 
-        icon={<Plus size={24} />} 
-        label="Add"
-        onClick={() => setSheetOpen(true)} 
-      />
+      {/* Mobile Action Button */}
+      <div className="md:hidden fixed bottom-[100px] right-6 z-40">
+        <button 
+          onClick={() => setSheetOpen(true)}
+          className="w-14 h-14 bg-[var(--text-primary)] text-[var(--bg)] rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform"
+        >
+          <Plus size={24} />
+        </button>
+      </div>
 
       {/* ── ADD EXPENSE SHEET ── */}
-      <BottomSheet isOpen={sheetOpen} onClose={() => setSheetOpen(false)} title="New Expense">
-        <div className="flex flex-col gap-6 pt-2">
+      <BottomSheet isOpen={sheetOpen} onClose={() => setSheetOpen(false)} title="New Transaction">
+        <div className="flex flex-col gap-8 pt-4">
           
-          <div className="flex flex-col items-center justify-center py-6">
-            <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-2">Total Amount</div>
+          <div className="flex flex-col items-center justify-center py-8 bg-[var(--surface-2)] rounded-[24px] border border-dashed border-[var(--text-muted)]">
+            <div className="text-eyebrow mb-4">TRANSACTION AMOUNT</div>
             <div className="flex items-center gap-2">
-              <span className="text-3xl text-[var(--text-muted)] font-medium">₹</span>
+              <span className="text-4xl text-[var(--text-muted)] font-mono leading-none">₹</span>
               <input 
                 type="number" 
                 placeholder="0"
-                className="w-48 bg-transparent text-5xl font-black text-[var(--text-primary)] text-center outline-none placeholder:text-[var(--surface-3)]"
+                className="w-48 bg-transparent text-6xl font-black font-mono text-[var(--text-primary)] text-center outline-none placeholder:text-[var(--text-muted)]"
                 value={formAmt}
                 onChange={e => setFormAmt(e.target.value)}
                 autoFocus
@@ -195,26 +181,28 @@ export default function LedgerPage() {
             </div>
           </div>
 
-          <div className="mat-inset p-4 grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <div className="label-sm pl-1">Category</div>
-              <button className="bg-[var(--surface)] px-4 py-3 rounded-xl text-sm font-bold text-[var(--text-primary)] border border-black/5 dark:border-white/5 flex items-center justify-between">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-3">
+              <div className="text-eyebrow pl-1">CATEGORY</div>
+              <button className="mat-paper px-6 py-5 rounded-[16px] text-sm font-bold text-[var(--text-primary)] flex items-center justify-between hover:bg-[var(--surface-2)] transition-colors">
                 <span>Food</span>
-                <UtensilsCrossed size={16} className="text-[var(--text-secondary)]" />
+                <UtensilsCrossed size={18} className="text-[var(--text-secondary)]" />
               </button>
             </div>
-            <div className="flex flex-col gap-2">
-              <div className="label-sm pl-1">Paid By</div>
-              <button className="bg-[var(--surface)] px-4 py-3 rounded-xl text-sm font-bold text-[var(--text-primary)] border border-black/5 dark:border-white/5 flex items-center justify-between">
+            <div className="flex flex-col gap-3">
+              <div className="text-eyebrow pl-1">PAID BY</div>
+              <button className="mat-paper px-6 py-5 rounded-[16px] text-sm font-bold text-[var(--text-primary)] flex items-center justify-between hover:bg-[var(--surface-2)] transition-colors">
                 <span>Mitra</span>
-                <div className="w-4 h-4 rounded-full bg-[var(--text-primary)]" />
+                <div className="w-5 h-5 rounded-full bg-[var(--text-primary)]" />
               </button>
             </div>
           </div>
 
-          <TactileButton fullWidth size="lg" onClick={() => setSheetOpen(false)}>
-            Log Transaction
-          </TactileButton>
+          <div className="pt-4 border-t border-[rgba(0,0,0,0.05)]">
+            <TactileButton fullWidth size="lg" onClick={() => setSheetOpen(false)} className="bg-[var(--text-primary)] text-[var(--bg)]">
+              Log Transaction
+            </TactileButton>
+          </div>
 
         </div>
       </BottomSheet>

@@ -3,11 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShieldAlert, CreditCard, IndianRupee, Compass } from 'lucide-react';
+import { Home, ShieldAlert, CreditCard, IndianRupee, Compass, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const NAV = [
   { href: '/', label: 'Home', icon: Home },
+  { href: '/itinerary', label: 'Itinerary', icon: Calendar },
   { href: '/admin', label: 'Control', icon: ShieldAlert },
   { href: '/vault', label: 'Vault', icon: CreditCard },
   { href: '/expenses', label: 'Ledger', icon: IndianRupee },
@@ -18,7 +19,7 @@ export default function FloatingNav() {
   const pathname = usePathname() ?? '/';
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pb-safe pointer-events-none flex justify-center">
+    <div className="fixed bottom-0 left-0 right-0 z-50 pb-safe pointer-events-none flex justify-center lg:hidden">
       <motion.nav 
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

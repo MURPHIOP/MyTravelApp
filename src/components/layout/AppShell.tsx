@@ -4,6 +4,7 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import FloatingNav from '@/components/ui/FloatingNav';
 import { AnimatePresence, motion } from 'framer-motion';
+import TopNav from '@/components/ui/TopNav';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -12,7 +13,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   if (pathname?.startsWith('/auth')) return <>{children}</>;
 
   return (
-    <div className="relative w-full min-h-[100dvh] bg-[var(--bg)] shadow-2xl overflow-x-hidden">
+    <div className="relative w-full min-h-[100dvh] overflow-x-hidden">
+      <TopNav />
       
       {/* ── MAIN CONTENT AREA ── */}
       <AnimatePresence mode="wait">
