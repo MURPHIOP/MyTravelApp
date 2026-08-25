@@ -22,14 +22,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/documents/:path*',
-        destination: `${process.env.BACKEND_URL || 'http://127.0.0.1:8000'}/api/documents/:path*`,
-      },
-    ];
-  },
 };
 
 export default nextConfig;
