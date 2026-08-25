@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
     styledComponents: false,
   },
   output: 'standalone',
+  async redirects() {
+    return [
+      {
+        source: '/auth/login',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

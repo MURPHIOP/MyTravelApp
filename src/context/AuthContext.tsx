@@ -55,6 +55,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshAuth();
   }, []);
 
+  useEffect(() => {
+    // If finished loading, no user, and hasn't prompted in this session
+    if (!loading && !user && typeof window !== 'undefined' && !sessionStorage.getItem('hasPromptedLogin')) {
+      const timer = setTimeout(() => {
+        setIsModalOpen(true);
+        sessionStorage.setItem('hasPromptedLogin', 'true');
+      }, 2500); // Wait for preloader to finish
+      return () => clearTimeout(timer);
+    }
+  }, [loading, user]);
+
   const openLoginModal = () => setIsModalOpen(true);
   const closeLoginModal = () => setIsModalOpen(false);
 
