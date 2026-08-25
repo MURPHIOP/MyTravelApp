@@ -32,7 +32,7 @@ export default function PlaceDetailPage() {
       <div className="relative w-full h-[70vh] min-h-[600px] border-b-4 border-black bg-white flex flex-col md:flex-row">
         
         {/* Left Info Column */}
-        <div className="w-full md:w-1/3 border-b-4 md:border-b-0 md:border-r-4 border-black flex flex-col justify-between p-8 md:p-12 order-2 md:order-1 z-10 bg-white">
+        <div className="w-full md:w-5/12 border-b-4 md:border-b-0 md:border-r-4 border-black flex flex-col justify-between p-8 md:p-12 order-2 md:order-1 z-10 bg-white">
           <div>
             <Link
               href="/places"
@@ -49,7 +49,9 @@ export default function PlaceDetailPage() {
               {place.typeLabel}
             </div>
             
-            <h1 className="heading-hero text-black mb-6 leading-none">{place.name}</h1>
+            <h1 className="text-5xl lg:text-6xl xl:text-[5rem] font-black uppercase tracking-tighter text-black mb-6 leading-none break-words hyphens-auto">
+              {place.name}
+            </h1>
           </div>
           
           <div className="flex flex-col gap-4 font-mono font-bold text-sm">
@@ -63,7 +65,7 @@ export default function PlaceDetailPage() {
         </div>
 
         {/* Right Image Column */}
-        <div className="w-full md:w-2/3 relative order-1 md:order-2 flex-grow min-h-[300px]">
+        <div className="w-full md:w-7/12 relative order-1 md:order-2 flex-grow min-h-[300px]">
           <img
             src={place.coverImage}
             alt={place.name}
