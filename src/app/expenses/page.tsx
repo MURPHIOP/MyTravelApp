@@ -81,32 +81,173 @@ export default function ExpensesPage() {
   const mitraBalance = mitraPaid - halfShare; // negative means owes, positive means gets
   const ghoshBalance = ghoshPaid - halfShare;
 
+  const numberToWords = (num: number): string => {
+    const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+    const b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
+
+    const numStr = num.toString();
+    if (numStr.length > 9) return 'overflow';
+    const n = ('000000000' + numStr).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+    if (!n) return '';
+    let str = '';
+    str += (Number(n[1]) != 0) ? (a[Number(n[1])] || b[Number(n[1][0])] + ' ' + a[Number(n[1][1])]) + 'Crore ' : '';
+    str += (Number(n[2]) != 0) ? (a[Number(n[2])] || b[Number(n[2][0])] + ' ' + a[Number(n[2][1])]) + 'Lakh ' : '';
+    str += (Number(n[3]) != 0) ? (a[Number(n[3])] || b[Number(n[3][0])] + ' ' + a[Number(n[3][1])]) + 'Thousand ' : '';
+    str += (Number(n[4]) != 0) ? (a[Number(n[4])] || b[Number(n[4][0])] + ' ' + a[Number(n[4][1])]) + 'Hundred ' : '';
+    str += (Number(n[5]) != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[Number(n[5][0])] + ' ' + a[Number(n[5][1])]) + 'Only ' : '';
+    return str.trim() === '' ? 'Zero Only' : str.trim();
+  };
+
   const generatePDF = () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF('p', 'pt', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 40;
+
+    // --- 1. Header Section ---
+    // Top Left
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(51, 51, 51); // #333333
+    doc.text("BHARAT TIRTHA DARSHAN AUTO-LEDGER", margin, 50);
     
-    doc.setFontSize(20);
-    doc.text("MAHARASHTRA V2 - SETTLEMENT BILL", 14, 22);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(102, 102, 102); // #666666
+    doc.text("System Generated Settlement Engine", margin, 65);
+
+    // Top Right
+    const invoiceNo = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 10000)}`;
+    const issueDate = new Date().toLocaleDateString('en-GB');
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(51, 51, 51);
+    doc.text("SETTLEMENT INVOICE", pageWidth - margin, 50, { align: 'right' });
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Invoice No: ${invoiceNo}`, pageWidth - margin, 65, { align: 'right' });
+    doc.text(`Date of Issue: ${issueDate}`, pageWidth - margin, 80, { align: 'right' });
+
+    // Divider Line
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(1);
+    doc.line(margin, 95, pageWidth - margin, 95);
+
+    // --- 2. Parties & Summary Section ---
+    const startY = 115;
+
+    // Left Side: Billed To
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(51, 51, 51);
+    doc.text("Billed To:", margin, startY);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("Participating Family Heads", margin, startY + 15);
+    doc.text("Families: Mitra Family & Ghosh Family", margin, startY + 30);
+    doc.text("Account Status: ACTIVE", margin, startY + 45);
+
+    // Right Side: Summary Box
+    const boxWidth = 220;
+    const boxHeight = 85;
+    const boxX = pageWidth - margin - boxWidth;
+    const boxY = startY - 10;
+    
+    doc.setFillColor(245, 245, 245); // light gray
+    doc.setDrawColor(200, 200, 200);
+    doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 3, 3, 'FD');
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(51, 51, 51);
+    doc.text("BALANCE SUMMARY", boxX + 15, boxY + 20);
     
     doc.setFontSize(12);
-    doc.text(`Generated On: ${new Date().toLocaleDateString()}`, 14, 32);
-    doc.text(`Total Expenses: Rs. ${totalExpense.toLocaleString('en-IN')}`, 14, 40);
+    doc.setTextColor(26, 26, 36); // Darker
+    doc.text(`Total Expenditure: INR ${totalExpense.toLocaleString('en-IN')}`, boxX + 15, boxY + 40);
     
-    doc.text(`Mitra Paid: Rs. ${mitraPaid.toLocaleString('en-IN')} | ${mitraBalance < 0 ? 'Owes' : 'Gets'}: Rs. ${Math.abs(mitraBalance).toLocaleString('en-IN')}`, 14, 48);
-    doc.text(`Ghosh Paid: Rs. ${ghoshPaid.toLocaleString('en-IN')} | ${ghoshBalance < 0 ? 'Owes' : 'Gets'}: Rs. ${Math.abs(ghoshBalance).toLocaleString('en-IN')}`, 14, 56);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    const mStatus = mitraBalance < 0 ? `Owes INR ${Math.abs(mitraBalance).toLocaleString('en-IN')}` : `Gets INR ${mitraBalance.toLocaleString('en-IN')}`;
+    const gStatus = ghoshBalance < 0 ? `Owes INR ${Math.abs(ghoshBalance).toLocaleString('en-IN')}` : `Gets INR ${ghoshBalance.toLocaleString('en-IN')}`;
     
+    doc.setTextColor(102, 102, 102);
+    doc.text(`Mitra Status: ${mitraBalance === 0 ? 'SETTLED' : mStatus}`, boxX + 15, boxY + 60);
+    doc.text(`Ghosh Status: ${ghoshBalance === 0 ? 'SETTLED' : gStatus}`, boxX + 15, boxY + 75);
+
+    // --- 3. Main Ledger Table ---
+    const tableData = expenses.map((exp, index) => [
+      (index + 1).toString(),
+      exp.date,
+      exp.description,
+      exp.paidBy,
+      "Both (50/50)",
+      exp.amount.toLocaleString('en-IN')
+    ]);
+
+    // Footer Row for table
+    tableData.push([
+      { content: 'GRAND TOTAL', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } },
+      { content: `INR ${totalExpense.toLocaleString('en-IN')}`, styles: { fontStyle: 'bold' } }
+    ] as any);
+
     autoTable(doc, {
-      startY: 65,
-      head: [['Date', 'Description', 'Category', 'Paid By', 'Amount (Rs)']],
-      body: expenses.map(exp => [
-        exp.date,
-        exp.description,
-        exp.category,
-        exp.paidBy,
-        exp.amount.toLocaleString('en-IN')
-      ]),
+      startY: boxY + boxHeight + 30,
+      head: [['S.No', 'Date', 'Description', 'Paid By', 'Split Among', 'Amount (INR)']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [26, 26, 36], // #1A1A24
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      styles: {
+        font: 'helvetica',
+        fontSize: 9,
+        cellPadding: 6,
+        overflow: 'linebreak',
+        cellWidth: 'wrap'
+      },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        2: { cellWidth: 'auto' }, // description wraps
+        5: { halign: 'right', cellWidth: 80 }
+      },
+      didDrawPage: function (data) {
+        // --- 4. Footer Section ---
+        const pageCount = (doc.internal as any).getNumberOfPages();
+        const yPos = pageHeight - 60;
+        
+        // Amount in Words
+        if (data.pageNumber === pageCount) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.setTextColor(51, 51, 51);
+          const amtWords = `Amount in Words: INR ${numberToWords(totalExpense)}`;
+          doc.text(amtWords, margin, yPos - 20);
+
+          // Signatory
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(150, 150, 150);
+          doc.text("[System Auto-Generated - No Signature Required]", pageWidth - margin, yPos - 20, { align: 'right' });
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(51, 51, 51);
+          doc.text("Authorized Signatory", pageWidth - margin, yPos - 10, { align: 'right' });
+        }
+
+        // Page Numbers
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(102, 102, 102);
+        doc.text(`Page ${data.pageNumber}`, pageWidth / 2, pageHeight - 30, { align: 'center' });
+      }
     });
-    
-    doc.save("Family_Trip_Settlement_Bill.pdf");
+
+    doc.save(`Invoice_${invoiceNo}.pdf`);
   };
 
   if (loading || !user || user.role !== 'FAMILY_HEAD') {
