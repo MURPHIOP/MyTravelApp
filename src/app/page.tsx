@@ -40,7 +40,7 @@ export default function HomePage() {
                 Mitra & Ghosh Families // Fall 2026
               </motion.div>
               
-              <h1 className="text-6xl sm:text-7xl md:text-8xl font-black leading-[0.9] tracking-tighter uppercase flex flex-col">
+              <h1 className="text-5xl sm:text-7xl md:text-8xl font-black leading-[0.9] tracking-tighter uppercase flex flex-col">
                 {headlineWords.map((word, i) => (
                   <ScrambleText key={i} text={word} delay={1.2 + i * 0.4} />
                 ))}
@@ -185,7 +185,7 @@ export default function HomePage() {
             </Link>
 
             {/* Expenses */}
-            <Link href="/expenses" className="brutal-card md:col-span-2 p-8 flex flex-col justify-center group bg-[#ECFCCB]">
+            <Link href="/expenses" className="brutal-card lg:col-span-2 p-8 flex flex-col justify-center group bg-[#ECFCCB]">
               <div className="flex items-center gap-6 mb-4">
                 <div className="w-16 h-16 border-4 border-black bg-white flex items-center justify-center shadow-[4px_4px_0px_0px_var(--border-color)]">
                   <Wallet size={32} />

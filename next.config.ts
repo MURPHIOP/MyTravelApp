@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
   compiler: {
     styledComponents: false,
   },
+  output: 'standalone',
   async rewrites() {
     return [
       {

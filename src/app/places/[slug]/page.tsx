@@ -72,10 +72,10 @@ export default function PlaceDetailPage() {
           <div className="absolute inset-0 bg-black/20" />
           
           {/* Brutalist Corner Marks */}
-          <div className="absolute top-8 left-8 w-8 h-8 border-t-8 border-l-8 border-[var(--accent)]" />
-          <div className="absolute top-8 right-8 w-8 h-8 border-t-8 border-r-8 border-[var(--accent)]" />
-          <div className="absolute bottom-8 left-8 w-8 h-8 border-b-8 border-l-8 border-[var(--accent)]" />
-          <div className="absolute bottom-8 right-8 w-8 h-8 border-b-8 border-r-8 border-[var(--accent)]" />
+          <div className="absolute top-4 left-4 md:top-8 md:left-8 w-4 h-4 md:w-8 md:h-8 border-t-4 md:border-t-8 border-l-4 md:border-l-8 border-[var(--accent)]" />
+          <div className="absolute top-4 right-4 md:top-8 md:right-8 w-4 h-4 md:w-8 md:h-8 border-t-4 md:border-t-8 border-r-4 md:border-r-8 border-[var(--accent)]" />
+          <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 w-4 h-4 md:w-8 md:h-8 border-b-4 md:border-b-8 border-l-4 md:border-l-8 border-[var(--accent)]" />
+          <div className="absolute bottom-4 right-4 md:bottom-8 md:right-8 w-4 h-4 md:w-8 md:h-8 border-b-4 md:border-b-8 border-r-4 md:border-r-8 border-[var(--accent)]" />
         </div>
       </div>
 
