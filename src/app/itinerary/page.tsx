@@ -48,7 +48,7 @@ export default function ItineraryPage() {
                     <div className="flex flex-col md:flex-row">
                       
                       <div className="w-full md:w-64 h-48 md:h-auto flex-shrink-0 relative border-b-2 md:border-b-0 md:border-r-2 border-black">
-                        <img src={day.coverImage} className="w-full h-full object-cover filter grayscale contrast-125" alt={day.title} />
+                        <img src={day.coverImage} className="w-full h-full object-cover" alt={day.title} />
                         <div className="absolute inset-0 bg-black/20" />
                         <div className="absolute top-0 left-0 bg-[var(--accent)] text-white border-r-2 border-b-2 border-black font-mono font-black text-sm px-4 py-2">
                           DAY {day.day}

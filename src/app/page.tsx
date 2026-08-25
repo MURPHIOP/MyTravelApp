@@ -91,7 +91,7 @@ export default function HomePage() {
                </div>
                
                <div className="flex-1 border-2 border-[var(--border-color)] relative overflow-hidden flex items-center justify-center">
-                  <img src={PLACE_IMAGES.ellora} className="absolute inset-0 w-full h-full object-cover filter grayscale contrast-125" alt="Hero Art" />
+                  <img src={PLACE_IMAGES.ellora} className="absolute inset-0 w-full h-full object-cover" alt="Hero Art" />
                   <div className="absolute inset-0 bg-[var(--accent)] mix-blend-color opacity-50" />
                   <div className="absolute inset-0 grid-bg opacity-30" />
                   
@@ -143,7 +143,7 @@ export default function HomePage() {
             {/* Itinerary */}
             <Link href="/itinerary" className="brutal-card md:col-span-2 md:row-span-2 relative overflow-hidden group p-8 flex flex-col justify-between">
               <div className="absolute inset-0 z-0">
-                <img src={PLACE_IMAGES.ajanta} className="w-full h-full object-cover grayscale opacity-20 group-hover:scale-105 transition-transform duration-700" alt="Ajanta" />
+                <img src={PLACE_IMAGES.ajanta} className="w-full h-full object-cover opacity-20 group-hover:scale-105 transition-transform duration-700" alt="Ajanta" />
                 <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
               </div>
               <div className="relative z-10">

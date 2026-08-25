@@ -1,96 +1,65 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Plane } from 'lucide-react';
-import { gsap } from 'gsap';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Preloader() {
-  const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Check if loaded in this session
-    const hasLoaded = sessionStorage.getItem('mt-preloaded');
-    if (hasLoaded) {
-      setTimeout(() => setLoaded(true), 0);
-      return;
-    }
-
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        onComplete: () => {
-          sessionStorage.setItem('mt-preloaded', 'true');
-          gsap.to('.preloader-overlay', {
-            opacity: 0,
-            pointerEvents: 'none',
-            duration: 0.6,
-            ease: 'power3.inOut',
-            onComplete: () => setLoaded(true),
-          });
-        },
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(timer);
+          setTimeout(() => setLoading(false), 500); // Wait a bit at 100%
+          return 100;
+        }
+        return prev + Math.floor(Math.random() * 15) + 5;
       });
+    }, 150);
 
-      tl.fromTo(
-        '.preloader-logo',
-        { scale: 0.8, opacity: 0, y: 20 },
-        { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.7)' }
-      )
-        .fromTo(
-          '.preloader-title',
-          { opacity: 0, y: 15 },
-          { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' },
-          '-=0.2'
-        )
-        .fromTo(
-          '.preloader-bar-fill',
-          { width: '0%' },
-          { width: '100%', duration: 1.2, ease: 'power2.inOut' },
-          '-=0.3'
-        );
-    });
-
-    return () => ctx.revert();
+    return () => clearInterval(timer);
   }, []);
 
-  if (loaded) return null;
-
   return (
-    <div
-      className="preloader-overlay fixed inset-0 z-[9999] flex flex-col items-center justify-center"
-      style={{
-        background: '#070B14',
-        color: '#FFFFFF',
-      }}
-    >
-      <div className="flex flex-col items-center gap-4 text-center px-6">
-        <div
-          className="preloader-logo flex items-center justify-center w-20 h-20 rounded-3xl"
-          style={{
-            background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%)',
-            boxShadow: '0 20px 60px rgba(99,102,241,0.5)',
-          }}
+    <AnimatePresence>
+      {loading && (
+        <motion.div
+          initial={{ y: 0 }}
+          exit={{ y: '-100%' }}
+          transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+          className="fixed inset-0 z-[100] bg-[var(--bg-color)] flex flex-col items-center justify-center overflow-hidden"
         >
-          <Plane size={36} color="#FFFFFF" strokeWidth={2} />
-        </div>
+          <div className="absolute inset-0 grid-bg opacity-30 pointer-events-none" />
 
-        <div className="preloader-title">
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 900, letterSpacing: '-0.04em' }}>
-            MyTravelApp
-          </h1>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4, fontWeight: 500 }}>
-            Ancient Maharashtra Tour • Mitra &amp; Ghosh Family
-          </p>
-        </div>
+          <div className="relative z-10 flex flex-col items-center gap-8 w-full max-w-md px-6">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-center"
+            >
+              <h1 className="font-black text-4xl tracking-tighter uppercase mb-2">MyTravel</h1>
+              <p className="font-mono text-xs font-bold tracking-widest text-[var(--accent)] uppercase">
+                Initializing Secure System
+              </p>
+            </motion.div>
 
-        <div
-          className="w-48 h-1.5 rounded-full overflow-hidden mt-4"
-          style={{ background: 'rgba(255,255,255,0.1)' }}
-        >
-          <div
-            className="preloader-bar-fill h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg, #3B82F6 0%, #8B5CF6 100%)' }}
-          />
-        </div>
-      </div>
-    </div>
+            {/* Brutalist Progress Bar */}
+            <div className="w-full h-8 border-4 border-[var(--border-color)] bg-white relative shadow-[4px_4px_0px_0px_var(--shadow-color)]">
+              <motion.div
+                className="h-full bg-[var(--accent)]"
+                initial={{ width: '0%' }}
+                animate={{ width: `${progress}%` }}
+                transition={{ ease: "linear", duration: 0.2 }}
+              />
+            </div>
+
+            <div className="font-mono text-2xl font-black">{progress}%</div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

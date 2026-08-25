@@ -66,7 +66,7 @@ export default function PlacesPage() {
                 <img 
                   src={place.coverImage} 
                   alt={place.name} 
-                  className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500" 
+                  className="w-full h-full object-cover transition-all duration-500" 
                 />
                 
                 <div className="absolute top-0 left-0 bg-[var(--accent)] text-white border-r-2 border-b-2 border-[var(--border-color)] font-mono font-black text-sm px-4 py-2">

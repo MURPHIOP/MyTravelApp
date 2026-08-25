@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Compass, Menu, X } from 'lucide-react';
+import { Compass, Menu, X, LogIn, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
 
 export default function TopNavbar() {
+  const { user, openLoginModal } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -29,15 +31,26 @@ export default function TopNavbar() {
             <Link href="/places" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Sites</Link>
             <Link href="/hotels" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Stays</Link>
             <Link href="/trains" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Logistics</Link>
-            <Link href="/expenses" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Ledger</Link>
             <Link href="/vault" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Vault</Link>
+            {user?.role === 'FAMILY_HEAD' && (
+              <Link href="/expenses" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Ledger</Link>
+            )}
           </div>
 
           {/* DESKTOP CTA */}
-          <div className="hidden lg:block">
-            <Link href="/itinerary" className="brutal-btn brutal-btn-accent text-xs">
-              Start Journey
-            </Link>
+          <div className="hidden lg:flex items-center gap-4">
+            {user ? (
+              <div className="flex items-center gap-4">
+                <span className="font-mono text-xs font-bold text-[var(--accent)] uppercase">{user.name}</span>
+                <button onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); window.location.reload(); }} className="hover:text-[var(--accent)] transition-colors">
+                  <LogOut size={20} />
+                </button>
+              </div>
+            ) : (
+              <button onClick={openLoginModal} className="brutal-btn brutal-btn-accent text-xs flex items-center gap-2">
+                <LogIn size={16} /> Login
+              </button>
+            )}
           </div>
 
           {/* MOBILE MENU TOGGLE */}
@@ -67,8 +80,10 @@ export default function TopNavbar() {
               <Link href="/places" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Destinations</Link>
               <Link href="/hotels" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Hotels & Stays</Link>
               <Link href="/trains" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Train Tickets</Link>
-              <Link href="/expenses" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Auto Ledger</Link>
               <Link href="/vault" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Secure Vault</Link>
+              {user?.role === 'FAMILY_HEAD' && (
+                <Link href="/expenses" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4 text-black">Auto Ledger</Link>
+              )}
             </div>
             
             <div className="mt-auto pt-12">

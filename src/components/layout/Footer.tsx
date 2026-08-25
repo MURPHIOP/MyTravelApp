@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Compass } from 'lucide-react';
+import PhysicsText from '@/components/ui/PhysicsText';
 
 export default function Footer() {
   return (
@@ -46,6 +47,14 @@ export default function Footer() {
           </div>
         </div>
       </div>
+      
+      {/* PHYSICS TEXT CONTAINER */}
+      <div className="w-full border-t-2 border-[var(--border-color)] bg-[var(--surface-light)] pt-8 pb-4">
+        <div className="container-wide flex justify-center items-center">
+          <PhysicsText />
+        </div>
+      </div>
+
       <div className="border-t-2 border-[var(--border-color)] bg-[var(--text-primary)] text-[var(--bg-color)] py-4 font-mono text-xs font-bold text-center uppercase tracking-widest">
         <p>SYSTEM ONLINE © 2026 ANCIENT MAHARASHTRA TOUR</p>
       </div>

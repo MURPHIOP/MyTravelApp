@@ -44,7 +44,7 @@ export default function HotelsPage() {
                 <img 
                   src={hotel.image} 
                   alt={hotel.name}
-                  className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500 opacity-80" 
+                  className="w-full h-full object-cover transition-all duration-500 opacity-80" 
                 />
                 
                 <div className="absolute top-0 left-0 bg-[var(--accent)] text-white border-r-4 border-b-4 border-black px-4 py-2 flex items-center gap-2 font-mono font-black text-xl">

@@ -4,8 +4,27 @@ import React, { useState } from 'react';
 import { TRIP_CONFIG } from '@/lib/tripData';
 import { Wallet, Plus, ArrowDownRight, ArrowUpRight, Activity } from 'lucide-react';
 
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+
 export default function ExpensesPage() {
-  const [isAuthenticated] = useState(false);
+  const { user, openLoginModal, loading } = useAuth();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (!loading && (!user || user.role !== 'FAMILY_HEAD')) {
+      openLoginModal();
+      router.push('/');
+    }
+  }, [user, loading, openLoginModal, router]);
+
+  if (loading || !user || user.role !== 'FAMILY_HEAD') {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center font-mono font-black uppercase text-2xl tracking-tighter animate-pulse">
+        Checking Security Clearance...
+      </div>
+    );
+  }
 
   return (
     <div className="w-full pt-32 pb-24 min-h-screen">

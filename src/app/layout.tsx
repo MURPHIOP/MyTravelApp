@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/context/ThemeProvider';
+import { AuthProvider } from '@/context/AuthContext';
 import TopNavbar from '@/components/layout/TopNavbar';
 import Footer from '@/components/layout/Footer';
+import Preloader from '@/components/layout/Preloader';
+import LoginModal from '@/components/auth/LoginModal';
 
 export const metadata: Metadata = {
   title: 'Ancient Maharashtra Tour',
@@ -32,8 +35,11 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <ThemeProvider>
-          <div className="relative min-h-screen flex flex-col">
+        <AuthProvider>
+          <Preloader />
+          <LoginModal />
+          <ThemeProvider>
+            <div className="relative min-h-screen flex flex-col">
             <TopNavbar />
             <main className="flex-grow">
               {children}
@@ -41,6 +47,7 @@ export default function RootLayout({
             <Footer />
           </div>
         </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

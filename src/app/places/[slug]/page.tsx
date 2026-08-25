@@ -67,7 +67,7 @@ export default function PlaceDetailPage() {
           <img
             src={place.coverImage}
             alt={place.name}
-            className="absolute inset-0 w-full h-full object-cover filter grayscale contrast-125"
+            className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/20" />
           
