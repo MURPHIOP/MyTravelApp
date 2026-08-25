@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Wallet, Plus, ArrowDownRight, ArrowUpRight, Activity, X } from 'lucide-react';
+import { Wallet, Plus, ArrowDownRight, ArrowUpRight, Activity, X, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -78,6 +80,34 @@ export default function ExpensesPage() {
 
   const mitraBalance = mitraPaid - halfShare; // negative means owes, positive means gets
   const ghoshBalance = ghoshPaid - halfShare;
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(20);
+    doc.text("MAHARASHTRA V2 - SETTLEMENT BILL", 14, 22);
+    
+    doc.setFontSize(12);
+    doc.text(`Generated On: ${new Date().toLocaleDateString()}`, 14, 32);
+    doc.text(`Total Expenses: Rs. ${totalExpense.toLocaleString('en-IN')}`, 14, 40);
+    
+    doc.text(`Mitra Paid: Rs. ${mitraPaid.toLocaleString('en-IN')} | ${mitraBalance < 0 ? 'Owes' : 'Gets'}: Rs. ${Math.abs(mitraBalance).toLocaleString('en-IN')}`, 14, 48);
+    doc.text(`Ghosh Paid: Rs. ${ghoshPaid.toLocaleString('en-IN')} | ${ghoshBalance < 0 ? 'Owes' : 'Gets'}: Rs. ${Math.abs(ghoshBalance).toLocaleString('en-IN')}`, 14, 56);
+    
+    autoTable(doc, {
+      startY: 65,
+      head: [['Date', 'Description', 'Category', 'Paid By', 'Amount (Rs)']],
+      body: expenses.map(exp => [
+        exp.date,
+        exp.description,
+        exp.category,
+        exp.paidBy,
+        exp.amount.toLocaleString('en-IN')
+      ]),
+    });
+    
+    doc.save("Family_Trip_Settlement_Bill.pdf");
+  };
 
   if (loading || !user || user.role !== 'FAMILY_HEAD') {
     return (
@@ -164,12 +194,20 @@ export default function ExpensesPage() {
               <Wallet size={28} className="text-[var(--accent)]" /> 
               Transaction Log
             </h3>
-            <button 
-              onClick={() => setExpenses([])}
-              className="font-mono text-xs font-bold bg-red-600 hover:bg-red-700 px-3 py-1 text-white border-2 border-white transition-colors cursor-pointer"
-            >
-              CLEAR ALL
-            </button>
+            <div className="flex gap-4">
+              <button 
+                onClick={generatePDF}
+                className="font-mono text-xs font-bold bg-white text-black hover:bg-gray-200 px-3 py-1 border-2 border-white transition-colors cursor-pointer flex items-center gap-2"
+              >
+                <Download size={14} /> GENERATE BILL
+              </button>
+              <button 
+                onClick={() => setExpenses([])}
+                className="font-mono text-xs font-bold bg-red-600 hover:bg-red-700 px-3 py-1 text-white border-2 border-white transition-colors cursor-pointer"
+              >
+                CLEAR ALL
+              </button>
+            </div>
           </div>
           
           <div className="overflow-x-auto bg-white">

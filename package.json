@@ -19,6 +19,7 @@
     "html2canvas": "^1.4.1",
     "jose": "^6.2.9",
     "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lottie-react": "^2.4.1",
     "lucide-react": "^1.28.0",
     "mongoose": "^9.9.0",
