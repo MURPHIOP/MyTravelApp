@@ -33,7 +33,6 @@ export default function Footer() {
           <h3 className="font-black uppercase mb-4 tracking-widest text-sm text-[var(--accent)]">Modules</h3>
           <div className="flex flex-col gap-3 font-mono text-sm font-bold">
             <Link href="/expenses" className="hover:underline hover:text-[var(--accent)] transition-colors">Auto-Ledger</Link>
-            <Link href="/auth/login" className="hover:underline hover:text-[var(--accent)] transition-colors">Family Head Login</Link>
             <Link href="/vault" className="hover:underline hover:text-[var(--accent)] transition-colors">Secure Vault</Link>
           </div>
         </div>
