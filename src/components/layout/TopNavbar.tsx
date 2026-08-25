@@ -41,7 +41,9 @@ export default function TopNavbar() {
           <div className="hidden lg:flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-4">
-                <span className="font-mono text-xs font-bold text-[var(--accent)] uppercase">{user.name}</span>
+                <span className="font-mono text-xs font-bold text-[var(--accent)] uppercase">
+                  {user.role === 'FAMILY_HEAD' ? 'FAMILY HEAD' : user.name}
+                </span>
                 <button onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); window.location.reload(); }} className="hover:text-[var(--accent)] transition-colors">
                   <LogOut size={20} />
                 </button>
