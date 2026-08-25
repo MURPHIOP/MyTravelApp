@@ -203,9 +203,9 @@ export default function ExpensesPage() {
     const tableData = expenses.map((exp, index) => [
       (index + 1).toString(),
       exp.date,
-      exp.description,
+      safeType(exp) === 'RECEIPT' ? `[RECEIPT] ${exp.description}` : exp.description,
       exp.paidBy,
-      "Both (50/50)",
+      safeType(exp) === 'RECEIPT' ? "Deposit (N/A)" : "Both (50/50)",
       exp.amount.toLocaleString('en-IN')
     ]);
 
