@@ -1,228 +1,86 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { gsap } from 'gsap';
-import { HOTELS } from '@/lib/tripData';
-import { MapPin, Calendar, Wifi, Wind, Car, UtensilsCrossed, Droplets, Download, ExternalLink, ChevronRight } from 'lucide-react';
+import React from 'react';
+import { Hotel, MapPin, CalendarDays, ExternalLink, Star } from 'lucide-react';
 
-const AMENITY_ICONS: Record<string, React.ReactNode> = {
-  WiFi: <Wifi size={13} />,
-  AC: <Wind size={13} />,
-  Parking: <Car size={13} />,
-  Restaurant: <UtensilsCrossed size={13} />,
-  'Vegetarian Food': <UtensilsCrossed size={13} />,
-  Breakfast: <UtensilsCrossed size={13} />,
-  Pool: <Droplets size={13} />,
-  Spa: <Droplets size={13} />,
-};
-
-function HotelCard({ hotel }: { hotel: typeof HOTELS[0] }) {
-  return (
-    <div
-      className="hotel-card card-elevated overflow-hidden"
-      style={{ borderRadius: 28 }}
-    >
-      {/* Photo Header */}
-      <div
-        className="relative"
-        style={{
-          height: 220,
-          backgroundImage: `
-            linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.92) 100%),
-            url(${hotel.coverImage})
-          `,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        {/* Nights badge */}
-        <div className="absolute top-4 right-4">
-          <div
-            className="pill pill-sm"
-            style={{
-              background: 'rgba(245,158,11,0.9)',
-              color: '#FFFFFF',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.25)',
-              padding: '6px 12px',
-            }}
-          >
-            <Calendar size={12} />
-            {hotel.nights} Night{hotel.nights > 1 ? 's' : ''}
-          </div>
-        </div>
-
-        {/* Days badge */}
-        <div className="absolute top-4 left-4 flex gap-1.5">
-          {hotel.days.map(d => (
-            <span
-              key={d}
-              className="pill pill-sm"
-              style={{
-                background: 'rgba(0,0,0,0.5)',
-                color: '#FFFFFF',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                fontSize: 11,
-              }}
-            >
-              Day {d}
-            </span>
-          ))}
-        </div>
-
-        {/* Hotel Title Overlay */}
-        <div className="absolute bottom-4 left-5 right-5">
-          <h3
-            style={{
-              fontSize: '1.3rem',
-              fontWeight: 900,
-              color: '#FFFFFF',
-              lineHeight: 1.2,
-              textShadow: '0 2px 12px rgba(0,0,0,0.6)',
-            }}
-          >
-            {hotel.name}
-          </h3>
-          <div className="flex items-center gap-1.5 mt-1" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>
-            <MapPin size={12} /> {hotel.city}
-          </div>
-        </div>
-      </div>
-
-      {/* Body Section */}
-      <div className="p-6">
-        {/* Dates Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
-          <div
-            className="p-3.5 rounded-2xl flex flex-col gap-1"
-            style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
-          >
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>CHECK-IN</span>
-            <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{hotel.checkIn}</span>
-          </div>
-          <div
-            className="p-3.5 rounded-2xl flex flex-col gap-1"
-            style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
-          >
-            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>CHECK-OUT</span>
-            <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{hotel.checkOut}</span>
-          </div>
-        </div>
-
-        {/* Amenities */}
-        <div className="flex flex-wrap gap-2 mb-5">
-          {hotel.amenities.map((a) => (
-            <div key={a} className="pill pill-sm pill-muted flex items-center gap-1.5">
-              {AMENITY_ICONS[a] ?? null}
-              {a}
-            </div>
-          ))}
-        </div>
-
-        {/* Address */}
-        <div className="flex items-start gap-2 mb-5 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <MapPin size={15} style={{ color: 'var(--text-muted)', marginTop: 2, flexShrink: 0 }} />
-          <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5, fontWeight: 500 }}>
-            {hotel.address}
-          </span>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <a
-            href={hotel.mapUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="btn btn-ghost tap w-full"
-            style={{ padding: '12px 18px', borderRadius: 16, fontSize: 14 }}
-          >
-            <ExternalLink size={15} /> View Location Map
-          </a>
-          {hotel.bookingPassUrl ? (
-            <a
-              href={hotel.bookingPassUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-primary tap w-full"
-              style={{ padding: '12px 18px', borderRadius: 16, fontSize: 14 }}
-            >
-              <Download size={15} /> Download Booking Pass
-            </a>
-          ) : (
-            <div
-              className="flex items-center justify-center gap-2 rounded-2xl w-full"
-              style={{
-                background: 'var(--surface-2)',
-                border: '1.5px dashed var(--border)',
-                color: 'var(--text-muted)',
-                fontSize: 13,
-                fontWeight: 700,
-                padding: '12px 18px',
-              }}
-            >
-              <Download size={15} /> Pass Pending Upload
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+const HOTELS = [
+  {
+    city: 'Jalgaon',
+    name: 'President Cottage Resort',
+    nights: 2,
+    checkIn: '17 Oct 2026',
+    checkOut: '19 Oct 2026',
+    rating: 4.5,
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
+    address: 'Near Ajanta Caves Road, Jalgaon',
+  },
+  {
+    city: 'Aurangabad',
+    name: 'Vivanta Aurangabad',
+    nights: 2,
+    checkIn: '19 Oct 2026',
+    checkOut: '21 Oct 2026',
+    rating: 5.0,
+    image: 'https://images.unsplash.com/photo-1542314831-c6a4d14d8c85?w=800&q=80',
+    address: 'Rauza Baugh, CIDCO, Aurangabad',
+  }
+];
 
 export default function HotelsPage() {
-  useEffect(() => {
-    gsap.fromTo(
-      '.hotel-card',
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, stagger: 0.12, duration: 0.55, ease: 'power3.out' }
-    );
-  }, []);
-
   return (
-    <div className="inner py-8">
-      <div className="mb-6">
-        <p className="label-sm">5 Nights Across Maharashtra</p>
-        <h1 className="heading-lg" style={{ marginTop: 2 }}>Hotel Bookings</h1>
-        <p className="body-sm mt-1">Confirmed stays for Mitra &amp; Ghosh families across all tour stops.</p>
-      </div>
+    <div className="w-full pt-32 pb-24 min-h-screen">
+      <div className="container-wide">
+        
+        <div className="mb-16 max-w-3xl">
+          <h1 className="heading-hero text-gradient mb-6">Accommodations</h1>
+          <p className="text-body-large text-muted">
+            Premium stays booked for the Mitra & Ghosh families across Maharashtra.
+          </p>
+        </div>
 
-      {/* Hotel Cities Timeline Bar */}
-      <div
-        className="flex items-center gap-2 p-3.5 rounded-2xl mb-6 scroll-x"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}
-      >
-        {HOTELS.map((h, i) => (
-          <React.Fragment key={h.id}>
-            <div className="flex-shrink-0 text-center">
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 2 }}>
-                Day {h.days[0]}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {HOTELS.map((hotel, idx) => (
+            <div key={idx} className="glass-card overflow-hidden group">
+              
+              <div className="relative h-64 overflow-hidden">
+                <img 
+                  src={hotel.image} 
+                  alt={hotel.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-dark)] to-transparent" />
+                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 text-xs font-bold flex items-center gap-2">
+                  <Star size={14} className="text-yellow-400 fill-yellow-400" />
+                  {hotel.rating}
+                </div>
               </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 800,
-                  color: 'var(--accent)',
-                  background: 'var(--accent-light)',
-                  borderRadius: 10,
-                  padding: '5px 10px',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {h.city}
+
+              <div className="p-8">
+                <div className="flex items-center gap-2 text-accent-secondary font-bold text-sm tracking-widest uppercase mb-2">
+                  <MapPin size={16} /> {hotel.city}
+                </div>
+                
+                <h3 className="text-3xl font-black mb-6">{hotel.name}</h3>
+                
+                <div className="grid grid-cols-2 gap-6 p-6 bg-white/5 rounded-2xl border border-white/10 mb-6">
+                  <div>
+                    <div className="text-sm text-muted font-bold tracking-wider uppercase mb-1">Check-in</div>
+                    <div className="font-bold text-lg">{hotel.checkIn}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted font-bold tracking-wider uppercase mb-1">Check-out</div>
+                    <div className="font-bold text-lg">{hotel.checkOut}</div>
+                  </div>
+                </div>
+
+                <button className="w-full tap bg-white text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors">
+                  <ExternalLink size={20} /> View Booking Details
+                </button>
               </div>
             </div>
-            {i < HOTELS.length - 1 && (
-              <ChevronRight size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <div className="flex flex-col gap-6">
-        {HOTELS.map((hotel) => (
-          <HotelCard key={hotel.id} hotel={hotel} />
-        ))}
       </div>
     </div>
   );

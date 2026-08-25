@@ -1,183 +1,129 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, Clock, IndianRupee } from 'lucide-react';
-import { PLACES, PlaceItem } from '@/lib/tripData';
-import BottomSheet from '@/components/ui/BottomSheet';
-import TactileButton from '@/components/ui/TactileButton';
+import React, { useState, useEffect } from 'react';
+import { gsap } from 'gsap';
+import { PLACES } from '@/lib/tripData';
+import { MapPin, Mountain, Zap, Star, Leaf, Clock, Ticket, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
-export default function ExplorePage() {
-  const [selectedPlace, setSelectedPlace] = useState<PlaceItem | null>(null);
+const FILTERS = [
+  { id: 'all', label: 'All Destinations' },
+  { id: 'temple', label: 'Sacred Shrines' },
+  { id: 'heritage', label: 'UNESCO Heritage' },
+  { id: 'experience', label: 'Experiences' },
+];
 
-  const featured = PLACES[0];
-  const otherPlaces = PLACES.slice(1);
+function PlaceTypeIcon({ type }: { type: string }) {
+  const props = { size: 16, strokeWidth: 2 };
+  if (type === 'heritage') return <Mountain {...props} />;
+  if (type === 'temple') return <Zap {...props} />;
+  if (type === 'experience') return <Star {...props} />;
+  return <Leaf {...props} />;
+}
+
+export default function PlacesPage() {
+  const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    gsap.fromTo('.place-card',
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, stagger: 0.1, duration: 0.6, ease: 'power3.out' }
+    );
+  }, [filter]);
+
+  const filtered = filter === 'all' ? PLACES : PLACES.filter(p => p.type === filter);
 
   return (
-    <div className="pb-safe relative w-full overflow-hidden min-h-screen">
-      
-      {/* ── BACKGROUND ART DIRECTION ── */}
-      <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden bg-[var(--bg)]">
-        <div 
-          className="absolute inset-0 opacity-[0.03] mix-blend-multiply dark:mix-blend-screen"
-          style={{
-            backgroundImage: 'url(/destinations/hero_map.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'contrast(1.2) sepia(1)'
-          }}
-        />
-      </div>
-
-      <div className="inner pt-safe">
-        
-        {/* ── HEADER ── */}
-        <div className="mb-12 mt-8 lg:mt-16">
-          <h1 className="text-title-main mb-4">DISCOVER</h1>
-          <div className="text-title-section text-[var(--text-secondary)]">
-            Maharashtra, slowly.
-          </div>
+    <div className="w-full pt-32 pb-24 min-h-screen">
+      <div className="container-wide">
+        {/* Header */}
+        <div className="mb-16 text-center max-w-3xl mx-auto">
+          <h1 className="heading-hero text-gradient mb-6">Destinations</h1>
+          <p className="text-body-large text-muted">
+            Explore detailed guides, historical backgrounds, and travel tips for all 8 curated spots on our journey.
+          </p>
         </div>
 
-        {/* ── CATEGORY FILTERS ── */}
-        <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-6 -mx-[var(--page-padding-mobile)] px-[var(--page-padding-mobile)] md:mx-0 md:px-0 mb-8">
-          {['All Destinations', 'UNESCO Heritage', 'Jyotirlinga', 'Experiences'].map((cat, i) => (
-            <button 
-              key={cat}
-              className={`flex-shrink-0 px-6 py-3 rounded-full text-sm font-semibold transition-all ${
-                i === 0 
-                  ? 'bg-[var(--text-primary)] text-[var(--bg)]' 
-                  : 'bg-[var(--surface-2)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)]'
-              }`}
+        {/* Filters */}
+        <div className="flex flex-wrap items-center justify-center gap-4 mb-16">
+          {FILTERS.map(f => (
+            <button
+              key={f.id}
+              className="tap flex-shrink-0 transition-all duration-300"
+              style={{
+                borderRadius: 999,
+                padding: '12px 24px',
+                fontSize: 14,
+                fontWeight: 700,
+                background: filter === f.id ? 'var(--accent-primary)' : 'var(--bg-card)',
+                color: filter === f.id ? '#FFFFFF' : 'var(--text-secondary)',
+                border: filter === f.id ? '1px solid var(--accent-primary)' : '1px solid var(--border-glass)',
+                boxShadow: filter === f.id ? '0 8px 24px var(--accent-glow)' : 'none',
+              }}
+              onClick={() => setFilter(f.id)}
             >
-              {cat}
+              {f.label}
             </button>
           ))}
         </div>
 
-        {/* ── FEATURED EDITORIAL HERO ── */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="relative w-full aspect-square md:aspect-[21/9] bg-[var(--surface-2)] overflow-hidden cursor-pointer group mb-16"
-          onClick={() => setSelectedPlace(featured)}
-        >
-          <img 
-            src={featured.coverImage} 
-            alt={featured.name} 
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-[1.02]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-          
-          <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end">
-            <div className="max-w-2xl">
-              <div className="text-eyebrow text-white/80 mb-3 flex items-center gap-2">
-                <MapPin size={14} /> {featured.city}
-              </div>
-              <h2 className="text-title-section text-white mb-4">
-                {featured.name}
-              </h2>
-              <p className="text-body text-white/90 line-clamp-2 md:line-clamp-none">
-                {featured.description}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ── OTHER DESTINATIONS ── */}
-        <div>
-          <div className="text-eyebrow mb-8">Featured Destinations</div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-            {otherPlaces.map((place) => (
-              <motion.div 
-                key={place.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                className="group cursor-pointer flex flex-col"
-                onClick={() => setSelectedPlace(place)}
-              >
-                <div className="relative aspect-[3/4] overflow-hidden bg-[var(--surface-2)] mb-6">
+        {/* Expansive Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {filtered.map((place) => (
+            <Link key={place.id} href={`/places/${place.slug}`} className="place-card tap block group">
+              <div className="glass-card overflow-hidden h-full flex flex-col relative">
+                
+                {/* Photo Section */}
+                <div className="relative h-64 overflow-hidden">
                   <img 
                     src={place.coverImage} 
                     alt={place.name} 
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                   />
-                </div>
-                <div className="text-eyebrow mb-2">{place.city}</div>
-                <h3 className="text-title-card mb-3">{place.name}</h3>
-                <p className="text-body line-clamp-2">
-                  {place.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-      </div>
-
-      {/* ── DESTINATION DETAILS SHEET ── */}
-      <BottomSheet isOpen={!!selectedPlace} onClose={() => setSelectedPlace(null)}>
-        {selectedPlace && (
-          <div className="flex flex-col gap-8 -mt-6">
-            
-            <div className="relative h-[400px] -mx-6 mb-4">
-              <img src={selectedPlace.coverImage} className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg)] via-black/40 to-transparent" />
-              <div className="absolute bottom-8 left-6 right-6">
-                <div className="text-eyebrow text-white/80 mb-3 flex items-center gap-2">
-                  <MapPin size={14} /> {selectedPlace.city}
-                </div>
-                <h2 className="text-title-section text-white">{selectedPlace.name}</h2>
-              </div>
-            </div>
-
-            <div className="px-2">
-              <p className="text-body mb-8 text-safe text-balance">
-                {selectedPlace.description}
-              </p>
-
-              <div className="grid grid-cols-2 gap-6 mb-8">
-                <div className="border-l-2 border-[var(--accent)] pl-4">
-                  <div className="text-eyebrow mb-2 flex items-center gap-2">
-                    <Clock size={14} /> HOURS
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#070B14] to-transparent opacity-80" />
+                  
+                  <div className="absolute top-4 right-4 pill text-xs font-bold px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white">
+                    Day {place.visitDay}
                   </div>
-                  <div className="font-semibold text-sm text-[var(--text-primary)] text-safe">{selectedPlace.timings}</div>
-                </div>
-
-                <div className="border-l-2 border-[var(--accent-secondary)] pl-4">
-                  <div className="text-eyebrow mb-2 flex items-center gap-2">
-                    <IndianRupee size={14} /> ENTRY FEE
-                  </div>
-                  <div className="font-semibold text-sm text-[var(--text-primary)] text-safe">{selectedPlace.entryFee.split('|')[0]}</div>
-                </div>
-              </div>
-
-              <div className="mb-10">
-                <h3 className="text-title-card mb-6">Highlights</h3>
-                <div className="space-y-4">
-                  {selectedPlace.keyAttractions.map((attr: string, i: number) => (
-                    <div key={i} className="flex gap-4 items-start">
-                      <div className="mt-1 w-6 h-6 rounded-full bg-[var(--surface-2)] border border-[rgba(0,0,0,0.05)] flex items-center justify-center shrink-0 text-[10px] font-bold text-[var(--text-secondary)]">
-                        {i + 1}
-                      </div>
-                      <span className="text-body text-sm text-safe">{attr}</span>
+                  
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="flex items-center gap-2 mb-2 text-xs font-bold tracking-wider uppercase" style={{ color: place.accentColor }}>
+                      <PlaceTypeIcon type={place.type} />
+                      {place.typeLabel}
                     </div>
-                  ))}
+                    <h3 className="text-2xl font-black text-white leading-tight">
+                      {place.name}
+                    </h3>
+                  </div>
                 </div>
+
+                {/* Details Section */}
+                <div className="p-6 flex flex-col flex-grow justify-between gap-6 bg-[#0A0A0F]/50">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2 text-sm text-muted">
+                      <MapPin size={16} className="text-blue-400" /> {place.city}
+                    </div>
+                    <div className="flex items-start gap-2 text-sm text-muted">
+                      <Clock size={16} className="text-emerald-400 flex-shrink-0 mt-0.5" /> 
+                      <span className="line-clamp-1">{place.timings}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-[var(--border-glass)]">
+                    <span className="text-sm font-semibold text-muted">
+                      {place.keyAttractions.length} Attractions
+                    </span>
+                    <span className="flex items-center gap-1 text-sm font-bold text-[var(--accent-primary)] group-hover:translate-x-1 transition-transform">
+                      Read Guide <ArrowRight size={16} />
+                    </span>
+                  </div>
+                </div>
+
               </div>
-
-              <TactileButton fullWidth size="lg" className="bg-[var(--text-primary)] text-[var(--bg)]">
-                <MapPin size={18} className="mr-2" /> Open Directions
-              </TactileButton>
-            </div>
-
-          </div>
-        )}
-      </BottomSheet>
-
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

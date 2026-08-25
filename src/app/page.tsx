@@ -1,193 +1,162 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, ArrowRight, Compass as CompassIcon, Camera, Map } from 'lucide-react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
-import TactileButton from '@/components/ui/TactileButton';
+import { gsap } from 'gsap';
+import { ArrowRight, MapPin, Calendar, Users, Train, Hotel, Wallet, Compass } from 'lucide-react';
+import { PLACE_IMAGES, TRIP_CONFIG } from '@/lib/tripData';
 
 export default function HomePage() {
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        '.hero-anim',
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: 'power3.out' }
+      );
+      gsap.fromTo(
+        '.bento-anim',
+        { opacity: 0, scale: 0.95 },
+        { opacity: 1, scale: 1, duration: 0.8, stagger: 0.1, ease: 'power3.out', delay: 0.4 }
+      );
+    });
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="pb-safe relative w-full overflow-hidden">
-      
-      <main className="w-full">
+    <div className="w-full">
+      {/* ── IMMERSIVE HERO SECTION ── */}
+      <section className="relative w-full min-h-screen flex items-center justify-center pt-24 overflow-hidden">
+        <div className="ambient-orb bg-blue-500/20 top-1/4 left-1/4" style={{ width: '50vw', height: '50vw' }} />
+        <div className="ambient-orb bg-purple-500/20 bottom-1/4 right-1/4" style={{ width: '40vw', height: '40vw', animationDelay: '2s' }} />
         
-        {/* ── 1. CINEMATIC HERO ── */}
-        <section className="relative w-full h-[100dvh] flex flex-col justify-center">
-          {/* Main Hero Photograph */}
-          <motion.div 
-            initial={{ scale: 1.05, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
-            className="absolute inset-0 z-0"
-          >
-            <img 
-              src="/destinations/dest_ajanta.jpg" 
-              alt="Ajanta Caves Maharashtra" 
-              className="w-full h-full object-cover object-[center_30%]"
-            />
-            {/* Proper Cinematic Gradient for Typography Contrast */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10" />
-          </motion.div>
-
-          {/* Hero Content Overlay */}
-          <div className="relative z-10 w-full inner flex flex-col justify-end h-full pb-32">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="max-w-2xl"
-            >
-              <div className="text-eyebrow text-white/80 mb-6 flex items-center gap-2">
-                STARTING POINT · AURANGABAD
-              </div>
-              
-              <h1 className="text-title-main text-white mb-6">
-                Ancient<br/>Maharashtra
-              </h1>
-              
-              <p className="text-body text-white/80 mb-10 text-balance">
-                An 11-day private expedition through monolithic temples, hidden caves, and the sacred Jyotirlingas.
-              </p>
-
-              <Link href="#journey">
-                <TactileButton className="bg-white text-black hover:bg-white/90 shadow-xl px-8 py-4">
-                  Explore the journey <ArrowRight size={18} className="ml-2" />
-                </TactileButton>
-              </Link>
-            </motion.div>
+        <div className="container-wide relative z-10 flex flex-col items-center text-center">
+          <div className="hero-anim inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+            </span>
+            <span className="text-sm font-bold tracking-wide uppercase">Starts October 16, 2026</span>
           </div>
-        </section>
 
-        {/* ── 2. THE JOURNEY ── */}
-        <section id="journey" className="relative w-full py-24 lg:py-32 bg-[var(--bg)]">
-          <div className="inner">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-              <div>
-                <h2 className="text-title-section mb-12">The Grand Route</h2>
-                
-                <div className="flex flex-col gap-10">
-                  <div className="border-l-2 border-[var(--accent)] pl-6">
-                    <div className="text-title-card text-[var(--text-primary)] mb-2">11 Days</div>
-                    <div className="text-body">Across the Western Ghats and Deccan Plateau.</div>
-                  </div>
-                  <div className="border-l-2 border-[var(--accent-secondary)] pl-6">
-                    <div className="text-title-card text-[var(--text-primary)] mb-2">4 Cities</div>
-                    <div className="text-body">Aurangabad, Ellora, Nashik, and Mumbai.</div>
-                  </div>
-                  <div className="border-l-2 border-[var(--accent-success)] pl-6">
-                    <div className="text-title-card text-[var(--text-primary)] mb-2">9 Landmarks</div>
-                    <div className="text-body">Including 3 Jyotirlingas and 2 UNESCO World Heritage sites.</div>
-                  </div>
-                </div>
+          <h1 className="hero-anim heading-hero mb-6 max-w-5xl">
+            Experience the <span className="text-gradient">Ancient Soul</span> of Maharashtra.
+          </h1>
 
-                <p className="text-body mt-12 text-balance">
-                  A carefully paced route through the architecture and spiritual history of Maharashtra.
-                </p>
-              </div>
+          <p className="hero-anim text-body-large text-muted max-w-2xl mb-12">
+            An exclusive 11-day private journey for the Mitra & Ghosh families. 
+            Exploring 3 Jyotirlingas, UNESCO heritage caves, and sacred destinations.
+          </p>
 
-              {/* Route Visualization Area */}
-              <div className="relative aspect-square md:aspect-[4/3] lg:aspect-square bg-[var(--surface-2)] rounded-[32px] overflow-hidden border border-[rgba(0,0,0,0.05)] flex items-center justify-center p-8">
-                <div 
-                  className="absolute inset-0 opacity-[0.15] dark:opacity-10 mix-blend-multiply dark:mix-blend-screen"
-                  style={{
-                    backgroundImage: 'url(/destinations/hero_map.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    filter: 'contrast(1.2) sepia(1)'
-                  }}
-                />
-                <Map className="w-32 h-32 text-[var(--text-muted)] opacity-20 relative z-10" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── 3. THE PLACES ── */}
-        <section className="relative w-full py-24 lg:py-32 bg-[var(--surface)]">
-          <div className="inner">
-            <div className="flex justify-between items-end mb-16">
-              <div>
-                <div className="text-eyebrow mb-4">Featured Destinations</div>
-                <h2 className="text-title-section">The Places</h2>
-              </div>
-              <Link href="/places" className="hidden md:flex items-center gap-2 text-sm font-bold text-[var(--accent)] hover:underline">
-                View All Destinations <ArrowRight size={16} />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { name: 'Ellora Caves', img: 'dest_ellora.jpg', tag: 'UNESCO' },
-                { name: 'Shirdi', img: 'dest_shirdi.jpg', tag: 'SPIRITUAL' },
-                { name: 'Trimbakeshwar', img: 'dest_trimbakeshwar.jpg', tag: 'JYOTIRLINGA' },
-              ].map((place, i) => (
-                <Link href="/places" key={i}>
-                  <div className="group cursor-pointer">
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-[24px] mb-6">
-                      <img src={`/destinations/${place.img}`} alt={place.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500" />
-                    </div>
-                    <div className="text-eyebrow mb-2">{place.tag}</div>
-                    <h3 className="text-title-card">{place.name}</h3>
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            <Link href="/places" className="mt-12 md:hidden flex justify-center items-center gap-2 text-sm font-bold text-[var(--accent)]">
-              View All Destinations <ArrowRight size={16} />
+          <div className="hero-anim flex flex-col sm:flex-row items-center gap-4">
+            <Link href="/itinerary" className="tap px-8 py-4 rounded-full bg-white text-black font-bold text-lg hover:scale-105 transition-transform flex items-center gap-2">
+              Explore the Itinerary <ArrowRight size={20} />
+            </Link>
+            <Link href="/places" className="tap px-8 py-4 rounded-full glass-card text-white font-bold text-lg hover:bg-white/5 transition-colors">
+              View Destinations
             </Link>
           </div>
-        </section>
+        </div>
 
-        {/* ── 4. FAMILY TRAVEL SYSTEM ── */}
-        <section className="relative w-full py-24 lg:py-32 bg-[var(--surface-2)]">
-          <div className="inner">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <div className="text-eyebrow mb-4">Operating System</div>
-              <h2 className="text-title-section mb-6">Family Travel</h2>
-              <p className="text-body text-balance">
-                Everything you need for the journey. Your secure travel vault, shared expense ledger, and real-time itinerary.
-              </p>
+        {/* Hero Background Fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[var(--bg-dark)] to-transparent pointer-events-none" />
+      </section>
+
+      {/* ── BENTO GRID FEATURES ── */}
+      <section className="py-24">
+        <div className="container-wide">
+          <div className="flex flex-col md:flex-row items-end justify-between mb-12">
+            <div>
+              <h2 className="heading-section">Your Journey Hub</h2>
+              <p className="text-muted mt-2">Everything you need for the trip in one place.</p>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              <Link href="/vault" className="block">
-                <div className="mat-paper p-10 h-full hover:-translate-y-2 transition-transform cursor-pointer border border-[rgba(0,0,0,0.05)] flex flex-col justify-center text-center">
-                  <h3 className="text-title-card mb-4">Vault</h3>
-                  <p className="text-body">Secure access to all train tickets, hotel vouchers, and identification.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[280px]">
+            
+            {/* Itinerary / Map (Large Box) */}
+            <Link href="/itinerary" className="bento-anim tap glass-card md:col-span-2 md:row-span-2 relative overflow-hidden group">
+              <img src={PLACE_IMAGES.ellora} className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity duration-700" alt="Ellora" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] via-[#0A0A0F]/60 to-transparent" />
+              <div className="absolute inset-0 p-8 flex flex-col justify-between">
+                <div className="w-14 h-14 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center backdrop-blur-md border border-blue-500/30">
+                  <MapPin size={28} />
                 </div>
-              </Link>
-
-              <Link href="/expenses" className="block">
-                <div className="mat-paper p-10 h-full hover:-translate-y-2 transition-transform cursor-pointer border border-[rgba(0,0,0,0.05)] flex flex-col justify-center text-center">
-                  <h3 className="text-title-card mb-4">Ledger</h3>
-                  <p className="text-body">Shared accounting for the Mitra and Ghosh families. Track every split.</p>
+                <div>
+                  <h3 className="text-3xl font-bold mb-2">11-Day Interactive Itinerary</h3>
+                  <p className="text-muted">Explore the day-by-day plan, including 3D route maps and daily schedules.</p>
                 </div>
-              </Link>
-            </div>
-          </div>
-        </section>
+              </div>
+            </Link>
 
-        {/* ── 5. CLOSING ── */}
-        <section className="relative w-full py-32 lg:py-48 bg-black text-center flex flex-col items-center justify-center">
-          <div className="absolute inset-0 opacity-40">
-             <img src="/destinations/dest_nashik.jpg" alt="Nashik" className="w-full h-full object-cover" />
-             <div className="absolute inset-0 bg-black/60" />
-          </div>
-          
-          <div className="relative z-10 inner">
-            <h2 className="text-title-main text-white mb-8 max-w-4xl mx-auto">
-              Your Journey Is Just Beginning.
-            </h2>
-            <div className="text-eyebrow text-white/60 tracking-widest">
-              Ancient Maharashtra · 11 days · 4 cities
-            </div>
-          </div>
-        </section>
+            {/* Destinations */}
+            <Link href="/places" className="bento-anim tap glass-card relative overflow-hidden group">
+              <img src={PLACE_IMAGES.ajanta} className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-700" alt="Ajanta" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] to-transparent" />
+              <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                <Compass size={24} className="text-purple-400 mb-3" />
+                <h3 className="text-xl font-bold">Destinations</h3>
+                <p className="text-sm text-muted mt-1">8 sacred & heritage spots.</p>
+              </div>
+            </Link>
 
-      </main>
+            {/* Trains */}
+            <Link href="/trains" className="bento-anim tap glass-card relative overflow-hidden group">
+              <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-br from-indigo-900/40 to-transparent">
+                <Train size={24} className="text-indigo-400 mb-3" />
+                <h3 className="text-xl font-bold">Train Info</h3>
+                <p className="text-sm text-muted mt-1">Schedules & Boarding passes.</p>
+              </div>
+            </Link>
+
+            {/* Hotels */}
+            <Link href="/hotels" className="bento-anim tap glass-card relative overflow-hidden group">
+              <img src={PLACE_IMAGES.hotel} className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-700" alt="Hotel" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] to-transparent" />
+              <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                <Hotel size={24} className="text-orange-400 mb-3" />
+                <h3 className="text-xl font-bold">Stays</h3>
+                <p className="text-sm text-muted mt-1">5 Premium accommodations.</p>
+              </div>
+            </Link>
+
+            {/* Expenses (Wide Box) */}
+            <Link href="/expenses" className="bento-anim tap glass-card md:col-span-2 relative overflow-hidden group">
+              <div className="absolute inset-0 p-8 flex flex-col justify-center bg-gradient-to-r from-emerald-900/20 to-transparent">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center backdrop-blur-md border border-emerald-500/30">
+                    <Wallet size={24} />
+                  </div>
+                  <h3 className="text-2xl font-bold">Auto-Split Expenses</h3>
+                </div>
+                <p className="text-muted">Real-time ledger for Mitra & Ghosh families. Add expenses and let the app split them perfectly.</p>
+              </div>
+            </Link>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAMILY SECTION ── */}
+      <section className="py-24 border-t border-[var(--border-glass)] relative overflow-hidden">
+        <div className="container-wide text-center">
+          <h2 className="heading-section mb-12">The Travelers</h2>
+          <div className="flex flex-wrap justify-center gap-8">
+            {TRIP_CONFIG.families.map((f) => (
+              <div key={f.id} className="glass-card p-8 flex flex-col items-center w-64">
+                <div 
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-black mb-4 shadow-xl shadow-[color:var(--shadow-color)]"
+                  style={{ background: f.color, '--shadow-color': `${f.color}40` } as React.CSSProperties}
+                >
+                  {f.avatar}
+                </div>
+                <h3 className="text-lg font-bold">{f.family}</h3>
+                <p className="text-muted text-sm mt-1">Head: {f.head}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

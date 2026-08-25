@@ -1,272 +1,118 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme inline {
-  --font-sans: 'Inter', system-ui, sans-serif;
+@layer base {
+  :root {
+    --bg-dark: #070B14;
+    --bg-card: rgba(20, 20, 30, 0.4);
+    --border-glass: rgba(255, 255, 255, 0.08);
+    --text-primary: #FFFFFF;
+    --text-secondary: #94A3B8;
+    --accent-primary: #3B82F6;
+    --accent-secondary: #8B5CF6;
+    --accent-glow: rgba(99, 102, 241, 0.25);
+  }
+
+  body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
 }
 
-/* ─── PREMIUM TRAVEL EDITORIAL DESIGN TOKENS ───────────── */
-:root {
-  /* Warm Parchment Base */
-  --bg: #F9F7F3;
-  --bg-secondary: #F2EFE9;
-  --surface: #FFFFFF;
-  --surface-2: #F6F4F0;
-  --surface-3: #ECE9E2;
-  
-  --text-primary: #1C1B1A;
-  --text-secondary: #5C5A56;
-  --text-muted: #9E9C98;
-  
-  --accent: #0F5E68; /* Deep Teal */
-  --accent-secondary: #D95D39; /* Terracotta */
-  --accent-success: #2C7A4F; 
-  --accent-warning: #C17C26; 
-  --accent-danger: #B83A3A; 
-  
-  --shadow-color: rgba(28, 27, 26, 0.06);
-  --shadow-color-strong: rgba(28, 27, 26, 0.12);
-  --highlight-color: rgba(255, 255, 255, 1);
-  
-  /* Tactical Depth System */
-  --elevation-1: 0 1px 3px var(--shadow-color), 0 1px 2px rgba(0,0,0,0.03);
-  --elevation-2: 0 4px 12px var(--shadow-color), 0 2px 4px rgba(0,0,0,0.02);
-  --elevation-3: 0 12px 24px var(--shadow-color-strong), 0 4px 8px var(--shadow-color);
-  --elevation-4: 0 24px 48px var(--shadow-color-strong), 0 12px 24px var(--shadow-color);
-  
-  --inset-soft: inset 0 2px 4px var(--shadow-color);
-  --inset-deep: inset 0 4px 8px var(--shadow-color-strong);
-  
-  --nav-height: 84px;
-  --radius-card: 16px;
-  --radius-pill: 999px;
-  --radius-sheet: 24px;
+@layer components {
+  /* Layout */
+  .container-wide {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  @media (min-width: 768px) {
+    .container-wide { padding: 0 48px; }
+  }
 
-  /* REAL CONTENT GRID */
-  --content-max: 1280px;
-  --content-reading: 720px;
-  --page-padding-desktop: 48px;
-  --page-padding-tablet: 32px;
-  --page-padding-mobile: 20px;
+  /* Glassmorphism Cards */
+  .glass-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-glass);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .glass-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 48px var(--accent-glow);
+  }
+
+  /* Typography */
+  .text-gradient {
+    background: linear-gradient(135deg, #60A5FA 0%, #C084FC 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .heading-hero {
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+  }
+
+  .heading-section {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+  }
+
+  .text-muted {
+    color: var(--text-secondary);
+  }
+  
+  .tap {
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .tap:active {
+    transform: scale(0.96);
+    opacity: 0.8;
+  }
 }
 
-[data-theme="dark"] {
-  /* Deep Charcoal / Graphite Lounge */
-  --bg: #151413;
-  --bg-secondary: #1D1C1A;
-  --surface: #242220;
-  --surface-2: #2B2927;
-  --surface-3: #363331;
-  
-  --text-primary: #F0EFEB;
-  --text-secondary: #A8A6A2;
-  --text-muted: #6B6965;
-  
-  --accent: #45A7B3; /* Teal */
-  --accent-secondary: #E37454; /* Terracotta */
-  
-  --shadow-color: rgba(0, 0, 0, 0.5);
-  --shadow-color-strong: rgba(0, 0, 0, 0.8);
-  --highlight-color: rgba(255, 255, 255, 0.04);
-  
-  --elevation-1: 0 2px 6px var(--shadow-color);
-  --elevation-2: 0 6px 16px var(--shadow-color), 0 2px 4px var(--shadow-color);
-  --elevation-3: 0 16px 32px var(--shadow-color-strong), 0 4px 8px var(--shadow-color);
-  --elevation-4: 0 32px 64px var(--shadow-color-strong), 0 12px 24px var(--shadow-color);
+/* Utilities */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* ─── BASE & RESET ───────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* Smooth Scrolling */
 html {
-  -webkit-tap-highlight-color: transparent;
   scroll-behavior: smooth;
-  font-size: 16px;
 }
 
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text-primary);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
+/* Base Animations */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
 }
 
-/* ─── FLUID TYPOGRAPHY SYSTEM ────────────────────────────── */
-
-/* Eyebrow: 12–13px uppercase letter-spacing */
-.text-eyebrow {
-  font-size: clamp(12px, 1.5vw, 13px);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-}
-
-/* Main title: 72–96px desktop / 48–56px mobile (Only for primary page title) */
-.text-title-main {
-  font-size: clamp(48px, 6vw, 96px);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.05;
-  color: var(--text-primary);
-}
-
-/* Section titles: 28–36px */
-.text-title-section {
-  font-size: clamp(28px, 3vw, 36px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  color: var(--text-primary);
-}
-
-/* Card titles: 20–24px */
-.text-title-card {
-  font-size: clamp(20px, 2vw, 24px);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-  color: var(--text-primary);
-}
-
-/* Body: 15–17px, line-height 1.5–1.65 */
-.text-body {
-  font-size: clamp(15px, 1.5vw, 17px);
-  line-height: 1.6;
-  color: var(--text-secondary);
-  font-weight: 400;
-}
-
-/* Metadata: 11–13px */
-.text-metadata {
-  font-size: clamp(11px, 1.2vw, 13px);
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
-/* ─── SKEUOMORPHIC & EDITORIAL SURFACES ──────────────────── */
-
-/* Core Paper (Editorial Card, crisp edges) */
-.mat-paper {
-  background: var(--surface);
-  box-shadow: var(--elevation-1), inset 0 1px 0 var(--highlight-color);
-  border-radius: var(--radius-card);
-  border: 1px solid rgba(0,0,0,0.04);
-}
-
-.dark .mat-paper {
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-/* Elevated Ticket (Physical depth, shadow) */
-.mat-ticket {
-  background: var(--surface);
-  box-shadow: var(--elevation-2), inset 0 1px 0 var(--highlight-color);
-  border-radius: 12px;
-  position: relative;
-  border-left: 4px solid var(--accent);
-}
-
-/* Receipt / Ledger */
-.mat-receipt {
-  background: var(--surface-2);
-  border: 1px dashed var(--text-muted);
-  border-radius: 8px;
-  box-shadow: var(--elevation-1);
-}
-
-/* Morphism (Floating UI ONLY) */
-.mat-glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: var(--elevation-3), inset 0 1px 0 rgba(255,255,255,0.5);
-  border: 1px solid rgba(255,255,255,0.2);
-}
-
-.dark .mat-glass {
-  background: rgba(30, 30, 32, 0.7);
-  box-shadow: var(--elevation-3), inset 0 1px 0 rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-/* ─── TEXT OVERFLOW SAFETY ───────────────────────────────── */
-/* Ensures text never breaks out of cards */
-.text-safe {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-/* ─── LAYOUT CONTAINERS ──────────────────────────────────── */
-
-.pt-safe {
-  padding-top: env(safe-area-inset-top, var(--page-padding-mobile));
-}
-@media (min-width: 1024px) {
-  .pt-safe {
-    padding-top: calc(var(--page-padding-desktop) + var(--nav-height));
-  }
-}
-
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 100px); /* Space for mobile nav */
-}
-@media (min-width: 1024px) {
-  .pb-safe {
-    padding-bottom: var(--page-padding-desktop);
-  }
-}
-
-.inner {
-  width: 100%;
-  max-width: var(--content-max);
-  margin: 0 auto;
-  padding: 0 var(--page-padding-mobile);
-}
-@media (min-width: 768px) {
-  .inner {
-    padding: 0 var(--page-padding-tablet);
-  }
-}
-@media (min-width: 1024px) {
-  .inner {
-    padding: 0 var(--page-padding-desktop);
-  }
-}
-
-.reading-width {
-  max-width: var(--content-reading);
-}
-
-/* ─── EFFECTS ────────────────────────────────────────────── */
-
-.tap-effect {
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s;
-}
-
-.tap-effect:active {
-  transform: scale(0.96);
-  opacity: 0.8;
-}
-
-.cinematic-overlay {
-  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
-}
-
-.radial-gradient-bg {
-  background: radial-gradient(circle at 50% 0%, var(--surface-2) 0%, var(--bg) 100%);
-}
-
-/* ─── TAILWIND UTILITIES OVERRIDES ───────────────────────── */
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.ambient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  z-index: -1;
+  animation: pulseGlow 8s ease-in-out infinite;
+  pointer-events: none;
 }
