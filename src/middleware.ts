@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
   // Protected paths mapping
   const path = request.nextUrl.pathname;
   const isProtectedAdmin = path.startsWith('/admin') || path.startsWith('/expenses');
-  const isProtectedMember = path.startsWith('/vault') || path === '/' || path.startsWith('/places');
+  const isProtectedMember = path.startsWith('/vault');
   const isAuthRoute = path.startsWith('/auth');
 
   // Skip middleware for static files and api
@@ -20,7 +20,8 @@ export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('session')?.value;
 
   if (!sessionCookie && (isProtectedAdmin || isProtectedMember)) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
+    // Redirect to home where the auto-login prompt will handle authentication
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   if (sessionCookie && isAuthRoute) {
@@ -42,7 +43,7 @@ export async function middleware(request: NextRequest) {
       }
     } catch {
       // Invalid token
-      return NextResponse.redirect(new URL('/auth/login', request.url));
+      return NextResponse.redirect(new URL('/', request.url));
     }
   }
 
