@@ -1,28 +1,26 @@
 'use client';
 
 import React from 'react';
-import { Hotel, MapPin, CalendarDays, ExternalLink, Star } from 'lucide-react';
+import { MapPin, ExternalLink, Star } from 'lucide-react';
 
 const HOTELS = [
   {
     city: 'Jalgaon',
-    name: 'President Cottage Resort',
+    name: 'President Cottage',
     nights: 2,
-    checkIn: '17 Oct 2026',
-    checkOut: '19 Oct 2026',
+    checkIn: '17 Oct',
+    checkOut: '19 Oct',
     rating: 4.5,
     image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
-    address: 'Near Ajanta Caves Road, Jalgaon',
   },
   {
     city: 'Aurangabad',
-    name: 'Vivanta Aurangabad',
+    name: 'Vivanta',
     nights: 2,
-    checkIn: '19 Oct 2026',
-    checkOut: '21 Oct 2026',
+    checkIn: '19 Oct',
+    checkOut: '21 Oct',
     rating: 5.0,
     image: 'https://images.unsplash.com/photo-1542314831-c6a4d14d8c85?w=800&q=80',
-    address: 'Rauza Baugh, CIDCO, Aurangabad',
   }
 ];
 
@@ -31,51 +29,54 @@ export default function HotelsPage() {
     <div className="w-full pt-32 pb-24 min-h-screen">
       <div className="container-wide">
         
-        <div className="mb-16 max-w-3xl">
-          <h1 className="heading-hero text-gradient mb-6">Accommodations</h1>
-          <p className="text-body-large text-muted">
-            Premium stays booked for the Mitra & Ghosh families across Maharashtra.
-          </p>
+        <div className="mb-24 border-b-4 border-black pb-12">
+          <div className="inline-block bg-[var(--text-primary)] text-white px-4 py-2 font-mono text-sm font-bold uppercase mb-8 shadow-[4px_4px_0px_0px_var(--accent)]">
+            Accommodations
+          </div>
+          <h1 className="heading-hero">Stays</h1>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {HOTELS.map((hotel, idx) => (
-            <div key={idx} className="glass-card overflow-hidden group">
+            <div key={idx} className="brutal-card p-0 flex flex-col overflow-hidden bg-white group">
               
-              <div className="relative h-64 overflow-hidden">
+              <div className="relative h-72 border-b-4 border-black overflow-hidden bg-black">
                 <img 
                   src={hotel.image} 
                   alt={hotel.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500 opacity-80" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-dark)] to-transparent" />
-                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 text-xs font-bold flex items-center gap-2">
-                  <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                  {hotel.rating}
+                
+                <div className="absolute top-0 left-0 bg-[var(--accent)] text-white border-r-4 border-b-4 border-black px-4 py-2 flex items-center gap-2 font-mono font-black text-xl">
+                  {hotel.rating} <Star size={20} className="fill-white" />
                 </div>
               </div>
 
-              <div className="p-8">
-                <div className="flex items-center gap-2 text-accent-secondary font-bold text-sm tracking-widest uppercase mb-2">
-                  <MapPin size={16} /> {hotel.city}
+              <div className="p-8 flex flex-col justify-between flex-grow">
+                <div>
+                  <div className="flex items-center gap-3 text-white bg-black w-max px-3 py-1 font-mono font-bold tracking-widest text-sm mb-6 border-2 border-black shadow-[4px_4px_0px_0px_var(--accent)]">
+                    <MapPin size={18} className="text-[var(--accent)]" /> {hotel.city}
+                  </div>
+                  
+                  <h3 className="text-5xl font-black uppercase mb-8">{hotel.name}</h3>
                 </div>
                 
-                <h3 className="text-3xl font-black mb-6">{hotel.name}</h3>
-                
-                <div className="grid grid-cols-2 gap-6 p-6 bg-white/5 rounded-2xl border border-white/10 mb-6">
-                  <div>
-                    <div className="text-sm text-muted font-bold tracking-wider uppercase mb-1">Check-in</div>
-                    <div className="font-bold text-lg">{hotel.checkIn}</div>
+                <div>
+                  <div className="grid grid-cols-2 gap-0 border-4 border-black bg-[#FFEDD5] mb-8 font-mono">
+                    <div className="p-4 border-r-4 border-black">
+                      <div className="text-xs font-black uppercase mb-1">Check-in</div>
+                      <div className="text-2xl font-bold uppercase">{hotel.checkIn}</div>
+                    </div>
+                    <div className="p-4">
+                      <div className="text-xs font-black uppercase mb-1">Check-out</div>
+                      <div className="text-2xl font-bold uppercase">{hotel.checkOut}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm text-muted font-bold tracking-wider uppercase mb-1">Check-out</div>
-                    <div className="font-bold text-lg">{hotel.checkOut}</div>
-                  </div>
-                </div>
 
-                <button className="w-full tap bg-white text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors">
-                  <ExternalLink size={20} /> View Booking Details
-                </button>
+                  <button className="brutal-btn w-full">
+                    <ExternalLink size={20} className="mr-3" /> View Booking
+                  </button>
+                </div>
               </div>
             </div>
           ))}

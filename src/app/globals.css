@@ -4,18 +4,18 @@
 
 @layer base {
   :root {
-    --bg-dark: #070B14;
-    --bg-card: rgba(20, 20, 30, 0.4);
-    --border-glass: rgba(255, 255, 255, 0.08);
-    --text-primary: #FFFFFF;
-    --text-secondary: #94A3B8;
-    --accent-primary: #3B82F6;
-    --accent-secondary: #8B5CF6;
-    --accent-glow: rgba(99, 102, 241, 0.25);
+    --bg-color: #F4F1EA; /* Warm Sand */
+    --text-primary: #1C1917; /* Deep Charcoal */
+    --text-muted: #57534E;
+    --border-color: #1C1917;
+    --accent: #EA580C; /* Sunset Orange */
+    --accent-light: #FFEDD5;
+    --surface-light: #FFFFFF;
+    --shadow-color: #1C1917;
   }
 
   body {
-    background-color: var(--bg-dark);
+    background-color: var(--bg-color);
     color: var(--text-primary);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -27,7 +27,7 @@
   /* Layout */
   .container-wide {
     width: 100%;
-    max-width: 1280px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 0 24px;
   }
@@ -35,56 +35,84 @@
     .container-wide { padding: 0 48px; }
   }
 
-  /* Glassmorphism Cards */
-  .glass-card {
-    background: var(--bg-card);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid var(--border-glass);
-    border-radius: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  /* Brutalist Cards */
+  .brutal-card {
+    background: var(--surface-light);
+    border: 2px solid var(--border-color);
+    box-shadow: 4px 4px 0px 0px var(--shadow-color);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
   
-  .glass-card:hover {
-    border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 48px var(--accent-glow);
+  .brutal-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px var(--shadow-color);
+  }
+  
+  .brutal-card-accent {
+    background: var(--accent);
+    color: #FFFFFF;
+    border: 2px solid var(--border-color);
+    box-shadow: 4px 4px 0px 0px var(--shadow-color);
+  }
+
+  /* Brutalist Buttons */
+  .brutal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background: var(--surface-light);
+    color: var(--text-primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 2px solid var(--border-color);
+    box-shadow: 4px 4px 0px 0px var(--shadow-color);
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+  
+  .brutal-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px var(--shadow-color);
+  }
+  
+  .brutal-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px 0px var(--shadow-color);
+  }
+
+  .brutal-btn-accent {
+    background: var(--accent);
+    color: #FFFFFF;
   }
 
   /* Typography */
-  .text-gradient {
-    background: linear-gradient(135deg, #60A5FA 0%, #C084FC 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
   .heading-hero {
     font-size: clamp(3rem, 8vw, 6.5rem);
     font-weight: 900;
-    line-height: 1.05;
-    letter-spacing: -0.04em;
+    line-height: 0.95;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
   }
 
   .heading-section {
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 800;
-    line-height: 1.2;
-    letter-spacing: -0.03em;
+    font-size: clamp(2rem, 4vw, 4rem);
+    font-weight: 900;
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
   }
 
-  .text-muted {
-    color: var(--text-secondary);
+  .text-mono {
+    font-family: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
   }
-  
-  .tap {
-    cursor: pointer;
-    transition: transform 0.15s ease, opacity 0.15s ease;
-  }
-  .tap:active {
-    transform: scale(0.96);
-    opacity: 0.8;
+
+  .grid-bg {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(28, 25, 23, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(28, 25, 23, 0.05) 1px, transparent 1px);
   }
 }
 
@@ -97,22 +125,6 @@
   scrollbar-width: none;
 }
 
-/* Smooth Scrolling */
 html {
   scroll-behavior: smooth;
-}
-
-/* Base Animations */
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.05); }
-}
-
-.ambient-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  z-index: -1;
-  animation: pulseGlow 8s ease-in-out infinite;
-  pointer-events: none;
 }

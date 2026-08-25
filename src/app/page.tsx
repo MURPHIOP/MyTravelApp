@@ -1,136 +1,202 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { gsap } from 'gsap';
-import { ArrowRight, MapPin, Calendar, Users, Train, Hotel, Wallet, Compass } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Terminal, MapPin, Train, Hotel, Wallet, Compass } from 'lucide-react';
 import { PLACE_IMAGES, TRIP_CONFIG } from '@/lib/tripData';
+import ScrambleText from '@/components/ui/ScrambleText';
+import BrutalistMarquee from '@/components/ui/BrutalistMarquee';
 
 export default function HomePage() {
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        '.hero-anim',
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: 'power3.out' }
-      );
-      gsap.fromTo(
-        '.bento-anim',
-        { opacity: 0, scale: 0.95 },
-        { opacity: 1, scale: 1, duration: 0.8, stagger: 0.1, ease: 'power3.out', delay: 0.4 }
-      );
-    });
-    return () => ctx.revert();
-  }, []);
+  const headlineWords = ["ANCIENT.", "SACRED.", "JOURNEY."];
+  const lastWord = "MAHARASHTRA.";
 
   return (
     <div className="w-full">
-      {/* ── IMMERSIVE HERO SECTION ── */}
-      <section className="relative w-full min-h-screen flex items-center justify-center pt-24 overflow-hidden">
-        <div className="ambient-orb bg-blue-500/20 top-1/4 left-1/4" style={{ width: '50vw', height: '50vw' }} />
-        <div className="ambient-orb bg-purple-500/20 bottom-1/4 right-1/4" style={{ width: '40vw', height: '40vw', animationDelay: '2s' }} />
+      {/* ── BRUTALIST HERO SECTION ── */}
+      <section className="relative min-h-[90vh] w-full flex flex-col items-center justify-center pt-24 pb-32 overflow-hidden bg-grid">
         
-        <div className="container-wide relative z-10 flex flex-col items-center text-center">
-          <div className="hero-anim inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-            </span>
-            <span className="text-sm font-bold tracking-wide uppercase">Starts October 16, 2026</span>
+        {/* Background Grid Pattern */}
+        <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
+
+        <div className="container-wide relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          
+          {/* LEFT COLUMN: Copy & CTAs */}
+          <div className="flex flex-col items-start text-left order-1 pt-10 lg:pt-0">
+            
+            <div className="border-2 border-[var(--border-color)] px-3 py-1 mb-10 bg-white inline-flex items-center gap-2 shadow-[4px_4px_0px_0px_var(--shadow-color)]">
+              <div className="w-3 h-3 bg-[var(--accent)] animate-pulse" />
+              <span className="font-mono text-xs uppercase tracking-widest font-black">System Ready</span>
+            </div>
+
+            <div className="space-y-4">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="font-mono text-[var(--accent)] tracking-[0.2em] text-sm font-black uppercase"
+              >
+                Mitra & Ghosh Families // Fall 2026
+              </motion.div>
+              
+              <h1 className="text-6xl sm:text-7xl md:text-8xl font-black leading-[0.9] tracking-tighter uppercase flex flex-col">
+                {headlineWords.map((word, i) => (
+                  <ScrambleText key={i} text={word} delay={1.2 + i * 0.4} />
+                ))}
+                <span className="text-[var(--accent)]">
+                  <ScrambleText text={lastWord} delay={1.2 + headlineWords.length * 0.4} />
+                </span>
+              </h1>
+            </div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className="text-lg sm:text-xl font-mono leading-[1.6] tracking-wide mt-8 border-l-4 border-[var(--accent)] pl-6 bg-white/40 p-4 border-y-2 border-r-2 border-r-transparent border-y-transparent"
+            >
+              A robust command center for our 11-day private journey. Exploring 3 Jyotirlingas, UNESCO heritage caves, and sacred destinations.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              className="flex flex-col sm:flex-row items-stretch gap-6 pt-10 w-full sm:w-auto"
+            >
+              <Link href="/itinerary" className="brutal-btn brutal-btn-accent group gap-3">
+                <Terminal className="w-5 h-5" />
+                Init Route
+              </Link>
+              <Link href="/places" className="brutal-btn group gap-3">
+                Browse Sites
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
           </div>
 
-          <h1 className="hero-anim heading-hero mb-6 max-w-5xl">
-            Experience the <span className="text-gradient">Ancient Soul</span> of Maharashtra.
-          </h1>
-
-          <p className="hero-anim text-body-large text-muted max-w-2xl mb-12">
-            An exclusive 11-day private journey for the Mitra & Ghosh families. 
-            Exploring 3 Jyotirlingas, UNESCO heritage caves, and sacred destinations.
-          </p>
-
-          <div className="hero-anim flex flex-col sm:flex-row items-center gap-4">
-            <Link href="/itinerary" className="tap px-8 py-4 rounded-full bg-white text-black font-bold text-lg hover:scale-105 transition-transform flex items-center gap-2">
-              Explore the Itinerary <ArrowRight size={20} />
-            </Link>
-            <Link href="/places" className="tap px-8 py-4 rounded-full glass-card text-white font-bold text-lg hover:bg-white/5 transition-colors">
-              View Destinations
-            </Link>
-          </div>
+          {/* RIGHT COLUMN: Visual Anchor */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+            className="order-2 w-full flex justify-center lg:justify-end"
+          >
+             <div className="relative w-full aspect-square max-w-[500px] bg-white border-4 border-[var(--border-color)] p-6 flex flex-col shadow-[12px_12px_0px_0px_var(--shadow-color)] transform rotate-1 hover:rotate-0 transition-transform">
+               
+               <div className="flex justify-between items-center border-b-4 border-[var(--border-color)] pb-4 mb-4">
+                 <span className="font-mono text-sm font-black uppercase tracking-widest">Map Viewer v1.0</span>
+                 <div className="w-4 h-4 rounded-full bg-[var(--accent)]" />
+               </div>
+               
+               <div className="flex-1 border-2 border-[var(--border-color)] relative overflow-hidden flex items-center justify-center">
+                  <img src={PLACE_IMAGES.ellora} className="absolute inset-0 w-full h-full object-cover filter grayscale contrast-125" alt="Hero Art" />
+                  <div className="absolute inset-0 bg-[var(--accent)] mix-blend-color opacity-50" />
+                  <div className="absolute inset-0 grid-bg opacity-30" />
+                  
+                  <div className="z-10 bg-white border-2 border-black p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <Compass className="animate-spin-slow w-12 h-12 text-[var(--accent)]" />
+                  </div>
+               </div>
+               
+               <div className="mt-4 pt-4 border-t-4 border-[var(--border-color)] flex justify-between font-mono text-xs uppercase tracking-widest font-bold">
+                  <span>GPS: 19.896, 75.319</span>
+                  <span>ONLINE</span>
+               </div>
+             </div>
+          </motion.div>
+          
         </div>
 
-        {/* Hero Background Fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[var(--bg-dark)] to-transparent pointer-events-none" />
+        {/* INFINITE MARQUEE */}
+        <div className="absolute bottom-10 -left-[5%] w-[110%] z-20 rotate-[-1.5deg] transform-gpu">
+          <BrutalistMarquee 
+            items={[
+              "3 JYOTIRLINGAS",
+              "11 DAYS",
+              "UNESCO CAVES",
+              "MITRA & GHOSH",
+              "AUTO-SPLIT EXPENSES"
+            ]}
+            speed={35}
+            className="shadow-[0_8px_0_0_rgba(28,25,23,0.3)] text-xl"
+          />
+        </div>
       </section>
 
-      {/* ── BENTO GRID FEATURES ── */}
-      <section className="py-24">
+      {/* ── BENTO GRID HUB ── */}
+      <section className="py-32">
         <div className="container-wide">
-          <div className="flex flex-col md:flex-row items-end justify-between mb-12">
+          <div className="mb-16 border-b-4 border-[var(--border-color)] pb-8 flex flex-col md:flex-row md:items-end justify-between">
             <div>
-              <h2 className="heading-section">Your Journey Hub</h2>
-              <p className="text-muted mt-2">Everything you need for the trip in one place.</p>
+              <h2 className="heading-section">Mission Control</h2>
+              <p className="font-mono mt-4 font-bold uppercase tracking-widest text-[var(--accent)]">Select Module</p>
+            </div>
+            <div className="mt-6 md:mt-0 font-mono text-xl font-black bg-white border-2 border-[var(--border-color)] px-4 py-2 shadow-[4px_4px_0px_0px_var(--shadow-color)]">
+              TOTAL: 5 MODULES
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[280px]">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 auto-rows-[320px]">
             
-            {/* Itinerary / Map (Large Box) */}
-            <Link href="/itinerary" className="bento-anim tap glass-card md:col-span-2 md:row-span-2 relative overflow-hidden group">
-              <img src={PLACE_IMAGES.ellora} className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity duration-700" alt="Ellora" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] via-[#0A0A0F]/60 to-transparent" />
-              <div className="absolute inset-0 p-8 flex flex-col justify-between">
-                <div className="w-14 h-14 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center backdrop-blur-md border border-blue-500/30">
-                  <MapPin size={28} />
+            {/* Itinerary */}
+            <Link href="/itinerary" className="brutal-card md:col-span-2 md:row-span-2 relative overflow-hidden group p-8 flex flex-col justify-between">
+              <div className="absolute inset-0 z-0">
+                <img src={PLACE_IMAGES.ajanta} className="w-full h-full object-cover grayscale opacity-20 group-hover:scale-105 transition-transform duration-700" alt="Ajanta" />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+              </div>
+              <div className="relative z-10">
+                <div className="w-16 h-16 border-4 border-[var(--border-color)] bg-[var(--accent)] text-white flex items-center justify-center mb-6 shadow-[4px_4px_0px_0px_var(--shadow-color)] group-hover:translate-x-2 transition-transform">
+                  <MapPin size={32} />
                 </div>
-                <div>
-                  <h3 className="text-3xl font-bold mb-2">11-Day Interactive Itinerary</h3>
-                  <p className="text-muted">Explore the day-by-day plan, including 3D route maps and daily schedules.</p>
-                </div>
+              </div>
+              <div className="relative z-10 bg-white border-2 border-black p-6 shadow-[8px_8px_0px_0px_var(--accent)] group-hover:shadow-[12px_12px_0px_0px_var(--accent)] transition-all">
+                <h3 className="text-3xl font-black mb-2 uppercase">11-Day Route Plan</h3>
+                <p className="font-mono text-sm font-bold">EXECUTE TIMELINE SEQUENCE</p>
               </div>
             </Link>
 
             {/* Destinations */}
-            <Link href="/places" className="bento-anim tap glass-card relative overflow-hidden group">
-              <img src={PLACE_IMAGES.ajanta} className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-700" alt="Ajanta" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] to-transparent" />
-              <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                <Compass size={24} className="text-purple-400 mb-3" />
-                <h3 className="text-xl font-bold">Destinations</h3>
-                <p className="text-sm text-muted mt-1">8 sacred & heritage spots.</p>
+            <Link href="/places" className="brutal-card p-6 flex flex-col justify-between group bg-[#FFEDD5]">
+              <Compass size={40} className="text-[var(--accent)]" />
+              <div>
+                <h3 className="text-2xl font-black uppercase border-b-2 border-black pb-2 mb-2 group-hover:pl-2 transition-all">Destinations</h3>
+                <p className="font-mono text-xs font-bold uppercase tracking-widest">8 Sacred Sites</p>
               </div>
             </Link>
 
             {/* Trains */}
-            <Link href="/trains" className="bento-anim tap glass-card relative overflow-hidden group">
-              <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-br from-indigo-900/40 to-transparent">
-                <Train size={24} className="text-indigo-400 mb-3" />
-                <h3 className="text-xl font-bold">Train Info</h3>
-                <p className="text-sm text-muted mt-1">Schedules & Boarding passes.</p>
+            <Link href="/trains" className="brutal-card p-6 flex flex-col justify-between group bg-white">
+              <Train size={40} className="text-[var(--border-color)]" />
+              <div>
+                <h3 className="text-2xl font-black uppercase border-b-2 border-black pb-2 mb-2 group-hover:pl-2 transition-all">Train Info</h3>
+                <p className="font-mono text-xs font-bold uppercase tracking-widest">Boarding Passes</p>
               </div>
             </Link>
 
             {/* Hotels */}
-            <Link href="/hotels" className="bento-anim tap glass-card relative overflow-hidden group">
-              <img src={PLACE_IMAGES.hotel} className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-700" alt="Hotel" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] to-transparent" />
-              <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                <Hotel size={24} className="text-orange-400 mb-3" />
-                <h3 className="text-xl font-bold">Stays</h3>
-                <p className="text-sm text-muted mt-1">5 Premium accommodations.</p>
+            <Link href="/hotels" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--text-primary)] text-white border-[var(--text-primary)] shadow-[4px_4px_0px_0px_var(--accent)]">
+              <Hotel size={40} className="text-[var(--accent)]" />
+              <div>
+                <h3 className="text-2xl font-black uppercase border-b-2 border-white pb-2 mb-2 group-hover:pl-2 transition-all">Stays</h3>
+                <p className="font-mono text-xs font-bold uppercase tracking-widest text-[var(--accent)]">5 Accommodations</p>
               </div>
             </Link>
 
-            {/* Expenses (Wide Box) */}
-            <Link href="/expenses" className="bento-anim tap glass-card md:col-span-2 relative overflow-hidden group">
-              <div className="absolute inset-0 p-8 flex flex-col justify-center bg-gradient-to-r from-emerald-900/20 to-transparent">
-                <div className="flex items-center gap-4 mb-3">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center backdrop-blur-md border border-emerald-500/30">
-                    <Wallet size={24} />
-                  </div>
-                  <h3 className="text-2xl font-bold">Auto-Split Expenses</h3>
+            {/* Expenses */}
+            <Link href="/expenses" className="brutal-card md:col-span-2 p-8 flex flex-col justify-center group bg-[#ECFCCB]">
+              <div className="flex items-center gap-6 mb-4">
+                <div className="w-16 h-16 border-4 border-black bg-white flex items-center justify-center shadow-[4px_4px_0px_0px_var(--border-color)]">
+                  <Wallet size={32} />
                 </div>
-                <p className="text-muted">Real-time ledger for Mitra & Ghosh families. Add expenses and let the app split them perfectly.</p>
+                <h3 className="text-3xl font-black uppercase underline decoration-[var(--accent)] decoration-4 underline-offset-8 group-hover:bg-[var(--accent)] group-hover:text-white transition-colors">
+                  Auto-Split Ledger
+                </h3>
               </div>
+              <p className="font-mono text-sm font-bold border-l-4 border-black pl-4 py-2 mt-4">
+                Real-time synchronization of shared expenses between families.
+              </p>
             </Link>
 
           </div>
@@ -138,20 +204,22 @@ export default function HomePage() {
       </section>
 
       {/* ── FAMILY SECTION ── */}
-      <section className="py-24 border-t border-[var(--border-glass)] relative overflow-hidden">
+      <section className="py-24 border-t-[4px] border-black bg-white">
         <div className="container-wide text-center">
-          <h2 className="heading-section mb-12">The Travelers</h2>
-          <div className="flex flex-wrap justify-center gap-8">
+          <h2 className="heading-section mb-16">The Travelers</h2>
+          <div className="flex flex-wrap justify-center gap-12">
             {TRIP_CONFIG.families.map((f) => (
-              <div key={f.id} className="glass-card p-8 flex flex-col items-center w-64">
+              <div key={f.id} className="brutal-card p-8 flex flex-col items-center w-72 hover:-translate-y-4 transition-transform duration-300">
                 <div 
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-black mb-4 shadow-xl shadow-[color:var(--shadow-color)]"
-                  style={{ background: f.color, '--shadow-color': `${f.color}40` } as React.CSSProperties}
+                  className="w-24 h-24 border-4 border-black flex items-center justify-center text-3xl font-black mb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+                  style={{ background: f.color }}
                 >
                   {f.avatar}
                 </div>
-                <h3 className="text-lg font-bold">{f.family}</h3>
-                <p className="text-muted text-sm mt-1">Head: {f.head}</p>
+                <h3 className="text-2xl font-black uppercase mb-2">{f.family}</h3>
+                <div className="bg-black text-white px-4 py-1 font-mono text-xs font-bold uppercase w-full border-2 border-black">
+                  CMD: {f.head}
+                </div>
               </div>
             ))}
           </div>

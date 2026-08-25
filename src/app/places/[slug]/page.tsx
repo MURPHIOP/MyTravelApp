@@ -11,7 +11,7 @@ import {
 import Link from 'next/link';
 
 function PlaceTypeIcon({ type }: { type: string }) {
-  const props = { size: 18, strokeWidth: 2 };
+  const props = { size: 24, strokeWidth: 3 };
   if (type === 'heritage') return <Mountain {...props} />;
   if (type === 'temple') return <Zap {...props} />;
   if (type === 'experience') return <Star {...props} />;
@@ -28,84 +28,93 @@ export default function PlaceDetailPage() {
   return (
     <div className="w-full pb-32 min-h-screen">
 
-      {/* Massive Desktop Hero */}
-      <div className="relative w-full h-[60vh] min-h-[500px]">
-        <img
-          src={place.coverImage}
-          alt={place.name}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-dark)] via-[var(--bg-dark)]/40 to-transparent" />
-
-        <div className="absolute bottom-0 left-0 right-0">
-          <div className="container-wide pb-12">
+      {/* Brutalist Hero */}
+      <div className="relative w-full h-[70vh] min-h-[600px] border-b-4 border-black bg-white flex flex-col md:flex-row">
+        
+        {/* Left Info Column */}
+        <div className="w-full md:w-1/3 border-b-4 md:border-b-0 md:border-r-4 border-black flex flex-col justify-between p-8 md:p-12 order-2 md:order-1 z-10 bg-white">
+          <div>
             <Link
               href="/places"
-              className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 font-bold tap"
+              className="brutal-btn text-xs mb-12 inline-flex"
             >
-              <ChevronLeft size={20} /> Back to Destinations
+              <ChevronLeft size={16} /> RETURN
             </Link>
 
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-              <div>
-                <div
-                  className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/20"
-                  style={{ background: `${place.accentColor}80`, color: '#FFFFFF', fontSize: 14, fontWeight: 800 }}
-                >
-                  <PlaceTypeIcon type={place.type} />
-                  {place.typeLabel}
-                </div>
-                <h1 className="heading-hero text-white mb-4 leading-tight">{place.name}</h1>
-                <div className="flex flex-wrap items-center gap-6">
-                  <div className="flex items-center gap-2 text-white/90 font-semibold">
-                    <MapPin size={18} style={{ color: place.accentColor }} /> {place.city}
-                  </div>
-                  <div className="flex items-center gap-2 text-white/90 font-semibold">
-                    <Calendar size={18} className="text-yellow-400" /> Scheduled for Day {place.visitDay}
-                  </div>
-                </div>
-              </div>
+            <div
+              className="inline-flex items-center gap-2 mb-6 px-4 py-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-mono font-black uppercase text-sm"
+              style={{ background: place.accentColor, color: '#FFFFFF' }}
+            >
+              <PlaceTypeIcon type={place.type} />
+              {place.typeLabel}
+            </div>
+            
+            <h1 className="heading-hero text-black mb-6 leading-none">{place.name}</h1>
+          </div>
+          
+          <div className="flex flex-col gap-4 font-mono font-bold text-sm">
+            <div className="flex items-center gap-3 bg-[var(--bg-color)] p-4 border-2 border-black">
+              <MapPin size={24} style={{ color: place.accentColor }} /> {place.city}
+            </div>
+            <div className="flex items-center gap-3 bg-[var(--bg-color)] p-4 border-2 border-black">
+              <Calendar size={24} /> SCHEDULED DAY {place.visitDay}
             </div>
           </div>
+        </div>
+
+        {/* Right Image Column */}
+        <div className="w-full md:w-2/3 relative order-1 md:order-2 flex-grow min-h-[300px]">
+          <img
+            src={place.coverImage}
+            alt={place.name}
+            className="absolute inset-0 w-full h-full object-cover filter grayscale contrast-125"
+          />
+          <div className="absolute inset-0 bg-black/20" />
+          
+          {/* Brutalist Corner Marks */}
+          <div className="absolute top-8 left-8 w-8 h-8 border-t-8 border-l-8 border-[var(--accent)]" />
+          <div className="absolute top-8 right-8 w-8 h-8 border-t-8 border-r-8 border-[var(--accent)]" />
+          <div className="absolute bottom-8 left-8 w-8 h-8 border-b-8 border-l-8 border-[var(--accent)]" />
+          <div className="absolute bottom-8 right-8 w-8 h-8 border-b-8 border-r-8 border-[var(--accent)]" />
         </div>
       </div>
 
       {/* Expansive Content Layout */}
-      <div className="container-wide pt-12">
+      <div className="container-wide pt-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           
           {/* Main Article Content (Left) */}
-          <div className="lg:col-span-2 space-y-12">
-            <section className="glass-card p-8 md:p-12">
-              <div className="flex items-center gap-3 mb-6">
-                <Compass size={28} style={{ color: place.accentColor }} />
-                <h2 className="heading-section">About & Overview</h2>
+          <div className="lg:col-span-2 space-y-16">
+            <section>
+              <div className="flex items-center gap-4 mb-8 border-b-4 border-black pb-4">
+                <Compass size={36} className="text-[var(--accent)]" />
+                <h2 className="heading-section">Overview</h2>
               </div>
-              <p className="text-lg leading-relaxed text-muted">
+              <p className="text-xl font-bold leading-relaxed text-[var(--text-primary)]">
                 {place.description}
               </p>
             </section>
 
-            <section className="glass-card p-8 md:p-12">
-              <div className="flex items-center gap-3 mb-6">
-                <History size={28} className="text-yellow-400" />
-                <h2 className="heading-section">History & Significance</h2>
+            <section className="brutal-card p-8 md:p-12">
+              <div className="flex items-center gap-4 mb-8">
+                <History size={36} className="text-[var(--accent)]" />
+                <h2 className="text-4xl font-black uppercase">History</h2>
               </div>
-              <p className="text-lg leading-relaxed text-muted">
+              <p className="text-lg font-medium leading-relaxed">
                 {place.history}
               </p>
             </section>
 
-            <section className="glass-card p-8 md:p-12">
-              <div className="flex items-center gap-3 mb-8">
-                <Eye size={28} className="text-emerald-400" />
+            <section>
+              <div className="flex items-center gap-4 mb-8 border-b-4 border-black pb-4">
+                <Eye size={36} className="text-[var(--text-primary)]" />
                 <h2 className="heading-section">Key Attractions</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {place.keyAttractions.map((att, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <CheckCircle2 size={24} className="text-emerald-400 shrink-0" />
-                    <span className="font-semibold text-white leading-relaxed">{att}</span>
+                  <div key={idx} className="flex items-start gap-4 p-6 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <CheckCircle2 size={28} className="text-[var(--accent)] shrink-0" />
+                    <span className="font-bold text-lg leading-tight uppercase">{att}</span>
                   </div>
                 ))}
               </div>
@@ -113,86 +122,59 @@ export default function PlaceDetailPage() {
           </div>
 
           {/* Sidebar Info (Right) */}
-          <div className="space-y-8">
+          <div className="space-y-12">
             
-            {/* Quick Stats Grid */}
-            <div className="glass-card p-8">
-              <h3 className="font-bold text-xl mb-6">Essential Info</h3>
-              <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-                    <Clock size={24} />
-                  </div>
+            {/* Essential Info Panel */}
+            <div className="brutal-card p-0 overflow-hidden">
+              <div className="bg-black text-white p-6 border-b-2 border-black">
+                <h3 className="font-black text-2xl uppercase tracking-widest">Essential Info</h3>
+              </div>
+              <div className="p-0 flex flex-col divide-y-2 divide-[var(--border-color)] font-mono">
+                <div className="flex items-center p-6 gap-6 bg-white">
+                  <div className="text-[var(--accent)]"><Clock size={32} /></div>
                   <div>
-                    <div className="text-xs font-bold text-muted tracking-widest uppercase mb-1">Opening Hours</div>
-                    <div className="font-bold">{place.timings}</div>
+                    <div className="text-xs font-black text-muted tracking-widest uppercase mb-1">Hours</div>
+                    <div className="font-bold text-lg uppercase">{place.timings}</div>
                   </div>
                 </div>
                 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-yellow-500/20 text-yellow-400 flex items-center justify-center shrink-0">
-                    <Ticket size={24} />
-                  </div>
+                <div className="flex items-center p-6 gap-6 bg-[#FFEDD5]">
+                  <div className="text-black"><Ticket size={32} /></div>
                   <div>
-                    <div className="text-xs font-bold text-muted tracking-widest uppercase mb-1">Entry Fee</div>
-                    <div className="font-bold">{place.entryFee}</div>
+                    <div className="text-xs font-black text-muted tracking-widest uppercase mb-1">Entry Fee</div>
+                    <div className="font-bold text-lg uppercase">{place.entryFee}</div>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                    <Sparkles size={24} />
-                  </div>
+                <div className="flex items-center p-6 gap-6 bg-white">
+                  <div className="text-[var(--accent)]"><Sparkles size={32} /></div>
                   <div>
-                    <div className="text-xs font-bold text-muted tracking-widest uppercase mb-1">Best Time</div>
-                    <div className="font-bold">{place.bestTimeToVisit}</div>
+                    <div className="text-xs font-black text-muted tracking-widest uppercase mb-1">Best Time</div>
+                    <div className="font-bold text-lg uppercase">{place.bestTimeToVisit}</div>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
-                    <Shirt size={24} />
-                  </div>
+                <div className="flex items-center p-6 gap-6 bg-white">
+                  <div className="text-black"><Shirt size={32} /></div>
                   <div>
-                    <div className="text-xs font-bold text-muted tracking-widest uppercase mb-1">Dress Code</div>
-                    <div className="font-bold">{place.dressCode}</div>
+                    <div className="text-xs font-black text-muted tracking-widest uppercase mb-1">Dress Code</div>
+                    <div className="font-bold text-lg uppercase">{place.dressCode}</div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Travel Tips */}
-            <div className="glass-card p-8" style={{ borderColor: `${place.accentColor}40` }}>
-              <div className="flex items-center gap-3 mb-6">
-                <ShieldAlert size={24} style={{ color: place.accentColor }} />
-                <h3 className="font-bold text-xl">Traveler Tips</h3>
+            <div className="brutal-card p-8 bg-[var(--text-primary)] text-white border-[var(--text-primary)] shadow-[8px_8px_0px_0px_var(--accent)]">
+              <div className="flex items-center gap-4 mb-8">
+                <ShieldAlert size={32} className="text-[var(--accent)]" />
+                <h3 className="font-black text-2xl uppercase">Traveler Tips</h3>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {place.travelTips.map((tip, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <span style={{ color: place.accentColor }} className="mt-1 font-black">•</span>
-                    <span className="text-sm font-medium text-muted leading-relaxed">{tip}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Facts */}
-            <div className="glass-card p-8 bg-gradient-to-br from-pink-900/10 to-transparent">
-              <div className="flex items-center gap-3 mb-6">
-                <Lightbulb size={24} className="text-pink-400" />
-                <h3 className="font-bold text-xl">Fascinating Facts</h3>
-              </div>
-              <div className="space-y-4">
-                {place.facts.map((fact, i) => (
                   <div key={i} className="flex items-start gap-4">
-                    <div 
-                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-sm font-black"
-                      style={{ background: `${place.accentColor}20`, color: place.accentColor }}
-                    >
-                      {i + 1}
-                    </div>
-                    <p className="text-sm font-medium text-muted leading-relaxed mt-1">{fact}</p>
+                    <span className="text-[var(--accent)] font-black text-xl leading-none">0{i+1}</span>
+                    <span className="font-bold uppercase tracking-wider">{tip}</span>
                   </div>
                 ))}
               </div>

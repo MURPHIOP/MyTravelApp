@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { gsap } from 'gsap';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { PLACES } from '@/lib/tripData';
-import { MapPin, Mountain, Zap, Star, Leaf, Clock, Ticket, ArrowRight } from 'lucide-react';
+import { MapPin, Mountain, Zap, Star, Leaf, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 const FILTERS = [
@@ -14,7 +14,7 @@ const FILTERS = [
 ];
 
 function PlaceTypeIcon({ type }: { type: string }) {
-  const props = { size: 16, strokeWidth: 2 };
+  const props = { size: 20, strokeWidth: 3 };
   if (type === 'heritage') return <Mountain {...props} />;
   if (type === 'temple') return <Zap {...props} />;
   if (type === 'experience') return <Star {...props} />;
@@ -24,42 +24,31 @@ function PlaceTypeIcon({ type }: { type: string }) {
 export default function PlacesPage() {
   const [filter, setFilter] = useState('all');
 
-  useEffect(() => {
-    gsap.fromTo('.place-card',
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, stagger: 0.1, duration: 0.6, ease: 'power3.out' }
-    );
-  }, [filter]);
-
   const filtered = filter === 'all' ? PLACES : PLACES.filter(p => p.type === filter);
 
   return (
     <div className="w-full pt-32 pb-24 min-h-screen">
       <div className="container-wide">
-        {/* Header */}
-        <div className="mb-16 text-center max-w-3xl mx-auto">
-          <h1 className="heading-hero text-gradient mb-6">Destinations</h1>
-          <p className="text-body-large text-muted">
-            Explore detailed guides, historical backgrounds, and travel tips for all 8 curated spots on our journey.
+        
+        {/* Brutalist Header */}
+        <div className="mb-16 border-b-[4px] border-[var(--border-color)] pb-12 flex flex-col md:flex-row justify-between items-end">
+          <div>
+            <div className="inline-block bg-[var(--text-primary)] text-white px-3 py-1 font-mono text-sm font-bold uppercase mb-6 shadow-[4px_4px_0px_0px_var(--accent)]">
+              Index / 8 Sites
+            </div>
+            <h1 className="heading-hero">Destinations</h1>
+          </div>
+          <p className="text-xl font-bold max-w-sm border-l-4 border-[var(--accent)] pl-4 bg-white p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mt-8 md:mt-0">
+            Curated travel intelligence for our journey across Maharashtra.
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-16">
+        {/* Brutalist Filters */}
+        <div className="flex flex-wrap gap-4 mb-16">
           {FILTERS.map(f => (
             <button
               key={f.id}
-              className="tap flex-shrink-0 transition-all duration-300"
-              style={{
-                borderRadius: 999,
-                padding: '12px 24px',
-                fontSize: 14,
-                fontWeight: 700,
-                background: filter === f.id ? 'var(--accent-primary)' : 'var(--bg-card)',
-                color: filter === f.id ? '#FFFFFF' : 'var(--text-secondary)',
-                border: filter === f.id ? '1px solid var(--accent-primary)' : '1px solid var(--border-glass)',
-                boxShadow: filter === f.id ? '0 8px 24px var(--accent-glow)' : 'none',
-              }}
+              className={`brutal-btn ${filter === f.id ? 'bg-[var(--accent)] text-white' : 'bg-white'}`}
               onClick={() => setFilter(f.id)}
             >
               {f.label}
@@ -67,59 +56,58 @@ export default function PlacesPage() {
           ))}
         </div>
 
-        {/* Expansive Grid */}
+        {/* Expansive Brutalist Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {filtered.map((place) => (
-            <Link key={place.id} href={`/places/${place.slug}`} className="place-card tap block group">
-              <div className="glass-card overflow-hidden h-full flex flex-col relative">
+            <Link key={place.id} href={`/places/${place.slug}`} className="brutal-card block group h-full flex flex-col hover:bg-[var(--accent-light)]">
                 
-                {/* Photo Section */}
-                <div className="relative h-64 overflow-hidden">
-                  <img 
-                    src={place.coverImage} 
-                    alt={place.name} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#070B14] to-transparent opacity-80" />
-                  
-                  <div className="absolute top-4 right-4 pill text-xs font-bold px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white">
-                    Day {place.visitDay}
+              {/* Photo Section */}
+              <div className="relative h-64 border-b-2 border-[var(--border-color)] overflow-hidden">
+                <img 
+                  src={place.coverImage} 
+                  alt={place.name} 
+                  className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500" 
+                />
+                
+                <div className="absolute top-0 left-0 bg-[var(--accent)] text-white border-r-2 border-b-2 border-[var(--border-color)] font-mono font-black text-sm px-4 py-2">
+                  DAY {place.visitDay}
+                </div>
+              </div>
+
+              {/* Details Section */}
+              <div className="p-6 flex flex-col flex-grow justify-between gap-6 bg-white group-hover:bg-transparent transition-colors">
+                
+                <div>
+                  <div className="flex items-center gap-2 mb-3 text-xs font-black tracking-widest uppercase border-2 border-[var(--border-color)] w-max px-2 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <PlaceTypeIcon type={place.type} />
+                    {place.typeLabel}
                   </div>
-                  
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="flex items-center gap-2 mb-2 text-xs font-bold tracking-wider uppercase" style={{ color: place.accentColor }}>
-                      <PlaceTypeIcon type={place.type} />
-                      {place.typeLabel}
-                    </div>
-                    <h3 className="text-2xl font-black text-white leading-tight">
-                      {place.name}
-                    </h3>
+                  <h3 className="text-3xl font-black uppercase leading-none mb-4 group-hover:text-[var(--accent)] transition-colors">
+                    {place.name}
+                  </h3>
+                </div>
+
+                <div className="flex flex-col gap-4 border-t-2 border-dashed border-[var(--border-color)] pt-4 font-mono font-bold text-sm">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={18} className="text-[var(--accent)]" /> {place.city}
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Clock size={18} className="shrink-0 mt-0.5" /> 
+                    <span className="line-clamp-1">{place.timings}</span>
                   </div>
                 </div>
 
-                {/* Details Section */}
-                <div className="p-6 flex flex-col flex-grow justify-between gap-6 bg-[#0A0A0F]/50">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2 text-sm text-muted">
-                      <MapPin size={16} className="text-blue-400" /> {place.city}
-                    </div>
-                    <div className="flex items-start gap-2 text-sm text-muted">
-                      <Clock size={16} className="text-emerald-400 flex-shrink-0 mt-0.5" /> 
-                      <span className="line-clamp-1">{place.timings}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-[var(--border-glass)]">
-                    <span className="text-sm font-semibold text-muted">
-                      {place.keyAttractions.length} Attractions
-                    </span>
-                    <span className="flex items-center gap-1 text-sm font-bold text-[var(--accent-primary)] group-hover:translate-x-1 transition-transform">
-                      Read Guide <ArrowRight size={16} />
-                    </span>
+                <div className="mt-2 flex items-center justify-between border-t-2 border-[var(--border-color)] pt-4">
+                  <span className="font-mono text-sm font-black bg-black text-white px-2 py-1">
+                    {place.keyAttractions.length} ATTR
+                  </span>
+                  <div className="w-10 h-10 border-2 border-black flex items-center justify-center bg-[var(--accent)] text-white group-hover:translate-x-2 transition-transform shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <ArrowRight size={20} />
                   </div>
                 </div>
 
               </div>
+
             </Link>
           ))}
         </div>

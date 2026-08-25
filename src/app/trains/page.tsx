@@ -9,67 +9,65 @@ export default function TrainsPage() {
     <div className="w-full pt-32 pb-24 min-h-screen">
       <div className="container-wide">
         
-        <div className="mb-16 max-w-3xl">
-          <h1 className="heading-hero text-gradient mb-6">Train Logistics</h1>
-          <p className="text-body-large text-muted">
-            All train boarding passes, schedules, and live tracking information for the journey.
-          </p>
+        <div className="mb-24 border-b-4 border-[var(--border-color)] pb-12">
+          <div className="inline-block bg-[var(--text-primary)] text-white px-4 py-2 font-mono text-sm font-bold uppercase mb-8 shadow-[4px_4px_0px_0px_var(--accent)]">
+            Logistics Module
+          </div>
+          <h1 className="heading-hero">Train Status</h1>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-12">
           {TRAINS.map((ticket, idx) => (
-            <div key={idx} className="glass-card overflow-hidden">
-              <div className="p-6 md:p-8 bg-white/5 border-b border-[var(--border-glass)] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center backdrop-blur-md border border-indigo-500/30">
-                    <Train size={32} />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-black">{ticket.name}</h3>
-                    <p className="text-muted font-semibold tracking-widest uppercase text-sm mt-1">{ticket.number}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-6 text-center md:text-right w-full md:w-auto justify-between md:justify-end">
-                  <div>
-                    <div className="text-3xl font-black text-white">{ticket.departure}</div>
-                    <div className="text-muted text-sm font-bold">{ticket.from}</div>
-                  </div>
-                  <div className="h-px w-16 bg-white/20 relative hidden md:block">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white" />
-                  </div>
-                  <div>
-                    <div className="text-3xl font-black text-white">{ticket.arrival}</div>
-                    <div className="text-muted text-sm font-bold">{ticket.to}</div>
-                  </div>
-                </div>
-                
-              </div>
-
-              <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 bg-[var(--bg-dark)]/50">
-                <div className="flex items-start gap-4">
-                  <Ticket size={24} className="text-accent-secondary" />
-                  <div>
-                    <div className="text-sm text-muted font-bold tracking-wider uppercase mb-1">Status</div>
-                    <div className="text-lg font-black text-emerald-400">Confirmed</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <Clock size={24} className="text-blue-400" />
-                  <div>
-                    <div className="text-sm text-muted font-bold tracking-wider uppercase mb-1">Date</div>
-                    <div className="text-lg font-bold text-white">{ticket.departureDate}</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <AlertCircle size={24} className="text-yellow-400" />
-                  <div>
-                    <div className="text-sm text-muted font-bold tracking-wider uppercase mb-1">Coach</div>
-                    <div className="text-lg font-bold text-white">B4, B5</div>
+            <div key={idx} className="brutal-card p-0 flex flex-col md:flex-row overflow-hidden bg-white">
+              
+              {/* Train Name & PNR (Left) */}
+              <div className="p-8 md:w-1/3 bg-[var(--accent)] text-white border-b-4 md:border-b-0 md:border-r-4 border-black flex flex-col justify-between">
+                <div>
+                  <Train size={48} className="mb-6 opacity-80" />
+                  <h3 className="text-4xl font-black uppercase leading-none mb-2">{ticket.name}</h3>
+                  <div className="font-mono font-bold tracking-widest text-lg bg-black px-3 py-1 w-max shadow-[4px_4px_0px_0px_white]">
+                    {ticket.number}
                   </div>
                 </div>
               </div>
+
+              {/* Timing & Stations (Right) */}
+              <div className="p-8 md:w-2/3 flex flex-col justify-between">
+                
+                <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8 border-b-4 border-dashed border-[var(--border-color)] pb-8">
+                  <div className="text-center md:text-left">
+                    <div className="font-mono font-black uppercase text-[var(--accent)] mb-2">DEP</div>
+                    <div className="text-5xl font-black">{ticket.departure}</div>
+                    <div className="font-mono font-bold uppercase tracking-widest mt-2">{ticket.from}</div>
+                  </div>
+                  
+                  <div className="w-full md:w-32 h-2 bg-black relative shadow-[4px_4px_0px_0px_var(--accent)]" />
+
+                  <div className="text-center md:text-right">
+                    <div className="font-mono font-black uppercase text-[var(--accent)] mb-2">ARR</div>
+                    <div className="text-5xl font-black">{ticket.arrival}</div>
+                    <div className="font-mono font-bold uppercase tracking-widest mt-2">{ticket.to}</div>
+                  </div>
+                </div>
+
+                {/* Status Footer */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono">
+                  <div className="border-2 border-black p-4 bg-[#ECFCCB]">
+                    <div className="text-xs font-black uppercase mb-2 flex items-center gap-2"><Ticket size={16}/> STATUS</div>
+                    <div className="text-xl font-bold uppercase">CONFIRMED</div>
+                  </div>
+                  <div className="border-2 border-black p-4 bg-white">
+                    <div className="text-xs font-black uppercase mb-2 flex items-center gap-2"><Clock size={16}/> DATE</div>
+                    <div className="text-xl font-bold uppercase">{ticket.departureDate}</div>
+                  </div>
+                  <div className="border-2 border-black p-4 bg-white">
+                    <div className="text-xs font-black uppercase mb-2 flex items-center gap-2"><AlertCircle size={16}/> COACH</div>
+                    <div className="text-xl font-bold uppercase">B4, B5</div>
+                  </div>
+                </div>
+
+              </div>
+
             </div>
           ))}
         </div>
