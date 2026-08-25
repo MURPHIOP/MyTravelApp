@@ -56,7 +56,7 @@ export default function HomePage() {
               transition={{ duration: 0.5, delay: 0.6 }}
               className="text-lg sm:text-xl font-mono leading-[1.6] tracking-wide mt-8 border-l-4 border-[var(--accent)] pl-6 bg-white/40 p-4 border-y-2 border-r-2 border-r-transparent border-y-transparent"
             >
-              A robust command center for our 11-day private journey. Exploring 3 Jyotirlingas, UNESCO heritage caves, and sacred destinations.
+              A robust command center for our 10-day private journey. Exploring 3 Jyotirlingas, UNESCO heritage caves, and sacred destinations.
             </motion.p>
 
             <motion.div
@@ -114,7 +114,7 @@ export default function HomePage() {
           <BrutalistMarquee 
             items={[
               "3 JYOTIRLINGAS",
-              "11 DAYS",
+              "10 DAYS",
               "UNESCO CAVES",
               "MITRA & GHOSH",
               "AUTO-SPLIT EXPENSES"
@@ -152,7 +152,7 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="relative z-10 bg-white border-2 border-black p-6 shadow-[8px_8px_0px_0px_var(--accent)] group-hover:shadow-[12px_12px_0px_0px_var(--accent)] transition-all">
-                <h3 className="text-3xl font-black mb-2 uppercase">11-Day Route Plan</h3>
+                <h3 className="text-3xl font-black mb-2 uppercase">10-Day Route Plan</h3>
                 <p className="font-mono text-sm font-bold">EXECUTE TIMELINE SEQUENCE</p>
               </div>
             </Link>
