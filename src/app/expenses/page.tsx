@@ -299,69 +299,54 @@ export default function ExpensesPage() {
           </button>
         </div>
 
-        {/* Dashboard - 4 Blocks Design */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          
-          {/* Block 1: Total Expenses */}
-          <div className="brutal-card p-6 bg-[#FFEDD5]">
-            <h3 className="font-mono font-black uppercase tracking-widest text-[var(--accent)] mb-4 flex items-center gap-2">
-              <Activity size={20} /> 1. Total Expenses Incurred
-            </h3>
-            <div className="text-5xl font-black mb-2">₹{totalExpense.toLocaleString('en-IN')}</div>
-            <div className="bg-white border-2 border-black px-3 py-1 font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase w-max">
+        {/* Dashboard */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+          {/* Total */}
+          <div className="brutal-card p-8 lg:col-span-1 bg-[#FFEDD5]">
+            <div className="flex items-center gap-3 mb-6">
+              <Activity size={28} className="text-[var(--accent)]" />
+              <h3 className="font-mono font-black uppercase tracking-widest">Total Expense</h3>
+            </div>
+            <div className="text-6xl font-black mb-4">₹{totalExpense.toLocaleString('en-IN')}</div>
+            <div className="bg-white border-2 border-black px-4 py-2 font-mono text-xs font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase w-max">
               Across Both Families
             </div>
           </div>
 
-          {/* Block 2: Individual Share */}
-          <div className="brutal-card p-6 bg-[#E0E7FF]">
-            <h3 className="font-mono font-black uppercase tracking-widest text-blue-600 mb-4 flex items-center gap-2">
-              <Wallet size={20} /> 2. Individual Family Share
+          {/* Settlement Status */}
+          <div className="brutal-card p-8 lg:col-span-2 bg-[#ECFCCB]">
+            <h3 className="font-mono font-black uppercase tracking-widest text-[var(--accent)] mb-8 border-b-2 border-black pb-4">
+              Current Settlement State
             </h3>
-            <div className="text-5xl font-black mb-2 text-blue-900">₹{halfShare.toLocaleString('en-IN')}</div>
-            <div className="bg-white border-2 border-black px-3 py-1 font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase w-max text-blue-900">
-              50/50 Split of Total
-            </div>
-          </div>
-
-          {/* Block 3: Total Contributions (Payments + Receipts) */}
-          <div className="brutal-card p-6 bg-[#FEF3C7]">
-            <h3 className="font-mono font-black uppercase tracking-widest text-amber-600 mb-6 flex items-center gap-2">
-              <ArrowDownRight size={20} /> 3. Total Contributions (Paid)
-            </h3>
-            <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-end border-b-2 border-black pb-2">
-                <span className="font-bold text-xl uppercase">Mitra Family</span>
-                <span className="font-black text-3xl">₹{mitraTotalContribution.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="flex justify-between items-end">
-                <span className="font-bold text-xl uppercase">Ghosh Family</span>
-                <span className="font-black text-3xl">₹{ghoshTotalContribution.toLocaleString('en-IN')}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Block 4: Net Dues */}
-          <div className="brutal-card p-6 bg-[#ECFCCB]">
-            <h3 className="font-mono font-black uppercase tracking-widest text-green-700 mb-6 flex items-center gap-2">
-              <Activity size={20} /> 4. Net Dues (Settlement)
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className={`border-4 border-black p-4 bg-white shadow-[4px_4px_0px_0px_${mitraBalance < 0 ? '#EF4444' : mitraBalance > 0 ? '#10B981' : '#94A3B8'}]`}>
-                <div className="font-bold uppercase text-sm mb-2 border-b-2 border-black pb-1">Mitra Family</div>
-                <div className={`text-2xl font-black ${mitraBalance < 0 ? 'text-red-600' : mitraBalance > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
-                  {mitraBalance < 0 ? `OWES ₹${Math.abs(mitraBalance).toLocaleString('en-IN')}` : mitraBalance > 0 ? `GETS ₹${mitraBalance.toLocaleString('en-IN')}` : 'SETTLED'}
+            
+            <div className="flex flex-col md:flex-row items-center gap-8 justify-around">
+              {/* Mitra Status */}
+              <div className="text-center w-full md:w-auto">
+                <div className="text-3xl font-black uppercase mb-4">Mitra</div>
+                <div className={`bg-white border-4 border-black p-4 shadow-[8px_8px_0px_0px_${mitraBalance < 0 ? '#EF4444' : mitraBalance > 0 ? '#10B981' : '#94A3B8'}]`}>
+                  <div className={`text-4xl font-black flex items-center justify-center gap-2 mb-2 ${mitraBalance < 0 ? 'text-red-600' : mitraBalance > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                    {mitraBalance < 0 ? <ArrowUpRight size={32} /> : mitraBalance > 0 ? <ArrowDownRight size={32} /> : null}
+                    {mitraBalance < 0 ? `OWE ₹${Math.abs(mitraBalance).toLocaleString('en-IN')}` : mitraBalance > 0 ? `GET ₹${mitraBalance.toLocaleString('en-IN')}` : 'SETTLED'}
+                  </div>
+                  <p className="font-mono text-xs font-bold">PAID ₹{mitraTotalContribution.toLocaleString('en-IN')} // SHARE ₹{halfShare.toLocaleString('en-IN')}</p>
                 </div>
               </div>
-              <div className={`border-4 border-black p-4 bg-white shadow-[4px_4px_0px_0px_${ghoshBalance < 0 ? '#EF4444' : ghoshBalance > 0 ? '#10B981' : '#94A3B8'}]`}>
-                <div className="font-bold uppercase text-sm mb-2 border-b-2 border-black pb-1">Ghosh Family</div>
-                <div className={`text-2xl font-black ${ghoshBalance < 0 ? 'text-red-600' : ghoshBalance > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
-                  {ghoshBalance < 0 ? `OWES ₹${Math.abs(ghoshBalance).toLocaleString('en-IN')}` : ghoshBalance > 0 ? `GETS ₹${ghoshBalance.toLocaleString('en-IN')}` : 'SETTLED'}
+
+              <div className="hidden md:block w-4 h-32 border-r-4 border-black border-dashed border-y-0 border-l-0" />
+
+              {/* Ghosh Status */}
+              <div className="text-center w-full md:w-auto">
+                <div className="text-3xl font-black uppercase mb-4">Ghosh</div>
+                <div className={`bg-white border-4 border-black p-4 shadow-[8px_8px_0px_0px_${ghoshBalance < 0 ? '#EF4444' : ghoshBalance > 0 ? '#10B981' : '#94A3B8'}]`}>
+                  <div className={`text-4xl font-black flex items-center justify-center gap-2 mb-2 ${ghoshBalance < 0 ? 'text-red-600' : ghoshBalance > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                    {ghoshBalance < 0 ? <ArrowUpRight size={32} /> : ghoshBalance > 0 ? <ArrowDownRight size={32} /> : null}
+                    {ghoshBalance < 0 ? `OWE ₹${Math.abs(ghoshBalance).toLocaleString('en-IN')}` : ghoshBalance > 0 ? `GET ₹${ghoshBalance.toLocaleString('en-IN')}` : 'SETTLED'}
+                  </div>
+                  <p className="font-mono text-xs font-bold">PAID ₹{ghoshTotalContribution.toLocaleString('en-IN')} // SHARE ₹{halfShare.toLocaleString('en-IN')}</p>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Ledger Table */}
