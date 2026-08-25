@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Wallet, Plus, ArrowDownRight, ArrowUpRight, Activity, X, Download } from 'lucide-react';
+import { Wallet, Plus, ArrowDownRight, ArrowUpRight, Activity, X, Download, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useAuth } from '@/context/AuthContext';
@@ -15,6 +15,7 @@ type Expense = {
   category: string;
   paidBy: 'Mitra' | 'Ghosh';
   amount: number;
+  type?: 'EXPENSE' | 'RECEIPT';
 };
 
 export default function ExpensesPage() {
@@ -25,11 +26,12 @@ export default function ExpensesPage() {
   const [isClient, setIsClient] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Form State
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<string>('OTHER');
   const [paidBy, setPaidBy] = useState<Expense['paidBy']>('Mitra');
+  const [dateStr, setDateStr] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [transactionType, setTransactionType] = useState<'EXPENSE' | 'RECEIPT'>('EXPENSE');
 
   useEffect(() => {
     setIsClient(true);
@@ -57,29 +59,48 @@ export default function ExpensesPage() {
     e.preventDefault();
     if (!desc || !amount) return;
 
+    let displayDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    if (dateStr) {
+      const d = new Date(dateStr);
+      if (!isNaN(d.getTime())) {
+        displayDate = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      }
+    }
+
     const newExpense: Expense = {
       id: Math.random().toString(36).substr(2, 9),
-      date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      date: displayDate,
       description: desc,
-      category,
+      category: transactionType === 'RECEIPT' ? 'ADVANCE' : category,
       paidBy,
-      amount: parseFloat(amount)
+      amount: parseFloat(amount),
+      type: transactionType
     };
 
     setExpenses(prev => [newExpense, ...prev]);
     setIsAddModalOpen(false);
     setDesc('');
     setAmount('');
+    setTransactionType('EXPENSE');
   };
 
   // Calculations
-  const totalExpense = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const mitraPaid = expenses.filter(e => e.paidBy === 'Mitra').reduce((sum, exp) => sum + exp.amount, 0);
-  const ghoshPaid = expenses.filter(e => e.paidBy === 'Ghosh').reduce((sum, exp) => sum + exp.amount, 0);
+  const safeType = (e: Expense) => e.type || 'EXPENSE';
+
+  const totalExpense = expenses.filter(e => safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + exp.amount, 0);
+  
+  const mitraPaidExpenses = expenses.filter(e => e.paidBy === 'Mitra' && safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + exp.amount, 0);
+  const mitraPaidReceipts = expenses.filter(e => e.paidBy === 'Mitra' && safeType(e) === 'RECEIPT').reduce((sum, exp) => sum + exp.amount, 0);
+  const mitraTotalContribution = mitraPaidExpenses + mitraPaidReceipts;
+
+  const ghoshPaidExpenses = expenses.filter(e => e.paidBy === 'Ghosh' && safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + exp.amount, 0);
+  const ghoshPaidReceipts = expenses.filter(e => e.paidBy === 'Ghosh' && safeType(e) === 'RECEIPT').reduce((sum, exp) => sum + exp.amount, 0);
+  const ghoshTotalContribution = ghoshPaidExpenses + ghoshPaidReceipts;
+
   const halfShare = totalExpense / 2;
 
-  const mitraBalance = mitraPaid - halfShare; // negative means owes, positive means gets
-  const ghoshBalance = ghoshPaid - halfShare;
+  const mitraBalance = mitraTotalContribution - halfShare; // negative means owes, positive means gets
+  const ghoshBalance = ghoshTotalContribution - halfShare;
 
   const numberToWords = (num: number): string => {
     const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
@@ -307,7 +328,7 @@ export default function ExpensesPage() {
                     {mitraBalance < 0 ? <ArrowUpRight size={32} /> : mitraBalance > 0 ? <ArrowDownRight size={32} /> : null}
                     {mitraBalance < 0 ? `OWE ₹${Math.abs(mitraBalance).toLocaleString('en-IN')}` : mitraBalance > 0 ? `GET ₹${mitraBalance.toLocaleString('en-IN')}` : 'SETTLED'}
                   </div>
-                  <p className="font-mono text-xs font-bold">PAID ₹{mitraPaid.toLocaleString('en-IN')} // SHARE ₹{halfShare.toLocaleString('en-IN')}</p>
+                  <p className="font-mono text-xs font-bold">PAID ₹{mitraTotalContribution.toLocaleString('en-IN')} // SHARE ₹{halfShare.toLocaleString('en-IN')}</p>
                 </div>
               </div>
 
@@ -321,7 +342,7 @@ export default function ExpensesPage() {
                     {ghoshBalance < 0 ? <ArrowUpRight size={32} /> : ghoshBalance > 0 ? <ArrowDownRight size={32} /> : null}
                     {ghoshBalance < 0 ? `OWE ₹${Math.abs(ghoshBalance).toLocaleString('en-IN')}` : ghoshBalance > 0 ? `GET ₹${ghoshBalance.toLocaleString('en-IN')}` : 'SETTLED'}
                   </div>
-                  <p className="font-mono text-xs font-bold">PAID ₹{ghoshPaid.toLocaleString('en-IN')} // SHARE ₹{halfShare.toLocaleString('en-IN')}</p>
+                  <p className="font-mono text-xs font-bold">PAID ₹{ghoshTotalContribution.toLocaleString('en-IN')} // SHARE ₹{halfShare.toLocaleString('en-IN')}</p>
                 </div>
               </div>
             </div>
@@ -342,12 +363,6 @@ export default function ExpensesPage() {
               >
                 <Download size={14} /> GENERATE BILL
               </button>
-              <button 
-                onClick={() => setExpenses([])}
-                className="font-mono text-xs font-bold bg-red-600 hover:bg-red-700 px-3 py-1 text-white border-2 border-white transition-colors cursor-pointer"
-              >
-                CLEAR ALL
-              </button>
             </div>
           </div>
           
@@ -359,21 +374,28 @@ export default function ExpensesPage() {
                   <th className="p-6 font-black border-r-2 border-black">Description</th>
                   <th className="p-6 font-black border-r-2 border-black">Category</th>
                   <th className="p-6 font-black border-r-2 border-black">Paid By</th>
-                  <th className="p-6 font-black text-right">Amount</th>
+                  <th className="p-6 font-black text-right border-r-2 border-black">Amount</th>
+                  <th className="p-6 font-black text-center w-24">Action</th>
                 </tr>
               </thead>
               <tbody className="font-bold text-lg uppercase">
                 {expenses.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-12 text-center text-gray-500 font-mono">No transactions found. Add an expense to begin.</td>
+                    <td colSpan={6} className="p-12 text-center text-gray-500 font-mono">No transactions found. Add an expense to begin.</td>
                   </tr>
                 ) : (
                   expenses.map(exp => (
                     <tr key={exp.id} className="hover:bg-gray-100 transition-colors border-b-2 border-black">
                       <td className="p-6 border-r-2 border-black font-mono text-sm">{exp.date}</td>
-                      <td className="p-6 border-r-2 border-black">{exp.description}</td>
+                      <td className="p-6 border-r-2 border-black">
+                        <div className="flex items-center gap-2">
+                          {safeType(exp) === 'RECEIPT' && <span className="bg-green-600 text-white text-xs px-2 py-1 font-mono">RECEIPT</span>}
+                          {exp.description}
+                        </div>
+                      </td>
                       <td className="p-6 border-r-2 border-black">
                         <span className={`px-3 py-1 font-mono text-xs border-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                          safeType(exp) === 'RECEIPT' ? 'bg-green-100 border-green-600 text-green-600' :
                           exp.category === 'TRANS' ? 'bg-blue-100 border-blue-600 text-blue-600' :
                           exp.category === 'HOTEL' ? 'bg-orange-100 border-orange-600 text-orange-600' :
                           exp.category === 'SIGHT' ? 'bg-pink-100 border-pink-600 text-pink-600' :
@@ -384,7 +406,15 @@ export default function ExpensesPage() {
                         </span>
                       </td>
                       <td className="p-6 border-r-2 border-black">{exp.paidBy}</td>
-                      <td className="p-6 text-right font-black">₹{exp.amount.toLocaleString('en-IN')}</td>
+                      <td className="p-6 text-right font-black border-r-2 border-black">₹{exp.amount.toLocaleString('en-IN')}</td>
+                      <td className="p-6 text-center">
+                        <button 
+                          onClick={() => setExpenses(prev => prev.filter(e => e.id !== exp.id))}
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 size={24} className="mx-auto" />
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -414,6 +444,37 @@ export default function ExpensesPage() {
                 <button onClick={() => setIsAddModalOpen(false)} className="hover:text-red-400"><X size={24} /></button>
               </div>
               <form onSubmit={handleAddExpense} className="p-6 flex flex-col gap-6 font-bold uppercase text-sm">
+                
+                <div className="flex gap-4 mb-2">
+                  <button type="button" onClick={() => setTransactionType('EXPENSE')} className={`flex-1 p-3 border-2 border-black font-black uppercase ${transactionType === 'EXPENSE' ? 'bg-[var(--accent)] text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'bg-gray-100 hover:bg-gray-200'}`}>EXPENSE</button>
+                  <button type="button" onClick={() => setTransactionType('RECEIPT')} className={`flex-1 p-3 border-2 border-black font-black uppercase ${transactionType === 'RECEIPT' ? 'bg-green-600 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'bg-gray-100 hover:bg-gray-200'}`}>RECEIPT</button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block mb-2 font-mono text-xs tracking-widest">Date</label>
+                    <input 
+                      type="date" 
+                      value={dateStr}
+                      onChange={e => setDateStr(e.target.value)}
+                      required
+                      className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-2 font-mono text-xs tracking-widest">Amount (₹)</label>
+                    <input 
+                      type="number" 
+                      value={amount}
+                      onChange={e => setAmount(e.target.value)}
+                      required
+                      min="1"
+                      className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
+                      placeholder="500"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block mb-2 font-mono text-xs tracking-widest">Description</label>
                   <input 
@@ -422,40 +483,31 @@ export default function ExpensesPage() {
                     onChange={e => setDesc(e.target.value)}
                     required
                     className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
-                    placeholder="e.g. Dinner at Dhaba"
+                    placeholder={transactionType === 'RECEIPT' ? "e.g. Deposit to Trip Fund" : "e.g. Dinner at Dhaba"}
                   />
                 </div>
-                <div>
-                  <label className="block mb-2 font-mono text-xs tracking-widest">Amount (₹)</label>
-                  <input 
-                    type="number" 
-                    value={amount}
-                    onChange={e => setAmount(e.target.value)}
-                    required
-                    min="1"
-                    className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
-                    placeholder="500"
-                  />
-                </div>
+                
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block mb-2 font-mono text-xs tracking-widest">Category</label>
-                    <input 
-                      list="categories"
-                      value={category}
-                      onChange={e => setCategory(e.target.value)}
-                      className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white"
-                      placeholder="e.g. SHOPPING"
-                    />
-                    <datalist id="categories">
-                      <option value="TRANS" />
-                      <option value="HOTEL" />
-                      <option value="SIGHT" />
-                      <option value="FOOD" />
-                      <option value="OTHER" />
-                    </datalist>
-                  </div>
-                  <div>
+                  {transactionType === 'EXPENSE' && (
+                    <div>
+                      <label className="block mb-2 font-mono text-xs tracking-widest">Category</label>
+                      <input 
+                        list="categories"
+                        value={category}
+                        onChange={e => setCategory(e.target.value)}
+                        className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white"
+                        placeholder="e.g. SHOPPING"
+                      />
+                      <datalist id="categories">
+                        <option value="TRANS" />
+                        <option value="HOTEL" />
+                        <option value="SIGHT" />
+                        <option value="FOOD" />
+                        <option value="OTHER" />
+                      </datalist>
+                    </div>
+                  )}
+                  <div className={transactionType === 'RECEIPT' ? 'col-span-2' : ''}>
                     <label className="block mb-2 font-mono text-xs tracking-widest">Paid By</label>
                     <select 
                       value={paidBy}
