@@ -4,9 +4,10 @@ import React from 'react';
 import { MapPin, ExternalLink, Star } from 'lucide-react';
 
 import { useTripData } from '@/context/TripDataContext';
+import UploadDownload from '@/components/UploadDownload';
 
 export default function HotelsPage() {
-  const { hotels } = useTripData();
+  const { hotels, setHotels } = useTripData();
   return (
     <div className="w-full pt-32 pb-24 min-h-screen">
       <div className="container-wide">
@@ -58,6 +59,19 @@ export default function HotelsPage() {
                   <button className="brutal-btn w-full">
                     <ExternalLink size={20} className="mr-3" /> View Booking
                   </button>
+                </div>
+
+                <div className="mt-8 pt-8 border-t-4 border-[var(--border-color)]">
+                  <UploadDownload 
+                    label="Hotel Voucher"
+                    currentUrl={hotel.bookingPassUrl}
+                    storagePathPrefix={`hotel_${hotel.id}`}
+                    onUploadSuccess={(url) => {
+                      const newHotels = [...hotels];
+                      newHotels[idx].bookingPassUrl = url;
+                      setHotels(newHotels);
+                    }}
+                  />
                 </div>
               </div>
             </div>

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FileText, Upload, Trash2, Download } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from '@/context/AuthContext';
 
 interface VaultDocument {
   id: string;
@@ -17,10 +18,12 @@ interface VaultDocument {
 }
 
 export default function VaultPage() {
+  const { user } = useAuth();
   const [documents, setDocuments] = useState<VaultDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isFamilyHead = user?.role === 'FAMILY_HEAD';
 
   useEffect(() => {
     fetchDocuments();
@@ -132,19 +135,23 @@ export default function VaultPage() {
           </div>
           
           <div className="flex gap-4">
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              onChange={handleUpload}
-            />
-            <button 
-              className="brutal-btn brutal-btn-accent flex items-center gap-2"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? 'UPLOADING...' : <><Upload size={20} /> UPLOAD FILE</>}
-            </button>
+            {isFamilyHead && (
+              <>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  onChange={handleUpload}
+                />
+                <button 
+                  className="brutal-btn brutal-btn-accent flex items-center gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? 'UPLOADING...' : <><Upload size={20} /> UPLOAD FILE</>}
+                </button>
+              </>
+            )}
           </div>
         </div>
 

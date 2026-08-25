@@ -3,9 +3,10 @@
 import React from 'react';
 import { Train, Ticket, Clock, AlertCircle } from 'lucide-react';
 import { useTripData } from '@/context/TripDataContext';
+import UploadDownload from '@/components/UploadDownload';
 
 export default function TrainsPage() {
-  const { trains: TRAINS } = useTripData();
+  const { trains: TRAINS, setTrains } = useTripData();
   return (
     <div className="w-full pt-32 pb-24 min-h-screen">
       <div className="container-wide">
@@ -68,6 +69,32 @@ export default function TrainsPage() {
                   <div className="border-2 border-black p-4 bg-[var(--accent)] text-white">
                     <div className="text-xs font-black uppercase mb-2 flex items-center gap-2 text-white"><AlertCircle size={16}/> COACH</div>
                     <div className="text-xl font-bold uppercase text-white">{ticket.coach || 'TBD'}</div>
+                  </div>
+                </div>
+
+                {/* Tickets Section */}
+                <div className="mt-8 pt-8 border-t-4 border-[var(--border-color)]">
+                  <div className="flex flex-col md:flex-row gap-8">
+                    <UploadDownload 
+                      label="Mitra Family Ticket"
+                      currentUrl={ticket.tickets.mitra}
+                      storagePathPrefix={`train_${ticket.id}_mitra`}
+                      onUploadSuccess={(url) => {
+                        const newTrains = [...TRAINS];
+                        newTrains[idx].tickets.mitra = url;
+                        setTrains(newTrains);
+                      }}
+                    />
+                    <UploadDownload 
+                      label="Ghosh Family Ticket"
+                      currentUrl={ticket.tickets.ghosh}
+                      storagePathPrefix={`train_${ticket.id}_ghosh`}
+                      onUploadSuccess={(url) => {
+                        const newTrains = [...TRAINS];
+                        newTrains[idx].tickets.ghosh = url;
+                        setTrains(newTrains);
+                      }}
+                    />
                   </div>
                 </div>
 

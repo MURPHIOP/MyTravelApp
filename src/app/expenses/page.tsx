@@ -12,7 +12,7 @@ type Expense = {
   id: string;
   date: string;
   description: string;
-  category: 'TRANS' | 'HOTEL' | 'SIGHT' | 'FOOD' | 'OTHER';
+  category: string;
   paidBy: 'Mitra' | 'Ghosh';
   amount: number;
 };
@@ -28,7 +28,7 @@ export default function ExpensesPage() {
   // Form State
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState<Expense['category']>('OTHER');
+  const [category, setCategory] = useState<string>('OTHER');
   const [paidBy, setPaidBy] = useState<Expense['paidBy']>('Mitra');
 
   useEffect(() => {
@@ -440,17 +440,20 @@ export default function ExpensesPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block mb-2 font-mono text-xs tracking-widest">Category</label>
-                    <select 
+                    <input 
+                      list="categories"
                       value={category}
-                      onChange={e => setCategory(e.target.value as any)}
-                      className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white appearance-none"
-                    >
-                      <option value="TRANS">Transport</option>
-                      <option value="HOTEL">Hotel</option>
-                      <option value="SIGHT">Sightseeing</option>
-                      <option value="FOOD">Food</option>
-                      <option value="OTHER">Other</option>
-                    </select>
+                      onChange={e => setCategory(e.target.value)}
+                      className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white"
+                      placeholder="e.g. SHOPPING"
+                    />
+                    <datalist id="categories">
+                      <option value="TRANS" />
+                      <option value="HOTEL" />
+                      <option value="SIGHT" />
+                      <option value="FOOD" />
+                      <option value="OTHER" />
+                    </datalist>
                   </div>
                   <div>
                     <label className="block mb-2 font-mono text-xs tracking-widest">Paid By</label>
