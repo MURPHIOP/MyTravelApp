@@ -6,6 +6,7 @@
     "dev": "concurrently \"next dev\" \"cd backend && source venv/bin/activate && uvicorn main:app --reload\"",
     "build": "next build",
     "start": "next start",
+    "deploy:local": "npm run build && concurrently \"next start\" \"cd backend && source venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 8000\"",
     "lint": "eslint"
   },
   "dependencies": {
