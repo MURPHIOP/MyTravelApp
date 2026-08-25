@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
   compiler: {
     styledComponents: false,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/documents/:path*',
+        destination: 'http://127.0.0.1:8000/api/documents/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

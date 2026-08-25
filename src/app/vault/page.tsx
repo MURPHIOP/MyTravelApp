@@ -1,128 +1,160 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Plus, Train, Hotel, Map, FileText } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Train, Hotel, Map, FileText, Upload, Trash2, Download } from 'lucide-react';
 
 interface VaultDocument {
   id: string;
-  filename: string;
-  category: string;
-  uploadDate: string;
+  name: string;
+  type: string;
+  size: number;
   url: string;
+  uploadedBy: string;
+  uploadedAt: string;
+  family: string;
 }
 
 export default function VaultPage() {
   const [documents, setDocuments] = useState<VaultDocument[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // For local visual testing, pre-populate if empty or fetch
-    fetch('/api/documents/list')
-      .then(res => res.json())
-      .then(data => {
-        if (data.documents?.length > 0) {
-          setDocuments(data.documents);
-        } else {
-          // Dummy data for presentation testing since we might not have a backend populated
-          setDocuments([
-            {
-              id: '1',
-              filename: 'Vande_Bharat_Ticket.pdf',
-              category: 'TRAIN',
-              uploadDate: '2026-10-15',
-              url: '#'
-            },
-            {
-              id: '2',
-              filename: 'Taj_Aurangabad_Booking.pdf',
-              category: 'HOTELS',
-              uploadDate: '2026-10-10',
-              url: '#'
-            }
-          ]);
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    fetchDocuments();
   }, []);
 
-  const categories = [
-    { id: 'TRAIN', label: 'TRAIN', icon: Train },
-    { id: 'HOTELS', label: 'HOTELS', icon: Hotel },
-    { id: 'ACTIVITIES', label: 'ACTIVITIES', icon: Map },
-    { id: 'OTHER', label: 'OTHER DOCUMENTS', icon: FileText }
-  ];
+  const fetchDocuments = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/documents/list');
+      const data = await res.json();
+      if (data.documents) {
+        setDocuments(data.documents);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setLoading(false);
+  };
 
-  if (loading) return <div className="p-12 text-center text-body">Loading...</div>;
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('uploadedBy', 'Mitra Head'); // Mock user
+    formData.append('family', 'MITRA'); // Mock family
+
+    try {
+      const res = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      if (res.ok) {
+        fetchDocuments();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this document?')) return;
+    try {
+      await fetch(`/api/documents/${id}`, { method: 'DELETE' });
+      fetchDocuments();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
-    <div className="pb-safe relative w-full min-h-screen pt-safe">
-      <div className="inner">
+    <div className="w-full pt-32 pb-24 min-h-screen">
+      <div className="container-wide">
         
-        {/* ── HEADER ── */}
-        <div className="mb-16">
-          <h1 className="text-title-page mb-2">VAULT</h1>
-          <div className="text-title-section text-[var(--text-secondary)]">
-            Your travel documents<br />in one place.
+        {/* Brutalist Header */}
+        <div className="mb-16 border-b-4 border-black pb-12 flex flex-col md:flex-row justify-between items-end gap-8">
+          <div>
+            <div className="inline-block bg-[var(--text-primary)] text-white px-3 py-1 font-mono text-sm font-bold uppercase mb-6 shadow-[4px_4px_0px_0px_var(--accent)]">
+              Secure Storage
+            </div>
+            <h1 className="heading-hero">Vault</h1>
+          </div>
+          
+          <div className="flex gap-4">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              onChange={handleUpload}
+            />
+            <button 
+              className="brutal-btn brutal-btn-accent flex items-center gap-2"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? 'UPLOADING...' : <><Upload size={20} /> UPLOAD FILE</>}
+            </button>
           </div>
         </div>
 
-        {/* ── SECTIONS ── */}
-        <div className="flex flex-col">
-          {categories.map((cat) => {
-            const catDocs = documents.filter(d => d.category === cat.id);
-            
-            return (
-              <div key={cat.id} className="border-t border-[var(--border)] py-8">
-                
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-title-section">{cat.label}</h2>
-                  <div className="flex items-center gap-4">
-                    <span className="text-body text-[var(--text-secondary)]">
-                      {catDocs.length} {catDocs.length === 1 ? 'document' : 'documents'}
-                    </span>
-                    <button className="w-8 h-8 rounded-[var(--radius-button)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors">
-                      <Plus size={20} className="text-[var(--text-primary)]" />
+        {loading ? (
+          <div className="font-mono text-2xl font-black uppercase text-center p-24 animate-pulse">
+            LOADING SECURE VAULT...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {documents.length === 0 ? (
+              <div className="col-span-full border-4 border-dashed border-black p-24 text-center">
+                <FileText size={48} className="mx-auto mb-4 opacity-50" />
+                <p className="font-mono font-bold text-xl uppercase">Vault is empty.</p>
+              </div>
+            ) : (
+              documents.map((doc) => (
+                <div key={doc.id} className="brutal-card p-0 flex flex-col justify-between">
+                  <div className="p-6 bg-[#E5E5E5] border-b-2 border-black flex justify-between items-start">
+                    <div className="font-mono text-xs font-black bg-black text-white px-2 py-1 uppercase shadow-[2px_2px_0px_0px_var(--accent)]">
+                      {doc.family}
+                    </div>
+                    <button 
+                      onClick={() => handleDelete(doc.id)}
+                      className="text-red-500 hover:text-red-700 transition-colors"
+                    >
+                      <Trash2 size={20} />
                     </button>
                   </div>
-                </div>
-
-                {catDocs.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {catDocs.map((doc) => (
-                      <div 
-                        key={doc.id}
-                        className="border border-[var(--border)] rounded-[var(--radius-card)] p-6 bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer flex flex-col gap-6"
-                        onClick={() => window.open(doc.url, '_blank')}
-                      >
-                        <div className="text-[var(--text-primary)] opacity-80">
-                          <cat.icon size={24} />
-                        </div>
-                        
-                        <div>
-                          <div className="text-title-card mb-2 truncate">{doc.filename.replace('.pdf', '')}</div>
-                          <div className="text-body text-[var(--text-secondary)]">
-                            {new Date(doc.uploadDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}
-                          </div>
-                        </div>
-
-                        <div className="mt-auto pt-4 border-t border-[var(--border)] flex justify-between items-center text-body">
-                          <span className="text-[var(--text-secondary)] truncate flex-1 pr-4">
-                            {doc.filename}
-                          </span>
-                          <span className="font-semibold text-[var(--text-primary)]">→</span>
-                        </div>
-                      </div>
-                    ))}
+                  
+                  <div className="p-6 flex flex-col gap-4">
+                    <h3 className="text-xl font-black truncate" title={doc.name}>
+                      {doc.name}
+                    </h3>
+                    
+                    <div className="font-mono text-xs font-bold text-muted flex flex-col gap-1">
+                      <span>SIZE: {(doc.size / 1024).toFixed(1)} KB</span>
+                      <span>DATE: {new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                      <span>USER: {doc.uploadedBy}</span>
+                    </div>
                   </div>
-                )}
-                
-              </div>
-            );
-          })}
-          <div className="border-t border-[var(--border)]" />
-        </div>
 
+                  <div className="mt-auto border-t-2 border-black">
+                    <a 
+                      href={doc.url} 
+                      target="_blank" 
+                      className="w-full p-4 flex justify-center items-center gap-2 font-mono font-black uppercase hover:bg-black hover:text-white transition-colors"
+                    >
+                      <Download size={18} /> Download
+                    </a>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
