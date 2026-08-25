@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useParams, notFound } from 'next/navigation';
-import { PLACES } from '@/lib/tripData';
+import { useTripData } from '@/context/TripDataContext';
 import {
   MapPin, ChevronLeft, Lightbulb, Calendar, Mountain, Zap, Star, Leaf,
   Clock, Ticket, Shirt, Sparkles, CheckCircle2, Compass, ShieldAlert,
@@ -21,6 +21,7 @@ function PlaceTypeIcon({ type }: { type: string }) {
 export default function PlaceDetailPage() {
   const params = useParams();
   const slug = params?.slug as string;
+  const { places: PLACES } = useTripData();
   const place = PLACES.find(p => p.slug === slug);
 
   if (!place) return notFound();

@@ -3,28 +3,10 @@
 import React from 'react';
 import { MapPin, ExternalLink, Star } from 'lucide-react';
 
-const HOTELS = [
-  {
-    city: 'Jalgaon',
-    name: 'President Cottage',
-    nights: 2,
-    checkIn: '17 Oct',
-    checkOut: '19 Oct',
-    rating: 4.5,
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
-  },
-  {
-    city: 'Aurangabad',
-    name: 'Vivanta',
-    nights: 2,
-    checkIn: '19 Oct',
-    checkOut: '21 Oct',
-    rating: 5.0,
-    image: 'https://images.unsplash.com/photo-1542314831-c6a4d14d8c85?w=800&q=80',
-  }
-];
+import { useTripData } from '@/context/TripDataContext';
 
 export default function HotelsPage() {
+  const { hotels } = useTripData();
   return (
     <div className="w-full pt-32 pb-24 min-h-screen">
       <div className="container-wide">
@@ -37,18 +19,18 @@ export default function HotelsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {HOTELS.map((hotel, idx) => (
+          {hotels.map((hotel, idx) => (
             <div key={idx} className="brutal-card p-0 flex flex-col overflow-hidden bg-white group">
               
               <div className="relative h-72 border-b-4 border-black overflow-hidden bg-black">
                 <img 
-                  src={hotel.image} 
+                  src={hotel.coverImage} 
                   alt={hotel.name}
                   className="w-full h-full object-cover transition-all duration-500 opacity-80" 
                 />
                 
                 <div className="absolute top-0 left-0 bg-[var(--accent)] text-white border-r-4 border-b-4 border-black px-4 py-2 flex items-center gap-2 font-mono font-black text-xl">
-                  {hotel.rating} <Star size={20} className="fill-white" />
+                  {hotel.nights} Nights
                 </div>
               </div>
 

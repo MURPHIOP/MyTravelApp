@@ -6,6 +6,7 @@ import TopNavbar from '@/components/layout/TopNavbar';
 import Footer from '@/components/layout/Footer';
 import Preloader from '@/components/layout/Preloader';
 import LoginModal from '@/components/auth/LoginModal';
+import { TripDataProvider } from '@/context/TripDataContext';
 
 export const metadata: Metadata = {
   title: 'Ancient Maharashtra Tour',
@@ -42,7 +43,9 @@ export default function RootLayout({
             <div className="relative min-h-screen flex flex-col">
             <TopNavbar />
             <main className="flex-grow">
-              {children}
+              <TripDataProvider>
+                {children}
+              </TripDataProvider>
             </main>
             <Footer />
           </div>

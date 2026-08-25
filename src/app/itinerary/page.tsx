@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ITINERARY } from '@/lib/tripData';
+import { useTripData } from '@/context/TripDataContext';
 import { MapPin, ChevronDown, ChevronUp, Navigation } from 'lucide-react';
 
 export default function ItineraryPage() {
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
+  const { itinerary: ITINERARY } = useTripData();
 
   return (
     <div className="w-full pt-32 pb-24 min-h-screen">

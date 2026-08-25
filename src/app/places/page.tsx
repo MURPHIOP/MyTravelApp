@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { PLACES } from '@/lib/tripData';
+import { useTripData } from '@/context/TripDataContext';
 import { MapPin, Mountain, Zap, Star, Leaf, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
@@ -22,6 +22,7 @@ function PlaceTypeIcon({ type }: { type: string }) {
 }
 
 export default function PlacesPage() {
+  const { places: PLACES } = useTripData();
   const [filter, setFilter] = useState('all');
 
   const filtered = filter === 'all' ? PLACES : PLACES.filter(p => p.type === filter);

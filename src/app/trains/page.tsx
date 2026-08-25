@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { Train, Ticket, Clock, AlertCircle } from 'lucide-react';
-import { TRAINS } from '@/lib/tripData';
+import { useTripData } from '@/context/TripDataContext';
 
 export default function TrainsPage() {
+  const { trains: TRAINS } = useTripData();
   return (
     <div className="w-full pt-32 pb-24 min-h-screen">
       <div className="container-wide">
@@ -51,18 +52,22 @@ export default function TrainsPage() {
                 </div>
 
                 {/* Status Footer */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 font-mono">
                   <div className="border-2 border-black p-4 bg-[#ECFCCB]">
                     <div className="text-xs font-black uppercase mb-2 flex items-center gap-2"><Ticket size={16}/> STATUS</div>
                     <div className="text-xl font-bold uppercase">CONFIRMED</div>
                   </div>
                   <div className="border-2 border-black p-4 bg-white">
+                    <div className="text-xs font-black uppercase mb-2 flex items-center gap-2"><Ticket size={16}/> PNR</div>
+                    <div className="text-xl font-bold uppercase">{ticket.pnr || 'TBD'}</div>
+                  </div>
+                  <div className="border-2 border-black p-4 bg-white">
                     <div className="text-xs font-black uppercase mb-2 flex items-center gap-2"><Clock size={16}/> DATE</div>
                     <div className="text-xl font-bold uppercase">{ticket.departureDate}</div>
                   </div>
-                  <div className="border-2 border-black p-4 bg-white">
-                    <div className="text-xs font-black uppercase mb-2 flex items-center gap-2"><AlertCircle size={16}/> COACH</div>
-                    <div className="text-xl font-bold uppercase">B4, B5</div>
+                  <div className="border-2 border-black p-4 bg-[var(--accent)] text-white">
+                    <div className="text-xs font-black uppercase mb-2 flex items-center gap-2 text-white"><AlertCircle size={16}/> COACH</div>
+                    <div className="text-xl font-bold uppercase text-white">{ticket.coach || 'TBD'}</div>
                   </div>
                 </div>
 
