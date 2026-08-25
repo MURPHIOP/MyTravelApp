@@ -16,6 +16,8 @@ type Expense = {
   paidBy: 'Mitra' | 'Ghosh';
   amount: number;
   type?: 'EXPENSE' | 'RECEIPT';
+  splitMitra?: number;
+  splitGhosh?: number;
 };
 
 export default function ExpensesPage() {
@@ -32,6 +34,9 @@ export default function ExpensesPage() {
   const [paidBy, setPaidBy] = useState<Expense['paidBy']>('Mitra');
   const [dateStr, setDateStr] = useState<string>(new Date().toISOString().split('T')[0]);
   const [transactionType, setTransactionType] = useState<'EXPENSE' | 'RECEIPT'>('EXPENSE');
+  const [splitType, setSplitType] = useState<'EQUAL' | 'MITRA' | 'GHOSH' | 'CUSTOM'>('EQUAL');
+  const [customSplitMitra, setCustomSplitMitra] = useState('');
+  const [customSplitGhosh, setCustomSplitGhosh] = useState('');
 
   useEffect(() => {
     setIsClient(true);
@@ -67,14 +72,41 @@ export default function ExpensesPage() {
       }
     }
 
+    const amt = parseFloat(amount);
+    
+    let splitMitra = amt / 2;
+    let splitGhosh = amt / 2;
+    
+    if (transactionType === 'EXPENSE') {
+      if (splitType === 'MITRA') {
+        splitMitra = amt;
+        splitGhosh = 0;
+      } else if (splitType === 'GHOSH') {
+        splitMitra = 0;
+        splitGhosh = amt;
+      } else if (splitType === 'CUSTOM') {
+        splitMitra = parseFloat(customSplitMitra) || 0;
+        splitGhosh = parseFloat(customSplitGhosh) || 0;
+        if (splitMitra + splitGhosh !== amt) {
+          alert('Custom split amounts must equal the total amount.');
+          return;
+        }
+      }
+    } else {
+      splitMitra = 0;
+      splitGhosh = 0;
+    }
+
     const newExpense: Expense = {
       id: Math.random().toString(36).substr(2, 9),
       date: displayDate,
       description: desc,
       category: transactionType === 'RECEIPT' ? 'ADVANCE' : category,
       paidBy,
-      amount: parseFloat(amount),
-      type: transactionType
+      amount: amt,
+      type: transactionType,
+      splitMitra,
+      splitGhosh
     };
 
     setExpenses(prev => [newExpense, ...prev]);
@@ -82,10 +114,16 @@ export default function ExpensesPage() {
     setDesc('');
     setAmount('');
     setTransactionType('EXPENSE');
+    setSplitType('EQUAL');
+    setCustomSplitMitra('');
+    setCustomSplitGhosh('');
   };
 
   // Calculations
   const safeType = (e: Expense) => e.type || 'EXPENSE';
+
+  const getSplitMitra = (e: Expense) => e.splitMitra !== undefined ? e.splitMitra : (safeType(e) === 'EXPENSE' ? e.amount / 2 : 0);
+  const getSplitGhosh = (e: Expense) => e.splitGhosh !== undefined ? e.splitGhosh : (safeType(e) === 'EXPENSE' ? e.amount / 2 : 0);
 
   const totalExpense = expenses.filter(e => safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + exp.amount, 0);
   
@@ -97,10 +135,13 @@ export default function ExpensesPage() {
   const ghoshPaidReceipts = expenses.filter(e => e.paidBy === 'Ghosh' && safeType(e) === 'RECEIPT').reduce((sum, exp) => sum + exp.amount, 0);
   const ghoshTotalContribution = ghoshPaidExpenses + ghoshPaidReceipts;
 
+  const mitraShare = expenses.filter(e => safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + getSplitMitra(exp), 0);
+  const ghoshShare = expenses.filter(e => safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + getSplitGhosh(exp), 0);
+
   const halfShare = totalExpense / 2;
 
-  const mitraBalance = mitraTotalContribution - halfShare; // negative means owes, positive means gets
-  const ghoshBalance = ghoshTotalContribution - halfShare;
+  const mitraBalance = mitraTotalContribution - mitraShare; // negative means owes, positive means gets
+  const ghoshBalance = ghoshTotalContribution - ghoshShare;
 
   const numberToWords = (num: number): string => {
     const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
@@ -200,14 +241,27 @@ export default function ExpensesPage() {
     doc.text(`Ghosh Status: ${ghoshBalance === 0 ? 'SETTLED' : gStatus}`, boxX + 15, boxY + 75);
 
     // --- 3. Main Ledger Table ---
-    const tableData = expenses.map((exp, index) => [
-      (index + 1).toString(),
-      exp.date,
-      safeType(exp) === 'RECEIPT' ? `[RECEIPT] ${exp.description}` : exp.description,
-      exp.paidBy,
-      safeType(exp) === 'RECEIPT' ? "Deposit (N/A)" : "Both (50/50)",
-      exp.amount.toLocaleString('en-IN')
-    ]);
+    const tableData = expenses.map((exp, index) => {
+      let splitText = "Both (50/50)";
+      if (safeType(exp) === 'RECEIPT') {
+        splitText = "Deposit (N/A)";
+      } else {
+        const sm = getSplitMitra(exp);
+        const sg = getSplitGhosh(exp);
+        if (sm === exp.amount && sg === 0) splitText = "100% Mitra";
+        else if (sg === exp.amount && sm === 0) splitText = "100% Ghosh";
+        else if (sm !== exp.amount / 2 || sg !== exp.amount / 2) splitText = `M: ${sm} / G: ${sg}`;
+      }
+
+      return [
+        (index + 1).toString(),
+        exp.date,
+        safeType(exp) === 'RECEIPT' ? `[RECEIPT] ${exp.description}` : exp.description,
+        exp.paidBy,
+        splitText,
+        exp.amount.toLocaleString('en-IN')
+      ];
+    });
 
     // Footer Row for table
     tableData.push([
@@ -300,53 +354,73 @@ export default function ExpensesPage() {
         </div>
 
         {/* Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-          {/* Total */}
-          <div className="brutal-card p-8 lg:col-span-1 bg-[#FFEDD5]">
-            <div className="flex items-center gap-3 mb-6">
-              <Activity size={28} className="text-[var(--accent)]" />
-              <h3 className="font-mono font-black uppercase tracking-widest">Total Expense</h3>
-            </div>
-            <div className="text-6xl font-black mb-4">₹{totalExpense.toLocaleString('en-IN')}</div>
-            <div className="bg-white border-2 border-black px-4 py-2 font-mono text-xs font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase w-max">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          {/* Block 1: Total Expense */}
+          <div className="brutal-card p-6 bg-[#FFEDD5]">
+            <h3 className="font-mono font-black uppercase tracking-widest text-amber-900 mb-6 flex items-center gap-2">
+              <Activity size={20} /> 1. Total Expenses Incurred
+            </h3>
+            <div className="text-5xl font-black mb-2 text-amber-900">₹{totalExpense.toLocaleString('en-IN')}</div>
+            <div className="bg-white border-2 border-black px-3 py-1 font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase w-max text-amber-900">
               Across Both Families
             </div>
           </div>
 
-          {/* Settlement Status */}
-          <div className="brutal-card p-8 lg:col-span-2 bg-[#ECFCCB]">
-            <h3 className="font-mono font-black uppercase tracking-widest text-[var(--accent)] mb-8 border-b-2 border-black pb-4">
-              Current Settlement State
+          {/* Block 2: Individual Share */}
+          <div className="brutal-card p-6 bg-[#E0E7FF]">
+            <h3 className="font-mono font-black uppercase tracking-widest text-blue-600 mb-6 flex items-center gap-2">
+              <Wallet size={20} /> 2. Individual Family Share
             </h3>
-            
-            <div className="flex flex-col md:flex-row items-center gap-8 justify-around">
-              {/* Mitra Status */}
-              <div className="text-center w-full md:w-auto">
-                <div className="text-3xl font-black uppercase mb-4">Mitra</div>
-                <div className={`bg-white border-4 border-black p-4 shadow-[8px_8px_0px_0px_${mitraBalance < 0 ? '#EF4444' : mitraBalance > 0 ? '#10B981' : '#94A3B8'}]`}>
-                  <div className={`text-4xl font-black flex items-center justify-center gap-2 mb-2 ${mitraBalance < 0 ? 'text-red-600' : mitraBalance > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
-                    {mitraBalance < 0 ? <ArrowUpRight size={32} /> : mitraBalance > 0 ? <ArrowDownRight size={32} /> : null}
-                    {mitraBalance < 0 ? `OWE ₹${Math.abs(mitraBalance).toLocaleString('en-IN')}` : mitraBalance > 0 ? `GET ₹${mitraBalance.toLocaleString('en-IN')}` : 'SETTLED'}
-                  </div>
-                  <p className="font-mono text-xs font-bold">PAID ₹{mitraTotalContribution.toLocaleString('en-IN')} // SHARE ₹{halfShare.toLocaleString('en-IN')}</p>
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-end border-b-2 border-black pb-2">
+                <span className="font-bold text-xl uppercase">Mitra Family</span>
+                <span className="font-black text-3xl text-blue-900">₹{mitraShare.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between items-end">
+                <span className="font-bold text-xl uppercase">Ghosh Family</span>
+                <span className="font-black text-3xl text-blue-900">₹{ghoshShare.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Block 3: Total Contributions (Payments + Receipts) */}
+          <div className="brutal-card p-6 bg-[#FEF3C7]">
+            <h3 className="font-mono font-black uppercase tracking-widest text-amber-600 mb-6 flex items-center gap-2">
+              <ArrowDownRight size={20} /> 3. Total Contributions (Paid)
+            </h3>
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-end border-b-2 border-black pb-2">
+                <span className="font-bold text-xl uppercase">Mitra Family</span>
+                <span className="font-black text-3xl">₹{mitraTotalContribution.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between items-end">
+                <span className="font-bold text-xl uppercase">Ghosh Family</span>
+                <span className="font-black text-3xl">₹{ghoshTotalContribution.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Block 4: Net Dues */}
+          <div className="brutal-card p-6 bg-[#ECFCCB]">
+            <h3 className="font-mono font-black uppercase tracking-widest text-green-700 mb-6 flex items-center gap-2">
+              <Activity size={20} /> 4. Net Dues (Settlement)
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className={`border-4 border-black p-4 bg-white shadow-[4px_4px_0px_0px_${mitraBalance < 0 ? '#EF4444' : mitraBalance > 0 ? '#10B981' : '#94A3B8'}]`}>
+                <div className="font-bold uppercase text-sm mb-2 border-b-2 border-black pb-1">Mitra Family</div>
+                <div className={`text-2xl font-black ${mitraBalance < 0 ? 'text-red-600' : mitraBalance > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                  {mitraBalance < 0 ? `OWES ₹${Math.abs(mitraBalance).toLocaleString('en-IN')}` : mitraBalance > 0 ? `GETS ₹${mitraBalance.toLocaleString('en-IN')}` : 'SETTLED'}
                 </div>
               </div>
-
-              <div className="hidden md:block w-4 h-32 border-r-4 border-black border-dashed border-y-0 border-l-0" />
-
-              {/* Ghosh Status */}
-              <div className="text-center w-full md:w-auto">
-                <div className="text-3xl font-black uppercase mb-4">Ghosh</div>
-                <div className={`bg-white border-4 border-black p-4 shadow-[8px_8px_0px_0px_${ghoshBalance < 0 ? '#EF4444' : ghoshBalance > 0 ? '#10B981' : '#94A3B8'}]`}>
-                  <div className={`text-4xl font-black flex items-center justify-center gap-2 mb-2 ${ghoshBalance < 0 ? 'text-red-600' : ghoshBalance > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
-                    {ghoshBalance < 0 ? <ArrowUpRight size={32} /> : ghoshBalance > 0 ? <ArrowDownRight size={32} /> : null}
-                    {ghoshBalance < 0 ? `OWE ₹${Math.abs(ghoshBalance).toLocaleString('en-IN')}` : ghoshBalance > 0 ? `GET ₹${ghoshBalance.toLocaleString('en-IN')}` : 'SETTLED'}
-                  </div>
-                  <p className="font-mono text-xs font-bold">PAID ₹{ghoshTotalContribution.toLocaleString('en-IN')} // SHARE ₹{halfShare.toLocaleString('en-IN')}</p>
+              <div className={`border-4 border-black p-4 bg-white shadow-[4px_4px_0px_0px_${ghoshBalance < 0 ? '#EF4444' : ghoshBalance > 0 ? '#10B981' : '#94A3B8'}]`}>
+                <div className="font-bold uppercase text-sm mb-2 border-b-2 border-black pb-1">Ghosh Family</div>
+                <div className={`text-2xl font-black ${ghoshBalance < 0 ? 'text-red-600' : ghoshBalance > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                  {ghoshBalance < 0 ? `OWES ₹${Math.abs(ghoshBalance).toLocaleString('en-IN')}` : ghoshBalance > 0 ? `GETS ₹${ghoshBalance.toLocaleString('en-IN')}` : 'SETTLED'}
                 </div>
               </div>
             </div>
           </div>
+
         </div>
 
         {/* Ledger Table */}
@@ -374,6 +448,7 @@ export default function ExpensesPage() {
                   <th className="p-6 font-black border-r-2 border-black">Description</th>
                   <th className="p-6 font-black border-r-2 border-black">Category</th>
                   <th className="p-6 font-black border-r-2 border-black">Paid By</th>
+                  <th className="p-6 font-black border-r-2 border-black">Split</th>
                   <th className="p-6 font-black text-right border-r-2 border-black">Amount</th>
                   <th className="p-6 font-black text-center w-24">Action</th>
                 </tr>
@@ -381,7 +456,7 @@ export default function ExpensesPage() {
               <tbody className="font-bold text-lg uppercase">
                 {expenses.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-12 text-center text-gray-500 font-mono">No transactions found. Add an expense to begin.</td>
+                    <td colSpan={7} className="p-12 text-center text-gray-500 font-mono">No transactions found. Add an expense to begin.</td>
                   </tr>
                 ) : (
                   expenses.map(exp => (
@@ -406,6 +481,24 @@ export default function ExpensesPage() {
                         </span>
                       </td>
                       <td className="p-6 border-r-2 border-black">{exp.paidBy}</td>
+                      <td className="p-6 border-r-2 border-black font-mono text-xs">
+                        {safeType(exp) === 'RECEIPT' ? (
+                          <span className="text-gray-500">N/A</span>
+                        ) : (
+                          getSplitMitra(exp) === exp.amount && getSplitGhosh(exp) === 0 ? (
+                            <span className="text-blue-600 font-black">100% MITRA</span>
+                          ) : getSplitGhosh(exp) === exp.amount && getSplitMitra(exp) === 0 ? (
+                            <span className="text-blue-600 font-black">100% GHOSH</span>
+                          ) : getSplitMitra(exp) === exp.amount / 2 && getSplitGhosh(exp) === exp.amount / 2 ? (
+                            <span>50/50 EQUAL</span>
+                          ) : (
+                            <div className="flex flex-col">
+                              <span className="text-blue-600">M: ₹{getSplitMitra(exp).toLocaleString('en-IN')}</span>
+                              <span className="text-blue-600">G: ₹{getSplitGhosh(exp).toLocaleString('en-IN')}</span>
+                            </div>
+                          )
+                        )}
+                      </td>
                       <td className="p-6 text-right font-black border-r-2 border-black">₹{exp.amount.toLocaleString('en-IN')}</td>
                       <td className="p-6 text-center">
                         <button 
@@ -519,6 +612,47 @@ export default function ExpensesPage() {
                     </select>
                   </div>
                 </div>
+
+                {transactionType === 'EXPENSE' && (
+                  <div className="border-4 border-black p-4 bg-gray-50 mt-2">
+                    <label className="block mb-4 font-mono text-xs tracking-widest uppercase">Split Rule (Who Owes)</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                      <button type="button" onClick={() => setSplitType('EQUAL')} className={`p-2 border-2 border-black text-xs font-black uppercase ${splitType === 'EQUAL' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white hover:bg-gray-100'}`}>50/50</button>
+                      <button type="button" onClick={() => setSplitType('MITRA')} className={`p-2 border-2 border-black text-xs font-black uppercase ${splitType === 'MITRA' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white hover:bg-gray-100'}`}>Mitra Only</button>
+                      <button type="button" onClick={() => setSplitType('GHOSH')} className={`p-2 border-2 border-black text-xs font-black uppercase ${splitType === 'GHOSH' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white hover:bg-gray-100'}`}>Ghosh Only</button>
+                      <button type="button" onClick={() => setSplitType('CUSTOM')} className={`p-2 border-2 border-black text-xs font-black uppercase ${splitType === 'CUSTOM' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white hover:bg-gray-100'}`}>Custom</button>
+                    </div>
+
+                    {splitType === 'CUSTOM' && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block mb-1 font-mono text-[10px] tracking-widest text-gray-500">Mitra Owe Amount (₹)</label>
+                          <input 
+                            type="number" 
+                            value={customSplitMitra}
+                            onChange={e => setCustomSplitMitra(e.target.value)}
+                            required
+                            min="0"
+                            className="w-full border-2 border-black p-2 focus:outline-none focus:border-blue-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-sm" 
+                            placeholder="0"
+                          />
+                        </div>
+                        <div>
+                          <label className="block mb-1 font-mono text-[10px] tracking-widest text-gray-500">Ghosh Owe Amount (₹)</label>
+                          <input 
+                            type="number" 
+                            value={customSplitGhosh}
+                            onChange={e => setCustomSplitGhosh(e.target.value)}
+                            required
+                            min="0"
+                            className="w-full border-2 border-black p-2 focus:outline-none focus:border-blue-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-sm" 
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <button type="submit" className="w-full mt-4 bg-[var(--accent)] text-white font-black py-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all">
                   RECORD EXPENSE
                 </button>
