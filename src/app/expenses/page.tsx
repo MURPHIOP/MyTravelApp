@@ -182,6 +182,14 @@ export default function ExpensesPage() {
   const mitraBalance = mitraTotalContribution - mitraShare; // negative means owes, positive means gets
   const ghoshBalance = ghoshTotalContribution - ghoshShare;
 
+  const categorySpends = {
+    FOOD: expenses.filter(e => safeType(e) === 'EXPENSE' && e.category === 'FOOD').reduce((sum, exp) => sum + exp.amount, 0),
+    TRANS: expenses.filter(e => safeType(e) === 'EXPENSE' && e.category === 'TRANS').reduce((sum, exp) => sum + exp.amount, 0),
+    HOTEL: expenses.filter(e => safeType(e) === 'EXPENSE' && e.category === 'HOTEL').reduce((sum, exp) => sum + exp.amount, 0),
+    SIGHT: expenses.filter(e => safeType(e) === 'EXPENSE' && e.category === 'SIGHT').reduce((sum, exp) => sum + exp.amount, 0),
+    OTHER: expenses.filter(e => safeType(e) === 'EXPENSE' && !['FOOD', 'TRANS', 'HOTEL', 'SIGHT'].includes(e.category)).reduce((sum, exp) => sum + exp.amount, 0),
+  };
+
   // Filter logic
   const filteredExpenses = expenses.filter(e => {
     if (selectedFamilyFilter === 'ALL') return true;
@@ -502,6 +510,35 @@ export default function ExpensesPage() {
                 <div className={`text-2xl font-black ${ghoshBalance < 0 ? 'text-red-600' : ghoshBalance > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
                   {ghoshBalance < 0 ? `DUES ₹${Math.abs(ghoshBalance).toLocaleString('en-IN')}` : ghoshBalance > 0 ? `GETS ₹${ghoshBalance.toLocaleString('en-IN')}` : 'SETTLED'}
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Block 5: Category Wise Spends */}
+          <div className="brutal-card p-6 bg-[#F3E8FF] md:col-span-2">
+            <h3 className="font-mono font-black uppercase tracking-widest text-purple-900 mb-6 flex items-center gap-2">
+              <Activity size={20} /> 5. Category Wise Spends
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+              <div className="border-4 border-black p-4 bg-white shadow-[4px_4px_0px_0px_#9333EA]">
+                <div className="font-bold uppercase text-xs mb-2 border-b-2 border-black pb-1">Food</div>
+                <div className="text-xl font-black text-purple-700">₹{categorySpends.FOOD.toLocaleString('en-IN')}</div>
+              </div>
+              <div className="border-4 border-black p-4 bg-white shadow-[4px_4px_0px_0px_#9333EA]">
+                <div className="font-bold uppercase text-xs mb-2 border-b-2 border-black pb-1">Transport</div>
+                <div className="text-xl font-black text-purple-700">₹{categorySpends.TRANS.toLocaleString('en-IN')}</div>
+              </div>
+              <div className="border-4 border-black p-4 bg-white shadow-[4px_4px_0px_0px_#9333EA]">
+                <div className="font-bold uppercase text-xs mb-2 border-b-2 border-black pb-1">Hotel</div>
+                <div className="text-xl font-black text-purple-700">₹{categorySpends.HOTEL.toLocaleString('en-IN')}</div>
+              </div>
+              <div className="border-4 border-black p-4 bg-white shadow-[4px_4px_0px_0px_#9333EA]">
+                <div className="font-bold uppercase text-xs mb-2 border-b-2 border-black pb-1">Sightseeing</div>
+                <div className="text-xl font-black text-purple-700">₹{categorySpends.SIGHT.toLocaleString('en-IN')}</div>
+              </div>
+              <div className="border-4 border-black p-4 bg-white shadow-[4px_4px_0px_0px_#9333EA]">
+                <div className="font-bold uppercase text-xs mb-2 border-b-2 border-black pb-1">Other</div>
+                <div className="text-xl font-black text-purple-700">₹{categorySpends.OTHER.toLocaleString('en-IN')}</div>
               </div>
             </div>
           </div>
