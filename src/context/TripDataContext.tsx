@@ -36,7 +36,16 @@ export function TripDataProvider({ children }: { children: React.ReactNode }) {
     if (storedItinerary) setItineraryState(JSON.parse(storedItinerary));
 
     const storedTrains = localStorage.getItem('godmode_trains');
-    if (storedTrains) setTrainsState(JSON.parse(storedTrains));
+    if (storedTrains) {
+      const parsed = JSON.parse(storedTrains);
+      // Merge to ensure new properties like passengers are included
+      const mergedTrains = parsed.map((t: any, i: number) => ({ 
+        ...DEFAULT_TRAINS[i], 
+        ...t, 
+        passengers: DEFAULT_TRAINS[i]?.passengers || t.passengers 
+      }));
+      setTrainsState(mergedTrains);
+    }
 
     const storedHotels = localStorage.getItem('godmode_hotels');
     if (storedHotels) setHotelsState(JSON.parse(storedHotels));

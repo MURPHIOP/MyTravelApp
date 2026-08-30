@@ -32,6 +32,7 @@ export default function TopNavbar() {
             <Link href="/hotels" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Stays</Link>
             <Link href="/trains" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Logistics</Link>
             <Link href="/vault" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Vault</Link>
+            <Link href="/photos" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Photos</Link>
             {user?.role === 'FAMILY_HEAD' && (
               <Link href="/expenses" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Ledger</Link>
             )}
@@ -83,6 +84,7 @@ export default function TopNavbar() {
               <Link href="/hotels" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Hotels & Stays</Link>
               <Link href="/trains" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Train Tickets</Link>
               <Link href="/vault" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Secure Vault</Link>
+              <Link href="/photos" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Photos Gallery</Link>
               {user?.role === 'FAMILY_HEAD' && (
                 <Link href="/expenses" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4 text-black">Auto Ledger</Link>
               )}
