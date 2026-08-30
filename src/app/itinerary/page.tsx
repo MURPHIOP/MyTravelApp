@@ -1,13 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTripData } from '@/context/TripDataContext';
 import { MapPin, ChevronDown, ChevronUp, Navigation } from 'lucide-react';
 
 export default function ItineraryPage() {
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
+  const [currentDateString, setCurrentDateString] = useState<string>('');
   const { itinerary: ITINERARY } = useTripData();
+
+  useEffect(() => {
+    // In production, you might want to use a specific timezone or server time
+    const today = new Date().toISOString().split('T')[0];
+    setCurrentDateString(today);
+  }, []);
 
   return (
     <div className="w-full pt-32 pb-24 min-h-screen">
@@ -33,27 +40,33 @@ export default function ItineraryPage() {
             
             {ITINERARY.map((day) => {
               const isExpanded = expandedDay === day.day;
+              const isActive = day.date === currentDateString;
               
               return (
                 <div key={day.day} className="relative">
                   
                   {/* Timeline Node */}
-                  <div className="absolute -left-[46px] md:-left-[78px] top-6 w-8 h-8 bg-[var(--bg-color)] border-4 border-black z-10 flex items-center justify-center">
-                    <div className={`w-3 h-3 ${isExpanded ? 'bg-[var(--accent)]' : 'bg-black'}`} />
+                  <div className={`absolute -left-[46px] md:-left-[78px] top-6 w-8 h-8 bg-[var(--bg-color)] border-4 ${isActive ? 'border-[var(--accent)]' : 'border-black'} z-10 flex items-center justify-center`}>
+                    <div className={`w-3 h-3 ${isExpanded || isActive ? 'bg-[var(--accent)]' : 'bg-black'} ${isActive ? 'animate-ping' : ''}`} />
                   </div>
 
                   <div 
-                    className={`brutal-card p-0 overflow-hidden cursor-pointer ${isExpanded ? 'bg-[var(--surface-light)]' : 'bg-[#E5E5E5]'}`}
+                    className={`brutal-card p-0 overflow-hidden cursor-pointer transition-all duration-300 ${isExpanded ? 'bg-[var(--surface-light)]' : 'bg-[#E5E5E5]'} ${isActive ? 'ring-4 ring-[var(--accent)] border-[var(--accent)]' : ''}`}
                     onClick={() => setExpandedDay(isExpanded ? null : day.day)}
                   >
                     <div className="flex flex-col md:flex-row">
                       
-                      <div className="w-full md:w-64 h-48 md:h-auto flex-shrink-0 relative border-b-2 md:border-b-0 md:border-r-2 border-black">
+                      <div className={`w-full md:w-64 h-48 md:h-auto flex-shrink-0 relative border-b-2 md:border-b-0 md:border-r-2 ${isActive ? 'border-[var(--accent)]' : 'border-black'}`}>
                         <img src={day.coverImage} className="w-full h-full object-cover" alt={day.title} />
                         <div className="absolute inset-0 bg-black/20" />
-                        <div className="absolute top-0 left-0 bg-[var(--accent)] text-white border-r-2 border-b-2 border-black font-mono font-black text-sm px-4 py-2">
+                        <div className={`absolute top-0 left-0 text-white border-r-2 border-b-2 font-mono font-black text-sm px-4 py-2 ${isActive ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--accent)] border-black'}`}>
                           DAY {day.day}
                         </div>
+                        {isActive && (
+                          <div className="absolute bottom-4 left-4 bg-white text-[var(--accent)] border-2 border-[var(--accent)] px-3 py-1 font-mono text-xs font-black tracking-widest shadow-[2px_2px_0px_0px_var(--accent)] animate-pulse flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-[var(--accent)]" /> LIVE CURRENT
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex-grow p-6 md:p-8 flex flex-col justify-center">

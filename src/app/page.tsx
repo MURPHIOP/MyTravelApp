@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, Terminal, MapPin, Train, Hotel, Wallet, Compass } from 'lucide-react';
@@ -11,6 +11,32 @@ import BrutalistMarquee from '@/components/ui/BrutalistMarquee';
 export default function HomePage() {
   const headlineWords = ["ANCIENT.", "SACRED.", "JOURNEY."];
   const lastWord = "MAHARASHTRA.";
+
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    const targetDate = new Date(TRIP_CONFIG.departureDate).getTime();
+
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const difference = targetDate - now;
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((difference % (1000 * 60)) / 1000),
+        });
+      }
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="w-full">
@@ -25,9 +51,20 @@ export default function HomePage() {
           {/* LEFT COLUMN: Copy & CTAs */}
           <div className="flex flex-col items-start text-left order-1 pt-10 lg:pt-0">
             
-            <div className="border-2 border-[var(--border-color)] px-3 py-1 mb-10 bg-white inline-flex items-center gap-2 shadow-[4px_4px_0px_0px_var(--shadow-color)]">
-              <div className="w-3 h-3 bg-[var(--accent)] animate-pulse" />
-              <span className="font-mono text-xs uppercase tracking-widest font-black">System Ready</span>
+            <div className="border-2 border-[var(--border-color)] px-4 py-2 mb-10 bg-white inline-flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-[4px_4px_0px_0px_var(--shadow-color)]">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-[var(--accent)] animate-pulse" />
+                <span className="font-mono text-xs uppercase tracking-widest font-black">T-MINUS DEPARTURE</span>
+              </div>
+              <div className="font-mono text-sm sm:text-base font-black text-[var(--accent)] uppercase flex gap-2">
+                {isMounted ? (
+                  <>
+                    <span>{String(timeLeft.days).padStart(2, '0')}D</span> : <span>{String(timeLeft.hours).padStart(2, '0')}H</span> : <span>{String(timeLeft.minutes).padStart(2, '0')}M</span> : <span>{String(timeLeft.seconds).padStart(2, '0')}S</span>
+                  </>
+                ) : (
+                  <span>CALCULATING...</span>
+                )}
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -125,8 +162,20 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── LIVE ANNOUNCEMENTS BANNER ── */}
+      <section className="bg-[#FFEDD5] py-4 border-y-4 border-black relative z-30">
+        <div className="container-wide flex flex-col md:flex-row md:items-center gap-4">
+          <div className="bg-[var(--accent)] text-white font-mono text-xs font-black uppercase px-3 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] whitespace-nowrap inline-flex w-max items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-white animate-pulse" /> LIVE UPDATE
+          </div>
+          <p className="font-mono text-sm font-bold uppercase text-amber-900 truncate">
+            &gt; ALL FAMILIES: PACK LIGHT JACKETS FOR BHIMASHANKAR. TRAIN TICKETS CONFIRMED.
+          </p>
+        </div>
+      </section>
+
       {/* ── BENTO GRID HUB ── */}
-      <section className="py-32">
+      <section className="py-32 relative z-30 bg-[var(--bg-color)]">
         <div className="container-wide">
           <div className="mb-16 border-b-4 border-[var(--border-color)] pb-8 flex flex-col md:flex-row md:items-end justify-between">
             <div>
