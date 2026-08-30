@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
   // Protected paths mapping
   const path = request.nextUrl.pathname;
   const isProtectedAdmin = path.startsWith('/admin') || path.startsWith('/expenses');
-  const isProtectedMember = path.startsWith('/vault');
+  const isProtectedMember = false; // Allow public read access to vault
   const isAuthRoute = path.startsWith('/auth');
 
   // Skip middleware for static files and api
