@@ -56,9 +56,7 @@ export default function HotelsPage() {
                     </div>
                   </div>
 
-                  <button className="brutal-btn w-full">
-                    <ExternalLink size={20} className="mr-3" /> View Booking
-                  </button>
+                  {/* Button removed */}
                 </div>
 
                 <div className="mt-8 pt-8 border-t-4 border-[var(--border-color)]">

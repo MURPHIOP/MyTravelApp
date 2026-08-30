@@ -258,6 +258,14 @@ export const TRAINS = [
       mitra: null as string | null,
       ghosh: null as string | null,
     },
+    passengers: [
+      { name: 'GOPAL MITRA', seat: 'B4/1/LOWER' },
+      { name: 'RUPA MITRA', seat: 'B4/4/LOWER' },
+      { name: 'SHREYAN MITRA', seat: 'B4/2/MIDDLE' },
+      { name: 'SUDIP GHOSH', seat: 'B4/5/MIDDLE' },
+      { name: 'ANINDITA GHOSH', seat: 'B4/3/UPPER' },
+      { name: 'ANUSMITA GHOSH', seat: 'B4/6/UPPER' },
+    ],
   },
   {
     id: 'train-2',
@@ -280,6 +288,14 @@ export const TRAINS = [
       mitra: null as string | null,
       ghosh: null as string | null,
     },
+    passengers: [
+      { name: 'GOPAL MITRA', seat: 'B8/17/LOWER' },
+      { name: 'RUPA MITRA', seat: 'B8/20/LOWER' },
+      { name: 'SHREYAN MITRA', seat: 'B8/18/MIDDLE' },
+      { name: 'SUDIP GHOSH', seat: 'B8/21/MIDDLE' },
+      { name: 'ANINDITA GHOSH', seat: 'B8/19/UPPER' },
+      { name: 'ANUSMITA GHOSH', seat: 'B8/22/UPPER' },
+    ],
   },
 ];
 

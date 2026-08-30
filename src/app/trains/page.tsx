@@ -72,6 +72,21 @@ export default function TrainsPage() {
                   </div>
                 </div>
 
+                {/* Passenger Seat Map */}
+                {(ticket as any).passengers && (ticket as any).passengers.length > 0 && (
+                  <div className="mt-8 pt-8 border-t-4 border-dashed border-[var(--border-color)]">
+                    <h4 className="font-mono text-sm font-black uppercase mb-4 border-b-2 border-black pb-2">Passenger Manifest</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {(ticket as any).passengers.map((p: any, pIdx: number) => (
+                        <div key={pIdx} className="flex justify-between items-center border-2 border-black p-3 bg-white">
+                          <span className="font-bold text-sm uppercase truncate pr-2">{p.name}</span>
+                          <span className="font-mono text-xs font-black bg-[var(--accent)] text-white px-2 py-1 uppercase whitespace-nowrap">{p.seat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Tickets Section */}
                 <div className="mt-8 pt-8 border-t-4 border-[var(--border-color)]">
                   <div className="flex flex-col md:flex-row gap-8">
