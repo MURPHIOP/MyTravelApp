@@ -11,6 +11,8 @@ import {
   EXPENSE_CATEGORIES
 } from '@/lib/tripData';
 
+import { supabase } from '@/lib/supabase';
+
 type TripContextType = {
   itinerary: typeof DEFAULT_ITINERARY;
   setItinerary: (data: typeof DEFAULT_ITINERARY) => void;
@@ -31,47 +33,66 @@ export function TripDataProvider({ children }: { children: React.ReactNode }) {
   const [places, setPlacesState] = useState(DEFAULT_PLACES);
 
   useEffect(() => {
-    // Load from localStorage on mount
-    const storedItinerary = localStorage.getItem('godmode_itinerary');
-    if (storedItinerary) setItineraryState(JSON.parse(storedItinerary));
+    const fetchAppState = async () => {
+      try {
+        const { data, error } = await supabase.from('app_state').select('*');
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          const stateMap: Record<string, any> = {};
+          data.forEach(row => {
+            stateMap[row.key] = row.value;
+          });
 
-    const storedTrains = localStorage.getItem('godmode_trains');
-    if (storedTrains) {
-      const parsed = JSON.parse(storedTrains);
-      // Merge to ensure new properties like passengers are included
-      const mergedTrains = parsed.map((t: any, i: number) => ({ 
-        ...DEFAULT_TRAINS[i], 
-        ...t, 
-        passengers: DEFAULT_TRAINS[i]?.passengers || t.passengers 
-      }));
-      setTrainsState(mergedTrains);
-    }
+          if (stateMap['godmode_itinerary']) setItineraryState(stateMap['godmode_itinerary']);
+          if (stateMap['godmode_hotels']) setHotelsState(stateMap['godmode_hotels']);
+          if (stateMap['godmode_places']) setPlacesState(stateMap['godmode_places']);
 
-    const storedHotels = localStorage.getItem('godmode_hotels');
-    if (storedHotels) setHotelsState(JSON.parse(storedHotels));
-    
-    const storedPlaces = localStorage.getItem('godmode_places');
-    if (storedPlaces) setPlacesState(JSON.parse(storedPlaces));
+          if (stateMap['godmode_trains']) {
+            const parsed = stateMap['godmode_trains'];
+            // Merge to ensure new properties like passengers are included
+            const mergedTrains = parsed.map((t: any, i: number) => ({ 
+              ...DEFAULT_TRAINS[i], 
+              ...t, 
+              passengers: DEFAULT_TRAINS[i]?.passengers || t.passengers 
+            }));
+            setTrainsState(mergedTrains);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch app state from Supabase:', err);
+      }
+    };
+
+    fetchAppState();
   }, []);
+
+  const saveToSupabase = async (key: string, value: any) => {
+    try {
+      await supabase.from('app_state').upsert({ key, value });
+    } catch (err) {
+      console.error(`Failed to sync ${key} to Supabase:`, err);
+    }
+  };
 
   const setItinerary = (data: typeof DEFAULT_ITINERARY) => {
     setItineraryState(data);
-    localStorage.setItem('godmode_itinerary', JSON.stringify(data));
+    saveToSupabase('godmode_itinerary', data);
   };
 
   const setTrains = (data: typeof DEFAULT_TRAINS) => {
     setTrainsState(data);
-    localStorage.setItem('godmode_trains', JSON.stringify(data));
+    saveToSupabase('godmode_trains', data);
   };
 
   const setHotels = (data: typeof DEFAULT_HOTELS) => {
     setHotelsState(data);
-    localStorage.setItem('godmode_hotels', JSON.stringify(data));
+    saveToSupabase('godmode_hotels', data);
   };
 
   const setPlaces = (data: typeof DEFAULT_PLACES) => {
     setPlacesState(data);
-    localStorage.setItem('godmode_places', JSON.stringify(data));
+    saveToSupabase('godmode_places', data);
   };
 
   return (
