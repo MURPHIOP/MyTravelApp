@@ -7,6 +7,7 @@ import autoTable from 'jspdf-autotable';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
 
 type Expense = {
   id: string;
@@ -26,6 +27,7 @@ export default function ExpensesPage() {
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [isLoadingLedger, setIsLoadingLedger] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedFamilyFilter, setSelectedFamilyFilter] = useState<'ALL' | 'Mitra' | 'Ghosh'>('ALL');
@@ -40,12 +42,40 @@ export default function ExpensesPage() {
   const [customSplitMitra, setCustomSplitMitra] = useState('');
   const [customSplitGhosh, setCustomSplitGhosh] = useState('');
 
+  const fetchExpenses = async () => {
+    setIsLoadingLedger(true);
+    try {
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      
+      if (data) {
+        const formatted = data.map((d: any) => ({
+          id: d.id,
+          date: d.date,
+          description: d.description,
+          category: d.category,
+          paidBy: d.paid_by,
+          amount: parseFloat(d.amount),
+          type: d.type,
+          splitMitra: parseFloat(d.split_mitra),
+          splitGhosh: parseFloat(d.split_ghosh),
+        }));
+        setExpenses(formatted);
+      }
+    } catch (err) {
+      console.error('Failed to fetch ledger:', err);
+    } finally {
+      setIsLoadingLedger(false);
+    }
+  };
+
   useEffect(() => {
     setIsClient(true);
-    const saved = localStorage.getItem('family_ledger');
-    if (saved) {
-      setExpenses(JSON.parse(saved));
-    }
+    fetchExpenses();
   }, []);
 
   useEffect(() => {
@@ -55,14 +85,7 @@ export default function ExpensesPage() {
     }
   }, [user, loading, openLoginModal, router]);
 
-  // Save to local storage whenever expenses change
-  useEffect(() => {
-    if (isClient) {
-      localStorage.setItem('family_ledger', JSON.stringify(expenses));
-    }
-  }, [expenses, isClient]);
-
-  const handleAddExpense = (e: React.FormEvent) => {
+  const handleAddExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!desc || !amount) return;
 
@@ -99,22 +122,30 @@ export default function ExpensesPage() {
       splitGhosh = 0;
     }
 
-    const newExpense: Expense = {
-      id: editingId ? editingId : Math.random().toString(36).substr(2, 9),
+    const payload = {
       date: displayDate,
       description: desc,
       category: transactionType === 'RECEIPT' ? 'ADVANCE' : category,
-      paidBy,
+      paid_by: paidBy,
       amount: amt,
       type: transactionType,
-      splitMitra,
-      splitGhosh
+      split_mitra: splitMitra,
+      split_ghosh: splitGhosh
     };
 
-    if (editingId) {
-      setExpenses(prev => prev.map(e => e.id === editingId ? newExpense : e));
-    } else {
-      setExpenses(prev => [newExpense, ...prev]);
+    try {
+      if (editingId) {
+        const { error } = await supabase.from('expenses').update(payload).eq('id', editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('expenses').insert([payload]);
+        if (error) throw error;
+      }
+      
+      fetchExpenses();
+    } catch (err) {
+      console.error('Failed to save transaction:', err);
+      alert('Failed to save transaction. Ensure the expenses table exists in Supabase.');
     }
 
     setIsAddModalOpen(false);
@@ -570,7 +601,17 @@ export default function ExpensesPage() {
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button 
-                          onClick={() => setExpenses(prev => prev.filter(e => e.id !== exp.id))}
+                          onClick={async () => {
+                            if (!confirm('Are you sure you want to delete this transaction?')) return;
+                            try {
+                              const { error } = await supabase.from('expenses').delete().eq('id', exp.id);
+                              if (error) throw error;
+                              fetchExpenses();
+                            } catch (err) {
+                              console.error('Delete failed:', err);
+                              alert('Delete failed');
+                            }
+                          }}
                           className="text-red-500 hover:text-red-700 transition-colors"
                           title="Delete Transaction"
                         >
