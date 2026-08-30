@@ -27,6 +27,8 @@ export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedFamilyFilter, setSelectedFamilyFilter] = useState<'ALL' | 'Mitra' | 'Ghosh'>('ALL');
 
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
@@ -98,7 +100,7 @@ export default function ExpensesPage() {
     }
 
     const newExpense: Expense = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: editingId ? editingId : Math.random().toString(36).substr(2, 9),
       date: displayDate,
       description: desc,
       category: transactionType === 'RECEIPT' ? 'ADVANCE' : category,
@@ -109,8 +111,14 @@ export default function ExpensesPage() {
       splitGhosh
     };
 
-    setExpenses(prev => [newExpense, ...prev]);
+    if (editingId) {
+      setExpenses(prev => prev.map(e => e.id === editingId ? newExpense : e));
+    } else {
+      setExpenses(prev => [newExpense, ...prev]);
+    }
+
     setIsAddModalOpen(false);
+    setEditingId(null);
     setDesc('');
     setAmount('');
     setTransactionType('EXPENSE');
@@ -143,6 +151,46 @@ export default function ExpensesPage() {
   const mitraBalance = mitraTotalContribution - mitraShare; // negative means owes, positive means gets
   const ghoshBalance = ghoshTotalContribution - ghoshShare;
 
+  // Filter logic
+  const filteredExpenses = expenses.filter(e => {
+    if (selectedFamilyFilter === 'ALL') return true;
+    return e.paidBy === selectedFamilyFilter;
+  });
+
+  const filteredTotal = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+  const handleEdit = (exp: Expense) => {
+    setEditingId(exp.id);
+    setDesc(exp.description);
+    setAmount(exp.amount.toString());
+    setCategory(exp.category === 'ADVANCE' ? 'OTHER' : exp.category);
+    setPaidBy(exp.paidBy);
+    setTransactionType(exp.type || 'EXPENSE');
+    
+    // Attempt to parse date string back to YYYY-MM-DD
+    const d = new Date(exp.date);
+    if (!isNaN(d.getTime())) {
+      setDateStr(d.toISOString().split('T')[0]);
+    }
+
+    if (exp.type === 'RECEIPT') {
+      setSplitType('EQUAL');
+    } else {
+      const sm = getSplitMitra(exp);
+      const sg = getSplitGhosh(exp);
+      if (sm === exp.amount && sg === 0) setSplitType('MITRA');
+      else if (sg === exp.amount && sm === 0) setSplitType('GHOSH');
+      else if (sm === exp.amount / 2 && sg === exp.amount / 2) setSplitType('EQUAL');
+      else {
+        setSplitType('CUSTOM');
+        setCustomSplitMitra(sm.toString());
+        setCustomSplitGhosh(sg.toString());
+      }
+    }
+
+    setIsAddModalOpen(true);
+  };
+
   const numberToWords = (num: number): string => {
     const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
     const b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
@@ -171,7 +219,7 @@ export default function ExpensesPage() {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     doc.setTextColor(51, 51, 51); // #333333
-    doc.text("BHARAT TIRTHA DARSHAN AUTO-LEDGER", margin, 50);
+    doc.text("MITRA TRAVELS AUTO-LEDGER", margin, 50);
     
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
@@ -270,7 +318,7 @@ export default function ExpensesPage() {
     ] as any);
 
     autoTable(doc, {
-      startY: boxY + boxHeight + 30,
+      startY: boxY + boxHeight + 40,
       head: [['S.No', 'Date', 'Description', 'Paid By', 'Split Among', 'Amount (INR)']],
       body: tableData,
       theme: 'striped',
@@ -369,15 +417,21 @@ export default function ExpensesPage() {
           {/* Block 2: Individual Share */}
           <div className="brutal-card p-6 bg-[#E0E7FF]">
             <h3 className="font-mono font-black uppercase tracking-widest text-blue-600 mb-6 flex items-center gap-2">
-              <Wallet size={20} /> 2. Individual Family Share
+              <Wallet size={20} /> 2. Spends List By Family
             </h3>
             <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-end border-b-2 border-black pb-2">
-                <span className="font-bold text-xl uppercase">Mitra Family</span>
+              <div 
+                className="flex justify-between items-end border-b-2 border-black pb-2 cursor-pointer hover:bg-blue-200/50 p-2 rounded transition-colors"
+                onClick={() => setSelectedFamilyFilter(selectedFamilyFilter === 'Mitra' ? 'ALL' : 'Mitra')}
+              >
+                <span className="font-bold text-xl uppercase">Mitra Family {selectedFamilyFilter === 'Mitra' && '(Selected)'}</span>
                 <span className="font-black text-3xl text-blue-900">₹{mitraShare.toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between items-end">
-                <span className="font-bold text-xl uppercase">Ghosh Family</span>
+              <div 
+                className="flex justify-between items-end cursor-pointer hover:bg-blue-200/50 p-2 rounded transition-colors"
+                onClick={() => setSelectedFamilyFilter(selectedFamilyFilter === 'Ghosh' ? 'ALL' : 'Ghosh')}
+              >
+                <span className="font-bold text-xl uppercase">Ghosh Family {selectedFamilyFilter === 'Ghosh' && '(Selected)'}</span>
                 <span className="font-black text-3xl text-blue-900">₹{ghoshShare.toLocaleString('en-IN')}</span>
               </div>
             </div>
@@ -426,10 +480,17 @@ export default function ExpensesPage() {
         {/* Ledger Table */}
         <div className="brutal-card p-0 overflow-hidden">
           <div className="bg-black text-white p-6 border-b-4 border-black flex justify-between items-center">
-            <h3 className="font-black text-xl uppercase tracking-widest flex items-center gap-4">
-              <Wallet size={28} className="text-[var(--accent)]" /> 
-              Transaction Log
-            </h3>
+            <div className="flex flex-col gap-1">
+              <h3 className="font-black text-xl uppercase tracking-widest flex items-center gap-4">
+                <Wallet size={28} className="text-[var(--accent)]" /> 
+                Transaction Log {selectedFamilyFilter !== 'ALL' && `- ${selectedFamilyFilter} Family`}
+              </h3>
+              {selectedFamilyFilter !== 'ALL' && (
+                <div className="text-sm font-mono text-gray-300">
+                  Total for this view: ₹{filteredTotal.toLocaleString('en-IN')}
+                </div>
+              )}
+            </div>
             <div className="flex gap-4">
               <button 
                 onClick={generatePDF}
@@ -454,12 +515,12 @@ export default function ExpensesPage() {
                 </tr>
               </thead>
               <tbody className="font-bold text-lg uppercase">
-                {expenses.length === 0 ? (
+                {filteredExpenses.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="p-12 text-center text-gray-500 font-mono">No transactions found. Add an expense to begin.</td>
                   </tr>
                 ) : (
-                  expenses.map(exp => (
+                  filteredExpenses.map(exp => (
                     <tr key={exp.id} className="hover:bg-gray-100 transition-colors border-b-2 border-black">
                       <td className="p-6 border-r-2 border-black font-mono text-sm">{exp.date}</td>
                       <td className="p-6 border-r-2 border-black">
@@ -500,12 +561,20 @@ export default function ExpensesPage() {
                         )}
                       </td>
                       <td className="p-6 text-right font-black border-r-2 border-black">₹{exp.amount.toLocaleString('en-IN')}</td>
-                      <td className="p-6 text-center">
+                      <td className="p-6 text-center flex items-center justify-center gap-4 h-full pt-8">
+                        <button 
+                          onClick={() => handleEdit(exp)}
+                          className="text-blue-600 hover:text-blue-800 transition-colors"
+                          title="Edit Transaction"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
                         <button 
                           onClick={() => setExpenses(prev => prev.filter(e => e.id !== exp.id))}
                           className="text-red-500 hover:text-red-700 transition-colors"
+                          title="Delete Transaction"
                         >
-                          <Trash2 size={24} className="mx-auto" />
+                          <Trash2 size={24} />
                         </button>
                       </td>
                     </tr>
@@ -533,8 +602,8 @@ export default function ExpensesPage() {
               className="bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] w-full max-w-lg overflow-hidden"
             >
               <div className="bg-black text-white p-4 flex justify-between items-center">
-                <h2 className="font-black text-xl uppercase tracking-widest">New Transaction</h2>
-                <button onClick={() => setIsAddModalOpen(false)} className="hover:text-red-400"><X size={24} /></button>
+                <h2 className="font-black text-xl uppercase tracking-widest">{editingId ? 'Edit Transaction' : 'New Transaction'}</h2>
+                <button onClick={() => { setIsAddModalOpen(false); setEditingId(null); }} className="hover:text-red-400"><X size={24} /></button>
               </div>
               <form onSubmit={handleAddExpense} className="p-6 flex flex-col gap-6 font-bold uppercase text-sm">
                 
@@ -568,36 +637,21 @@ export default function ExpensesPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block mb-2 font-mono text-xs tracking-widest">Description</label>
-                  <input 
-                    type="text" 
-                    value={desc}
-                    onChange={e => setDesc(e.target.value)}
-                    required
-                    className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
-                    placeholder={transactionType === 'RECEIPT' ? "e.g. Deposit to Trip Fund" : "e.g. Dinner at Dhaba"}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   {transactionType === 'EXPENSE' && (
                     <div>
                       <label className="block mb-2 font-mono text-xs tracking-widest">Category</label>
-                      <input 
-                        list="categories"
+                      <select 
                         value={category}
                         onChange={e => setCategory(e.target.value)}
-                        className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white"
-                        placeholder="e.g. SHOPPING"
-                      />
-                      <datalist id="categories">
-                        <option value="TRANS" />
-                        <option value="HOTEL" />
-                        <option value="SIGHT" />
-                        <option value="FOOD" />
-                        <option value="OTHER" />
-                      </datalist>
+                        className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white appearance-none"
+                      >
+                        <option value="FOOD">FOODING (Meals, Snacks, Water)</option>
+                        <option value="TRANS">TRANSPORT (Flights, Cabs, Trains)</option>
+                        <option value="HOTEL">HOTEL & STAY</option>
+                        <option value="SIGHT">SIGHTSEEING & TICKETS</option>
+                        <option value="OTHER">MISC / OTHER</option>
+                      </select>
                     </div>
                   )}
                   <div className={transactionType === 'RECEIPT' ? 'col-span-2' : ''}>
@@ -611,6 +665,19 @@ export default function ExpensesPage() {
                       <option value="Ghosh">Ghosh Family</option>
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block mb-2 font-mono text-xs tracking-widest">Item Details (Custom Text Box)</label>
+                  <input 
+                    type="text" 
+                    value={desc}
+                    onChange={e => setDesc(e.target.value)}
+                    required
+                    className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
+                    placeholder={transactionType === 'RECEIPT' ? "e.g. Deposit to Trip Fund" : "e.g. Dinner, Breakfast or Water Bisleri etc"}
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1 font-mono normal-case">Write specific items here so that it is proper.</p>
                 </div>
 
                 {transactionType === 'EXPENSE' && (
@@ -654,7 +721,7 @@ export default function ExpensesPage() {
                   </div>
                 )}
                 <button type="submit" className="w-full mt-4 bg-[var(--accent)] text-white font-black py-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all">
-                  RECORD EXPENSE
+                  {editingId ? 'UPDATE EXPENSE' : 'RECORD EXPENSE'}
                 </button>
               </form>
             </motion.div>
