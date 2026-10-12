@@ -23,13 +23,15 @@ export default function PhysicsText() {
       }
     };
 
-    window.addEventListener('resize', () => {
+    const handleResize = () => {
       adjustCanvasSize();
       init();
-    });
+    };
+
+    window.addEventListener('resize', handleResize);
     adjustCanvasSize();
 
-    let mouse = {
+    const mouse = {
       x: -1000,
       y: -1000,
       radius: 80,
@@ -86,27 +88,27 @@ export default function PhysicsText() {
       }
 
       update() {
-        let dx = mouse.x - this.x;
-        let dy = mouse.y - this.y;
-        let distance = Math.sqrt(dx * dx + dy * dy);
-        let forceDirectionX = dx / distance;
-        let forceDirectionY = dy / distance;
-        let maxDistance = mouse.radius;
-        let force = (maxDistance - distance) / maxDistance;
-        let directionX = forceDirectionX * force * this.density;
-        let directionY = forceDirectionY * force * this.density;
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const forceDirectionX = dx / distance;
+        const forceDirectionY = dy / distance;
+        const maxDistance = mouse.radius;
+        const force = (maxDistance - distance) / maxDistance;
+        const directionX = forceDirectionX * force * this.density;
+        const directionY = forceDirectionY * force * this.density;
 
         if (distance < mouse.radius) {
           this.x -= directionX;
           this.y -= directionY;
         } else {
           if (this.x !== this.baseX) {
-            let dx = this.x - this.baseX;
-            this.x -= dx / 10;
+            const stepDx = this.x - this.baseX;
+            this.x -= stepDx / 10;
           }
           if (this.y !== this.baseY) {
-            let dy = this.y - this.baseY;
-            this.y -= dy / 10;
+            const stepDy = this.y - this.baseY;
+            this.y -= stepDy / 10;
           }
         }
       }
@@ -117,7 +119,7 @@ export default function PhysicsText() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       // Calculate font size relative to canvas width
-      let fontSize = Math.min(canvas.width / 6, 120);
+      const fontSize = Math.min(canvas.width / 6, 120);
       ctx.fillStyle = 'white';
       ctx.font = `900 ${fontSize}px 'Inter', sans-serif`;
       ctx.textAlign = 'center';
@@ -131,8 +133,8 @@ export default function PhysicsText() {
         for (let x = 0, x2 = textCoordinates.width; x < x2; x += 4) {
           // alpha channel
           if (textCoordinates.data[(y * 4 * textCoordinates.width) + (x * 4) + 3] > 128) {
-            let positionX = x;
-            let positionY = y;
+            const positionX = x;
+            const positionY = y;
             particlesArray.push(new Particle(positionX, positionY));
           }
         }
@@ -149,13 +151,14 @@ export default function PhysicsText() {
     };
 
     // Need a tiny delay for custom fonts to load so canvas draws text correctly
-    setTimeout(() => {
+    const fontTimer = setTimeout(() => {
       init();
       animate();
     }, 500);
 
     return () => {
-      window.removeEventListener('resize', adjustCanvasSize);
+      clearTimeout(fontTimer);
+      window.removeEventListener('resize', handleResize);
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('touchmove', handleTouchMove);
       canvas.removeEventListener('mouseleave', handleMouseLeave);

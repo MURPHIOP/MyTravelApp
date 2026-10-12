@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { updateSession } from './lib/session';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // First, refresh session if exists
   const res = await updateSession(request);
 
@@ -29,9 +29,6 @@ export async function middleware(request: NextRequest) {
   }
 
   if (sessionCookie && isProtectedAdmin) {
-    // Check role manually (as JWT verify is heavy in middleware, but since we are using jose, it's edge compatible!)
-    // We can do a quick check, but NextJS middleware is edge runtime, `jose` works there.
-    // However, it's cleaner to decode it or just trust the auth route. Let's decode it.
     try {
       const { jwtVerify } = await import('jose');
       const secretKey = process.env.SESSION_SECRET || 'fallback-secret-for-development-only';

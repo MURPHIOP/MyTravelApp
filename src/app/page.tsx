@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, Terminal, MapPin, Train, Hotel, Wallet, Compass } from 'lucide-react';
@@ -8,15 +8,20 @@ import { PLACE_IMAGES, TRIP_CONFIG } from '@/lib/tripData';
 import ScrambleText from '@/components/ui/ScrambleText';
 import BrutalistMarquee from '@/components/ui/BrutalistMarquee';
 
+const emptySubscribe = () => () => {};
+
 export default function HomePage() {
   const headlineWords = ["ANCIENT.", "SACRED.", "JOURNEY."];
   const lastWord = "MAHARASHTRA.";
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
-    setIsMounted(true);
     const targetDate = new Date(TRIP_CONFIG.departureDate).getTime();
 
     const updateCountdown = () => {

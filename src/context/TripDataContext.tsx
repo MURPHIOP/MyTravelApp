@@ -2,13 +2,10 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
-  TRIP_CONFIG, 
-  PLACE_IMAGES, 
   ITINERARY as DEFAULT_ITINERARY, 
   TRAINS as DEFAULT_TRAINS, 
   HOTELS as DEFAULT_HOTELS, 
-  PLACES as DEFAULT_PLACES,
-  EXPENSE_CATEGORIES
+  PLACES as DEFAULT_PLACES
 } from '@/lib/tripData';
 
 import { supabase } from '@/lib/supabase';
@@ -39,19 +36,19 @@ export function TripDataProvider({ children }: { children: React.ReactNode }) {
         if (error) throw error;
         
         if (data && data.length > 0) {
-          const stateMap: Record<string, any> = {};
+          const stateMap: Record<string, unknown> = {};
           data.forEach(row => {
             stateMap[row.key] = row.value;
           });
 
-          if (stateMap['godmode_itinerary']) setItineraryState(stateMap['godmode_itinerary']);
-          if (stateMap['godmode_hotels']) setHotelsState(stateMap['godmode_hotels']);
-          if (stateMap['godmode_places']) setPlacesState(stateMap['godmode_places']);
+          if (stateMap['godmode_itinerary']) setItineraryState(stateMap['godmode_itinerary'] as typeof DEFAULT_ITINERARY);
+          if (stateMap['godmode_hotels']) setHotelsState(stateMap['godmode_hotels'] as typeof DEFAULT_HOTELS);
+          if (stateMap['godmode_places']) setPlacesState(stateMap['godmode_places'] as typeof DEFAULT_PLACES);
 
           if (stateMap['godmode_trains']) {
-            const parsed = stateMap['godmode_trains'];
+            const parsed = stateMap['godmode_trains'] as (typeof DEFAULT_TRAINS[number])[];
             // Merge to ensure new properties like passengers are included
-            const mergedTrains = parsed.map((t: any, i: number) => ({ 
+            const mergedTrains = parsed.map((t, i) => ({ 
               ...DEFAULT_TRAINS[i], 
               ...t, 
               passengers: DEFAULT_TRAINS[i]?.passengers || t.passengers 
@@ -67,7 +64,7 @@ export function TripDataProvider({ children }: { children: React.ReactNode }) {
     fetchAppState();
   }, []);
 
-  const saveToSupabase = async (key: string, value: any) => {
+  const saveToSupabase = async (key: string, value: unknown) => {
     try {
       await supabase.from('app_state').upsert({ key, value });
     } catch (err) {

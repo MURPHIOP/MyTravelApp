@@ -13,10 +13,6 @@ export default function PhotosPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchPhotos();
-  }, []);
-
   const fetchPhotos = async () => {
     try {
       const { data, error } = await supabase.storage.from('photos').list('', {
@@ -36,11 +32,47 @@ export default function PhotosPage() {
       });
 
       setPhotos(photoUrls);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching photos:', err);
-      setError(err.message || 'Failed to load photos');
+      setError(err instanceof Error ? err.message : 'Failed to load photos');
     }
   };
+
+  useEffect(() => {
+    let ignore = false;
+    async function loadPhotos() {
+      try {
+        const { data, error } = await supabase.storage.from('photos').list('', {
+          limit: 100,
+          offset: 0,
+          sortBy: { column: 'created_at', order: 'desc' }
+        });
+
+        if (error) throw error;
+
+        const validFiles = data?.filter(file => file.name !== '.emptyFolderPlaceholder' && !file.name.startsWith('.')) || [];
+
+        const photoUrls = validFiles.map(file => {
+          const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(file.name);
+          return { name: file.name, url: publicUrl };
+        });
+
+        if (!ignore) {
+          setPhotos(photoUrls);
+        }
+      } catch (err: unknown) {
+        console.error('Error fetching photos:', err);
+        if (!ignore) {
+          setError(err instanceof Error ? err.message : 'Failed to load photos');
+        }
+      }
+    }
+
+    loadPhotos();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -76,9 +108,9 @@ export default function PhotosPage() {
       }
 
       await fetchPhotos(); // Refresh gallery
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Upload error:', err);
-      setError(err.message || 'Failed to upload photos.');
+      setError(err instanceof Error ? err.message : 'Failed to upload photos.');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -94,9 +126,9 @@ export default function PhotosPage() {
       const { error } = await supabase.storage.from('photos').remove([fileName]);
       if (error) throw error;
       await fetchPhotos(); // Refresh gallery
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Delete error:', err);
-      alert('Failed to delete photo: ' + err.message);
+      alert('Failed to delete photo: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
   };
 

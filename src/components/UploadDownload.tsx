@@ -59,7 +59,7 @@ export default function UploadDownload({ currentUrl, onUploadSuccess, storagePat
 
       onUploadSuccess(publicUrlData.publicUrl);
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Upload exception:', err);
       alert('Upload failed.');
     } finally {

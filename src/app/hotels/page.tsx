@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { MapPin, ExternalLink, Star } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 import { useTripData } from '@/context/TripDataContext';
 import UploadDownload from '@/components/UploadDownload';

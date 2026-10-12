@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useTripData } from '@/context/TripDataContext';
 import { MapPin, Mountain, Zap, Star, Leaf, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';

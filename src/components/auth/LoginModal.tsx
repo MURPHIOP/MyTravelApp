@@ -5,6 +5,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { X, Loader2, Fingerprint } from 'lucide-react';
 
+const PARTICLES = [
+  { id: 0, left: '10%', top: '20%', scale: 1.5, opacity: 0.4, duration: 18, delay: 0 },
+  { id: 1, left: '25%', top: '70%', scale: 2.0, opacity: 0.3, duration: 22, delay: 1 },
+  { id: 2, left: '40%', top: '15%', scale: 1.2, opacity: 0.5, duration: 16, delay: 2 },
+  { id: 3, left: '55%', top: '85%', scale: 2.4, opacity: 0.35, duration: 25, delay: 0.5 },
+  { id: 4, left: '70%', top: '35%', scale: 1.8, opacity: 0.45, duration: 20, delay: 1.5 },
+  { id: 5, left: '85%', top: '65%', scale: 1.3, opacity: 0.4, duration: 17, delay: 2.5 },
+  { id: 6, left: '15%', top: '50%', scale: 2.2, opacity: 0.3, duration: 23, delay: 3 },
+  { id: 7, left: '30%', top: '30%', scale: 1.6, opacity: 0.5, duration: 19, delay: 0.8 },
+  { id: 8, left: '60%', top: '60%', scale: 1.4, opacity: 0.4, duration: 21, delay: 1.2 },
+  { id: 9, left: '80%', top: '10%', scale: 2.1, opacity: 0.35, duration: 24, delay: 2.2 },
+  { id: 10, left: '50%', top: '40%', scale: 1.7, opacity: 0.45, duration: 18, delay: 1.8 },
+  { id: 11, left: '90%', top: '90%', scale: 1.5, opacity: 0.3, duration: 20, delay: 0.2 },
+];
+
 export default function LoginModal() {
   const { isModalOpen, closeLoginModal, refreshAuth } = useAuth();
   const [username, setUsername] = useState('');
@@ -52,24 +67,25 @@ export default function LoginModal() {
         >
           {/* Animated Background Particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {[...Array(15)].map((_, i) => (
+            {PARTICLES.map((p) => (
               <motion.div
-                key={i}
+                key={p.id}
                 className="absolute w-2 h-2 rounded-full bg-blue-500/20"
+                style={{ left: p.left, top: p.top }}
                 initial={{
-                  x: Math.random() * window.innerWidth,
-                  y: Math.random() * window.innerHeight,
-                  scale: Math.random() * 2 + 1,
-                  opacity: Math.random() * 0.5 + 0.3
+                  scale: p.scale,
+                  opacity: p.opacity,
+                  y: 0,
                 }}
                 animate={{
-                  y: [null, Math.random() * window.innerHeight],
-                  x: [null, Math.random() * window.innerWidth],
+                  y: [-20, 20, -20],
+                  x: [-15, 15, -15],
                 }}
                 transition={{
-                  duration: Math.random() * 20 + 10,
+                  duration: p.duration,
+                  delay: p.delay,
                   repeat: Infinity,
-                  ease: "linear"
+                  ease: "easeInOut"
                 }}
               />
             ))}

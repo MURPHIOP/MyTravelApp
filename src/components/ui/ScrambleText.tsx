@@ -16,12 +16,10 @@ export default function ScrambleText({
   delay?: number,
   duration?: number
 }) {
-  const [displayText, setDisplayText] = useState("");
+  const [displayText, setDisplayText] = useState(text);
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
     let frameId: number;
-
     let loopInterval: NodeJS.Timeout;
 
     const startAnimation = () => {
@@ -53,7 +51,7 @@ export default function ScrambleText({
       animate();
     };
 
-    timeout = setTimeout(() => {
+    const timeout = setTimeout(() => {
       startAnimation();
       loopInterval = setInterval(startAnimation, 10000); // Re-scramble every 10 seconds
     }, delay * 1000);

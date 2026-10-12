@@ -1,20 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useSyncExternalStore } from 'react';
 import { useTripData } from '@/context/TripDataContext';
 import { MapPin, ChevronDown, ChevronUp, Navigation } from 'lucide-react';
 
+const emptySubscribe = () => () => {};
+
 export default function ItineraryPage() {
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
-  const [currentDateString, setCurrentDateString] = useState<string>('');
+  const currentDateString = useSyncExternalStore(
+    emptySubscribe,
+    () => new Date().toISOString().split('T')[0],
+    () => ''
+  );
   const { itinerary: ITINERARY } = useTripData();
-
-  useEffect(() => {
-    // In production, you might want to use a specific timezone or server time
-    const today = new Date().toISOString().split('T')[0];
-    setCurrentDateString(today);
-  }, []);
 
   return (
     <div className="w-full pt-32 pb-24 min-h-screen">

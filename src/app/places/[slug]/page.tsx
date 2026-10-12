@@ -4,7 +4,7 @@ import React from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { useTripData } from '@/context/TripDataContext';
 import {
-  MapPin, ChevronLeft, Lightbulb, Calendar, Mountain, Zap, Star, Leaf,
+  MapPin, ChevronLeft, Calendar, Mountain, Zap, Star, Leaf,
   Clock, Ticket, Shirt, Sparkles, CheckCircle2, Compass, ShieldAlert,
   History, Eye
 } from 'lucide-react';

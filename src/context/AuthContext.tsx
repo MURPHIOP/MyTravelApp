@@ -32,7 +32,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const refreshAuth = async () => {
-    setLoading(true);
     try {
       const res = await fetch('/api/auth/me');
       if (res.ok) {
@@ -47,12 +46,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {
       setUser(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
-    refreshAuth();
+    let ignore = false;
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (!ignore) {
+            setUser(data.authenticated && data.user ? data.user : null);
+          }
+        } else if (!ignore) {
+          setUser(null);
+        }
+      } catch {
+        if (!ignore) setUser(null);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+
+    checkAuth();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   useEffect(() => {

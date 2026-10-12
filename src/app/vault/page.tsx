@@ -25,10 +25,6 @@ export default function VaultPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isFamilyHead = user?.role === 'FAMILY_HEAD';
 
-  useEffect(() => {
-    fetchDocuments();
-  }, []);
-
   const fetchDocuments = async () => {
     setLoading(true);
     try {
@@ -43,9 +39,38 @@ export default function VaultPage() {
       }
     } catch (e) {
       console.error('Error fetching docs:', e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
+  useEffect(() => {
+    let ignore = false;
+    async function loadDocs() {
+      try {
+        const { data, error } = await supabase
+          .from('documents')
+          .select('*')
+          .order('uploaded_at', { ascending: false });
+          
+        if (error) throw error;
+        if (!ignore && data) {
+          setDocuments(data);
+        }
+      } catch (e) {
+        console.error('Error fetching docs:', e);
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadDocs();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -57,7 +82,7 @@ export default function VaultPage() {
       // 1. Upload to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('vault-documents')
         .upload(fileName, file);
 
