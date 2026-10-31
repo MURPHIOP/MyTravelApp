@@ -1,45 +1,78 @@
 import React from 'react';
+import Image from 'next/image';
 
-interface CardProps {
-  children: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
-  style?: React.CSSProperties;
-  id?: string;
-}
+export type AsProp<T extends React.ElementType> = {
+  as?: T;
+};
 
-export function Card({ children, className = '', onClick, style, id }: CardProps) {
+export type PolymorphicComponentProps<T extends React.ElementType, Props = object> = Props &
+  AsProp<T> &
+  Omit<React.ComponentPropsWithoutRef<T>, keyof Props | 'as'>;
+
+// ==========================================
+// Card
+// ==========================================
+export type CardProps<T extends React.ElementType = 'div'> = PolymorphicComponentProps<
+  T,
+  {
+    children: React.ReactNode;
+    className?: string;
+  }
+>;
+
+export function Card<T extends React.ElementType = 'div'>({
+  as,
+  children,
+  className = '',
+  ...props
+}: CardProps<T>) {
+  const Component = as || 'div';
   return (
-    <div
-      id={id}
-      className={`card-float ${onClick ? 'tap-effect' : ''} ${className}`}
-      onClick={onClick}
-      style={style}
+    <Component
+      className={`card-float ${props.onClick ? 'tap-effect' : ''} ${className}`}
+      {...props}
     >
       {children}
-    </div>
+    </Component>
   );
 }
 
-interface BadgeProps {
-  children: React.ReactNode;
-  variant?: 'blue' | 'amber' | 'green' | 'red' | 'purple' | 'muted';
-  size?: 'sm' | 'md';
-}
-
+// ==========================================
+// Badge
+// ==========================================
 const badgeColors = {
-  blue: { bg: 'var(--accent-blue-light)', color: 'var(--accent-blue)' },
-  amber: { bg: 'var(--accent-amber-light)', color: 'var(--accent-amber)' },
+  blue: { bg: 'var(--accent-light)', color: 'var(--accent)' },
+  amber: { bg: 'rgba(245,158,11,0.12)', color: '#F59E0B' },
   green: { bg: 'rgba(16,185,129,0.12)', color: '#10B981' },
   red: { bg: 'rgba(239,68,68,0.12)', color: '#EF4444' },
   purple: { bg: 'rgba(139,92,246,0.12)', color: '#8B5CF6' },
-  muted: { bg: 'var(--surface-2)', color: 'var(--text-muted)' },
+  muted: { bg: 'var(--surface-light)', color: 'var(--text-muted)' },
 };
 
-export function Badge({ children, variant = 'blue', size = 'sm' }: BadgeProps) {
+export type BadgeProps<T extends React.ElementType = 'span'> = PolymorphicComponentProps<
+  T,
+  {
+    children: React.ReactNode;
+    variant?: 'blue' | 'amber' | 'green' | 'red' | 'purple' | 'muted';
+    size?: 'sm' | 'md';
+    className?: string;
+  }
+>;
+
+export function Badge<T extends React.ElementType = 'span'>({
+  as,
+  children,
+  variant = 'blue',
+  size = 'sm',
+  className = '',
+  style,
+  ...props
+}: BadgeProps<T>) {
+  const Component = as || 'span';
   const colors = badgeColors[variant];
   return (
-    <span
+    <Component
+      className={className}
       style={{
         background: colors.bg,
         color: colors.color,
@@ -52,29 +85,41 @@ export function Badge({ children, variant = 'blue', size = 'sm' }: BadgeProps) {
         alignItems: 'center',
         gap: '4px',
         whiteSpace: 'nowrap',
+        ...style,
       }}
+      {...props}
     >
       {children}
-    </span>
+    </Component>
   );
 }
 
-interface ButtonProps {
-  children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-  onClick?: () => void;
-  className?: string;
-  disabled?: boolean;
-  id?: string;
-  type?: 'button' | 'submit' | 'reset';
-  fullWidth?: boolean;
-}
+// ==========================================
+// Button
+// ==========================================
+export type ButtonProps<T extends React.ElementType = 'button'> = PolymorphicComponentProps<
+  T,
+  {
+    children: React.ReactNode;
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+    size?: 'sm' | 'md' | 'lg';
+    fullWidth?: boolean;
+    className?: string;
+  }
+>;
 
-export function Button({
-  children, variant = 'primary', size = 'md', onClick,
-  className = '', disabled, id, type = 'button', fullWidth,
-}: ButtonProps) {
+export function Button<T extends React.ElementType = 'button'>({
+  as,
+  children,
+  variant = 'primary',
+  size = 'md',
+  fullWidth,
+  className = '',
+  disabled,
+  style,
+  ...props
+}: ButtonProps<T>) {
+  const Component = as || 'button';
   const base = 'tap-effect inline-flex items-center justify-center gap-2 font-semibold rounded-2xl transition-all duration-200 border-0 cursor-pointer';
 
   const sizes = {
@@ -85,19 +130,19 @@ export function Button({
 
   const variants = {
     primary: {
-      background: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)',
+      background: 'var(--accent)',
       color: '#fff',
-      boxShadow: '0 8px 24px rgba(59,130,246,0.35)',
+      boxShadow: '0 8px 24px var(--accent-glow)',
     },
     secondary: {
-      background: 'var(--surface-2)',
+      background: 'var(--surface-light)',
       color: 'var(--text-primary)',
-      border: '1.5px solid var(--border)',
+      border: '1.5px solid var(--border-color)',
       boxShadow: 'none',
     },
     ghost: {
       background: 'transparent',
-      color: 'var(--accent-blue)',
+      color: 'var(--accent)',
       boxShadow: 'none',
     },
     danger: {
@@ -108,10 +153,7 @@ export function Button({
   };
 
   return (
-    <button
-      id={id}
-      type={type}
-      onClick={onClick}
+    <Component
       disabled={disabled}
       className={`${base} ${className}`}
       style={{
@@ -120,15 +162,20 @@ export function Button({
         width: fullWidth ? '100%' : undefined,
         opacity: disabled ? 0.5 : 1,
         cursor: disabled ? 'not-allowed' : 'pointer',
-        fontFamily: 'Outfit, sans-serif',
+        fontFamily: 'Inter, sans-serif',
+        ...style,
       }}
+      {...props}
     >
       {children}
-    </button>
+    </Component>
   );
 }
 
-interface AvatarProps {
+// ==========================================
+// Avatar
+// ==========================================
+export interface AvatarProps {
   name: string;
   src?: string;
   size?: number;
@@ -149,19 +196,26 @@ export function Avatar({ name, src, size = 40, color }: AvatarProps) {
 
   if (src) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={src}
-        alt={name}
-        style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover' }}
-      />
+      <div 
+        style={{ width: size, height: size, borderRadius: '50%', overflow: 'hidden', position: 'relative', flexShrink: 0 }}
+      >
+        <Image
+          src={src}
+          alt={name}
+          fill
+          unoptimized
+          sizes={`${size}px`}
+          className="object-cover"
+        />
+      </div>
     );
   }
 
   return (
     <div
       style={{
-        width: size, height: size,
+        width: size,
+        height: size,
         borderRadius: '50%',
         background: bgColor,
         display: 'flex',
@@ -178,17 +232,21 @@ export function Avatar({ name, src, size = 40, color }: AvatarProps) {
   );
 }
 
+// ==========================================
 // Divider
+// ==========================================
 export function Divider({ className = '' }: { className?: string }) {
   return (
     <div
       className={className}
-      style={{ height: '1px', background: 'var(--border)', width: '100%' }}
+      style={{ height: '1px', background: 'var(--border-color)', width: '100%' }}
     />
   );
 }
 
+// ==========================================
 // Section Header
+// ==========================================
 export function SectionHeader({ title, subtitle, action }: {
   title: string;
   subtitle?: string;
@@ -197,8 +255,8 @@ export function SectionHeader({ title, subtitle, action }: {
   return (
     <div className="flex items-start justify-between mb-4">
       <div>
-        <h2 className="section-title">{title}</h2>
-        {subtitle && <p className="section-subtitle mt-1">{subtitle}</p>}
+        <h2 className="section-title text-2xl font-black uppercase tracking-tight">{title}</h2>
+        {subtitle && <p className="section-subtitle font-mono text-sm text-zinc-500 mt-1">{subtitle}</p>}
       </div>
       {action && <div>{action}</div>}
     </div>

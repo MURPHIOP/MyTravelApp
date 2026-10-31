@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
 import { 
   ITINERARY as DEFAULT_ITINERARY, 
   TRAINS as DEFAULT_TRAINS, 
@@ -9,6 +9,7 @@ import {
 } from '@/lib/tripData';
 
 import { supabase } from '@/lib/supabase';
+import { useTrip } from '@/context/TripContext';
 
 type TripContextType = {
   itinerary: typeof DEFAULT_ITINERARY;
@@ -24,45 +25,23 @@ type TripContextType = {
 const TripDataContext = createContext<TripContextType | undefined>(undefined);
 
 export function TripDataProvider({ children }: { children: React.ReactNode }) {
-  const [itinerary, setItineraryState] = useState(DEFAULT_ITINERARY);
-  const [trains, setTrainsState] = useState(DEFAULT_TRAINS);
-  const [hotels, setHotelsState] = useState(DEFAULT_HOTELS);
-  const [places, setPlacesState] = useState(DEFAULT_PLACES);
+  const { activeTrip, updateActiveTrip } = useTrip();
 
-  useEffect(() => {
-    const fetchAppState = async () => {
-      try {
-        const { data, error } = await supabase.from('app_state').select('*');
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          const stateMap: Record<string, unknown> = {};
-          data.forEach(row => {
-            stateMap[row.key] = row.value;
-          });
+  const itinerary = activeTrip?.itinerary && activeTrip.itinerary.length > 0 
+    ? activeTrip.itinerary 
+    : DEFAULT_ITINERARY;
 
-          if (stateMap['godmode_itinerary']) setItineraryState(stateMap['godmode_itinerary'] as typeof DEFAULT_ITINERARY);
-          if (stateMap['godmode_hotels']) setHotelsState(stateMap['godmode_hotels'] as typeof DEFAULT_HOTELS);
-          if (stateMap['godmode_places']) setPlacesState(stateMap['godmode_places'] as typeof DEFAULT_PLACES);
+  const trains = activeTrip?.trains && activeTrip.trains.length > 0 
+    ? activeTrip.trains 
+    : DEFAULT_TRAINS;
 
-          if (stateMap['godmode_trains']) {
-            const parsed = stateMap['godmode_trains'] as (typeof DEFAULT_TRAINS[number])[];
-            // Merge to ensure new properties like passengers are included
-            const mergedTrains = parsed.map((t, i) => ({ 
-              ...DEFAULT_TRAINS[i], 
-              ...t, 
-              passengers: DEFAULT_TRAINS[i]?.passengers || t.passengers 
-            }));
-            setTrainsState(mergedTrains);
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch app state from Supabase:', err);
-      }
-    };
+  const hotels = activeTrip?.hotels && activeTrip.hotels.length > 0 
+    ? activeTrip.hotels 
+    : DEFAULT_HOTELS;
 
-    fetchAppState();
-  }, []);
+  const places = activeTrip?.places && activeTrip.places.length > 0 
+    ? activeTrip.places 
+    : DEFAULT_PLACES;
 
   const saveToSupabase = async (key: string, value: unknown) => {
     try {
@@ -73,23 +52,23 @@ export function TripDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const setItinerary = (data: typeof DEFAULT_ITINERARY) => {
-    setItineraryState(data);
     saveToSupabase('godmode_itinerary', data);
+    updateActiveTrip({ itinerary: data });
   };
 
   const setTrains = (data: typeof DEFAULT_TRAINS) => {
-    setTrainsState(data);
     saveToSupabase('godmode_trains', data);
+    updateActiveTrip({ trains: data });
   };
 
   const setHotels = (data: typeof DEFAULT_HOTELS) => {
-    setHotelsState(data);
     saveToSupabase('godmode_hotels', data);
+    updateActiveTrip({ hotels: data });
   };
 
   const setPlaces = (data: typeof DEFAULT_PLACES) => {
-    setPlacesState(data);
     saveToSupabase('godmode_places', data);
+    updateActiveTrip({ places: data });
   };
 
   return (

@@ -2,7 +2,12 @@
 
 import React, { useEffect, useRef } from 'react';
 
-export default function PhysicsText() {
+interface PhysicsTextProps {
+  text?: string;
+  className?: string;
+}
+
+export default function PhysicsText({ text = 'JYOTIRLING', className = '' }: PhysicsTextProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -12,19 +17,27 @@ export default function PhysicsText() {
     if (!ctx) return;
 
     let particlesArray: Particle[] = [];
-    const text = 'JYOTIRLING';
     let animationFrameId: number;
+
+    // Dynamically retrieve the current CSS custom property --accent
+    const getAccentColor = (): string => {
+      const computed = getComputedStyle(canvas).getPropertyValue('--accent').trim();
+      return computed || '#2563EB';
+    };
+
+    let currentAccentColor = getAccentColor();
 
     const adjustCanvasSize = () => {
       const parent = canvas.parentElement;
       if (parent) {
-        canvas.width = parent.clientWidth;
-        canvas.height = 150; // Fixed height for footer
+        canvas.width = parent.clientWidth || 800;
+        canvas.height = 150; // Fixed height for footer to prevent CLS
       }
     };
 
     const handleResize = () => {
       adjustCanvasSize();
+      currentAccentColor = getAccentColor();
       init();
     };
 
@@ -57,7 +70,7 @@ export default function PhysicsText() {
     };
 
     canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('touchmove', handleTouchMove);
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
     canvas.addEventListener('mouseleave', handleMouseLeave);
     canvas.addEventListener('touchend', handleMouseLeave);
 
@@ -80,7 +93,7 @@ export default function PhysicsText() {
 
       draw() {
         if (!ctx) return;
-        ctx.fillStyle = '#2563EB'; // Royal Blue Accent
+        ctx.fillStyle = currentAccentColor;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.closePath();
@@ -91,14 +104,14 @@ export default function PhysicsText() {
         const dx = mouse.x - this.x;
         const dy = mouse.y - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const forceDirectionX = dx / distance;
-        const forceDirectionY = dy / distance;
         const maxDistance = mouse.radius;
-        const force = (maxDistance - distance) / maxDistance;
-        const directionX = forceDirectionX * force * this.density;
-        const directionY = forceDirectionY * force * this.density;
 
-        if (distance < mouse.radius) {
+        if (distance < maxDistance && distance > 0) {
+          const forceDirectionX = dx / distance;
+          const forceDirectionY = dy / distance;
+          const force = (maxDistance - distance) / maxDistance;
+          const directionX = forceDirectionX * force * this.density;
+          const directionY = forceDirectionY * force * this.density;
           this.x -= directionX;
           this.y -= directionY;
         } else {
@@ -119,7 +132,7 @@ export default function PhysicsText() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       // Calculate font size relative to canvas width
-      const fontSize = Math.min(canvas.width / 6, 120);
+      const fontSize = Math.min(canvas.width / 7, 110);
       ctx.fillStyle = 'white';
       ctx.font = `900 ${fontSize}px 'Inter', sans-serif`;
       ctx.textAlign = 'center';
@@ -131,11 +144,9 @@ export default function PhysicsText() {
 
       for (let y = 0, y2 = textCoordinates.height; y < y2; y += 4) {
         for (let x = 0, x2 = textCoordinates.width; x < x2; x += 4) {
-          // alpha channel
+          // Alpha channel threshold
           if (textCoordinates.data[(y * 4 * textCoordinates.width) + (x * 4) + 3] > 128) {
-            const positionX = x;
-            const positionY = y;
-            particlesArray.push(new Particle(positionX, positionY));
+            particlesArray.push(new Particle(x, y));
           }
         }
       }
@@ -150,11 +161,11 @@ export default function PhysicsText() {
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    // Need a tiny delay for custom fonts to load so canvas draws text correctly
+    // Tiny initial delay for custom font rendering
     const fontTimer = setTimeout(() => {
       init();
       animate();
-    }, 500);
+    }, 250);
 
     return () => {
       clearTimeout(fontTimer);
@@ -165,13 +176,16 @@ export default function PhysicsText() {
       canvas.removeEventListener('touchend', handleMouseLeave);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [text]);
 
   return (
-    <canvas 
-      ref={canvasRef} 
-      className="w-full cursor-crosshair touch-none"
-      style={{ display: 'block' }}
-    />
+    <div className={`w-full h-[150px] min-h-[150px] relative overflow-hidden flex items-center justify-center ${className}`}>
+      <canvas 
+        ref={canvasRef} 
+        height={150}
+        className="w-full h-[150px] cursor-crosshair touch-none block"
+        style={{ display: 'block' }}
+      />
+    </div>
   );
 }

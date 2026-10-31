@@ -1,28 +1,35 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { Compass } from 'lucide-react';
 import PhysicsText from '@/components/ui/PhysicsText';
+import { useTrip } from '@/context/TripContext';
 
 export default function Footer() {
+  const { activeTrip } = useTrip();
+
   return (
     <footer className="w-full bg-[var(--bg-color)] border-t-[3px] border-[var(--border-color)] mt-24">
-      <div className="container-wide py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+      <div className="container-wide py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
         <div className="flex flex-col gap-6">
           <Link href="/" className="flex items-center gap-3 w-max">
-            <div className="flex items-center justify-center w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--accent)] shadow-[4px_4px_0px_0px_var(--shadow-color)]">
+            <div className="flex items-center justify-center w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--accent)] shadow-[4px_4px_0px_0px_var(--shadow-color)] transition-colors duration-300">
               <Compass size={20} color="#FFF" />
             </div>
-            <span className="font-black text-xl tracking-tight uppercase">Maharashtra</span>
+            <span className="font-black text-xl tracking-tight uppercase line-clamp-1">
+              {activeTrip.title}
+            </span>
           </Link>
           <p className="text-mono text-sm leading-relaxed border-l-4 border-[var(--accent)] pl-4">
-            A premium private family journey covering the most sacred and ancient sites of Maharashtra, India.
+            {activeTrip.description || 'A premium private family journey covering the most sacred and ancient sites.'}
           </p>
         </div>
 
         <div>
           <h3 className="font-black uppercase mb-4 tracking-widest text-sm text-[var(--accent)]">System // Map</h3>
           <div className="flex flex-col gap-3 font-mono text-sm font-bold">
-            <Link href="/itinerary" className="hover:underline hover:text-[var(--accent)] transition-colors">11-Day Route</Link>
+            <Link href="/itinerary" className="hover:underline hover:text-[var(--accent)] transition-colors">Route Plan</Link>
             <Link href="/places" className="hover:underline hover:text-[var(--accent)] transition-colors">Sites & Temples</Link>
             <Link href="/hotels" className="hover:underline hover:text-[var(--accent)] transition-colors">Accommodations</Link>
             <Link href="/trains" className="hover:underline hover:text-[var(--accent)] transition-colors">Logistics</Link>
@@ -34,28 +41,33 @@ export default function Footer() {
           <div className="flex flex-col gap-3 font-mono text-sm font-bold">
             <Link href="/expenses" className="hover:underline hover:text-[var(--accent)] transition-colors">Auto-Ledger</Link>
             <Link href="/vault" className="hover:underline hover:text-[var(--accent)] transition-colors">Secure Vault</Link>
+            <Link href="/photos" className="hover:underline hover:text-[var(--accent)] transition-colors">Photo Stream</Link>
           </div>
         </div>
 
         <div>
           <h3 className="font-black uppercase mb-4 tracking-widest text-sm text-[var(--accent)]">Telemetry</h3>
-          <div className="flex flex-col gap-3 font-mono text-sm font-bold text-muted border border-[var(--border-color)] p-4 bg-white shadow-[4px_4px_0px_0px_var(--shadow-color)]">
-            <p>16 OCT – 26 OCT</p>
-            <p>MITRA & GHOSH</p>
-            <p className="text-[var(--accent)]">STATUS: CONFIRMED</p>
+          <div className="flex flex-col gap-2.5 font-mono text-xs font-bold text-muted border-2 border-[var(--border-color)] p-4 bg-white dark:bg-black shadow-[4px_4px_0px_0px_var(--shadow-color)]">
+            <p className="text-zinc-500 uppercase">TIMEFRAME:</p>
+            <p className="text-zinc-900 dark:text-zinc-100 font-black">
+              {activeTrip.start_date || '16 OCT'} – {activeTrip.end_date || '26 OCT'}
+            </p>
+            <p className="text-[var(--accent)] pt-1 border-t border-zinc-200 dark:border-zinc-800">
+              ● ACTIVE // {activeTrip.slug.toUpperCase()}
+            </p>
           </div>
         </div>
       </div>
       
-      {/* PHYSICS TEXT CONTAINER */}
-      <div className="w-full border-t-2 border-[var(--border-color)] bg-[var(--surface-light)] pt-8 pb-4">
-        <div className="container-wide flex justify-center items-center">
+      {/* PHYSICS TEXT CONTAINER WITH FIXED BOUNDS TO PREVENT CLS */}
+      <div className="w-full border-t-2 border-[var(--border-color)] bg-[var(--surface-light)] pt-6 pb-4">
+        <div className="container-wide flex justify-center items-center h-[150px] min-h-[150px]">
           <PhysicsText />
         </div>
       </div>
 
       <div className="border-t-2 border-[var(--border-color)] bg-[var(--text-primary)] text-[var(--bg-color)] py-4 font-mono text-xs font-bold text-center uppercase tracking-widest">
-        <p>SYSTEM ONLINE © 2026 ANCIENT MAHARASHTRA TOUR</p>
+        <p>SYSTEM ONLINE © 2026 {activeTrip.title.toUpperCase()}</p>
       </div>
     </footer>
   );

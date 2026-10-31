@@ -1,0 +1,89 @@
+name: ECC Autonomous Evolution Engine
+
+on:
+  schedule:
+    # Daily at 03:00 UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in Dry-Run mode without applying mutations'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  evolution-cycle:
+    name: Run Evolution Cycle & Guardrail Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Verify ECC Guardrail Configuration
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('ecc-evolution.json', 'utf8'))"
+          echo "ECC evolution configuration successfully parsed and verified."
+
+      - name: Execute Autonomous Evolution Engine
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            npm run evolve -- --dry-run
+          else
+            npm run evolve
+          fi
+
+      - name: Verify Vault & Secret Isolation Post-Run
+        run: |
+          echo "Verifying no protected files were mutated..."
+          
+          # Check persistent vault files
+          if git diff --name-only | grep -E '^src/lib/private_uploads/'; then
+            echo "::error::Vault files under src/lib/private_uploads/ were modified! Aborting workflow."
+            exit 1
+          fi
+
+          # Check secret stores
+          if git status --porcelain | grep -E '\.env'; then
+            echo "::error::Secret files detected in git status! Aborting workflow."
+            exit 1
+          fi
+
+          # Check Supabase contracts
+          if git diff -- "verify_supabase.ts" "src/lib/supabase.ts" | grep -Ei '\b(DROP TABLE|DROP COLUMN|TRUNCATE)\b'; then
+            echo "::error::Destructive DDL detected in Supabase contracts! Aborting workflow."
+            exit 1
+          fi
+
+          echo "All isolation constraints passed successfully."
+
+      - name: Commit & Push Evolution Updates
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ -n "$(git status --porcelain package.json package-lock.json)" ]; then
+            git add package.json package-lock.json
+            git commit -m "chore(evolution): automated minor dependency & layout hygiene update [skip ci]"
+            git push
+            echo "Evolution changes committed and pushed."
+          else
+            echo "No package updates to commit."
+          fi
+

@@ -7,6 +7,7 @@ import TopNavbar from '@/components/layout/TopNavbar';
 import Footer from '@/components/layout/Footer';
 import Preloader from '@/components/layout/Preloader';
 import LoginModal from '@/components/auth/LoginModal';
+import { TripProvider } from '@/context/TripContext';
 import { TripDataProvider } from '@/context/TripDataContext';
 
 const inter = Inter({
@@ -36,19 +37,21 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={inter.className}>
       <body>
         <AuthProvider>
-          <Preloader />
-          <LoginModal />
-          <ThemeProvider>
-            <div className="relative min-h-screen flex flex-col">
-            <TopNavbar />
-            <main className="flex-grow">
-              <TripDataProvider>
-                {children}
-              </TripDataProvider>
-            </main>
-            <Footer />
-          </div>
-        </ThemeProvider>
+          <TripProvider>
+            <Preloader />
+            <LoginModal />
+            <ThemeProvider>
+              <div className="relative min-h-screen flex flex-col">
+                <TopNavbar />
+                <main className="flex-grow">
+                  <TripDataProvider>
+                    {children}
+                  </TripDataProvider>
+                </main>
+                <Footer />
+              </div>
+            </ThemeProvider>
+          </TripProvider>
         </AuthProvider>
       </body>
     </html>
