@@ -6,22 +6,25 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "verify": "node scripts/pre-commit-verify.mjs",
+    "evolve": "node scripts/evolution-engine.mjs",
+    "prepare": "node -e \"const fs=require('fs'); if(fs.existsSync('.git') && !fs.existsSync('.git/hooks/pre-commit')){fs.copyFileSync('scripts/pre-commit.sh','.git/hooks/pre-commit');fs.chmodSync('.git/hooks/pre-commit','755');}\""
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
-    "@react-three/drei": "^10.7.7",
+    "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.6.1",
     "@supabase/supabase-js": "^2.112.4",
-    "@types/three": "^0.185.1",
+    "@types/three": "^0.185.4",
     "dotenv": "^17.4.2",
     "framer-motion": "^12.43.0",
     "gsap": "^3.15.0",
     "html2canvas": "^1.4.1",
-    "jose": "^6.2.9",
+    "jose": "^6.2.14",
     "jspdf": "^4.2.1",
-    "jspdf-autotable": "^5.0.8",
-    "lottie-react": "^2.4.1",
+    "jspdf-autotable": "^5.0.9",
+    "lottie-react": "^2.4.2",
     "lucide-react": "^1.28.0",
     "mongoose": "^9.9.0",
     "next": "16.2.12",
@@ -29,7 +32,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "three": "^0.185.1",
-    "uuid": "^14.0.2"
+    "uuid": "^14.0.3"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -37,10 +40,10 @@
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
     "autoprefixer": "^10.5.4",
-    "concurrently": "^10.0.5",
+    "concurrently": "^10.0.6",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
-    "postcss": "^8.5.26",
+    "postcss": "^8.5.32",
     "tailwindcss": "^3.4.19",
     "typescript": "^5"
   }

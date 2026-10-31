@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useSyncExternalStore } from 'react';
+import Image from 'next/image';
 import { useTripData } from '@/context/TripDataContext';
 import { MapPin, ChevronDown, ChevronUp, Navigation } from 'lucide-react';
 
@@ -55,8 +56,14 @@ export default function ItineraryPage() {
                   >
                     <div className="flex flex-col md:flex-row">
                       
-                      <div className={`w-full md:w-64 h-48 md:h-auto flex-shrink-0 relative border-b-2 md:border-b-0 md:border-r-2 ${isActive ? 'border-[var(--accent)]' : 'border-black'}`}>
-                        <img src={day.coverImage} className="w-full h-full object-cover" alt={day.title} />
+                      <div className={`w-full md:w-64 h-48 md:min-h-[180px] md:h-auto flex-shrink-0 relative border-b-2 md:border-b-0 md:border-r-2 ${isActive ? 'border-[var(--accent)]' : 'border-black'}`}>
+                        <Image 
+                          src={day.coverImage} 
+                          alt={day.title} 
+                          fill
+                          sizes="(max-width: 768px) 100vw, 256px"
+                          className="object-cover" 
+                        />
                         <div className="absolute inset-0 bg-black/20" />
                         <div className={`absolute top-0 left-0 text-white border-r-2 border-b-2 font-mono font-black text-sm px-4 py-2 ${isActive ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--accent)] border-black'}`}>
                           DAY {day.day}

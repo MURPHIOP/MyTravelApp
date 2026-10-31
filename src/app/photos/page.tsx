@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import NextImage from 'next/image';
 import { Upload, Image as ImageIcon, Trash2, Camera } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
@@ -195,10 +196,13 @@ export default function PhotosPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
             {photos.map((photo, idx) => (
               <div key={idx} className="relative group brutal-card p-0 overflow-hidden bg-black aspect-square">
-                <img 
+                <NextImage 
                   src={photo.url} 
                   alt="Travel memory" 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-90 group-hover:opacity-100"
+                  fill
+                  unoptimized
+                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                 />
                 
                 {/* Overlay Controls */}

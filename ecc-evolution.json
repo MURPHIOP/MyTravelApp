@@ -1,0 +1,15 @@
+{
+  "engine": "continuous-learning-v2",
+  "interval": "3h",
+  "autoCommit": true,
+  "preservePaths": [
+    "src/lib/private_uploads/**/*",
+    "supabase/**/*",
+    ".env.local"
+  ],
+  "upgradeStrategy": "non-breaking-minor",
+  "verificationPipeline": [
+    "npm run lint",
+    "npx tsc --noEmit"
+  ]
+}

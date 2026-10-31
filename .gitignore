@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+.ecc-audit.log
 
 # debug
 npm-debug.log*

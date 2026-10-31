@@ -9,6 +9,7 @@ import {
   History, Eye
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 function PlaceTypeIcon({ type }: { type: string }) {
   const props = { size: 24, strokeWidth: 3 };
@@ -67,10 +68,13 @@ export default function PlaceDetailPage() {
 
         {/* Right Image Column */}
         <div className="w-full md:w-7/12 relative order-1 md:order-2 flex-grow min-h-[300px]">
-          <img
+          <Image
             src={place.coverImage}
             alt={place.name}
-            className="absolute inset-0 w-full h-full object-cover"
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 60vw"
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-black/20" />
           

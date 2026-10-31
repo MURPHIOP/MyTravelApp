@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { MapPin } from 'lucide-react';
 
 import { useTripData } from '@/context/TripDataContext';
@@ -24,10 +25,12 @@ export default function HotelsPage() {
             <div key={idx} className="brutal-card p-0 flex flex-col overflow-hidden bg-white group">
               
               <div className="relative h-72 border-b-4 border-black overflow-hidden bg-black">
-                <img 
+                <Image 
                   src={hotel.coverImage} 
                   alt={hotel.name}
-                  className="w-full h-full object-cover transition-all duration-500 opacity-80" 
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover transition-all duration-500 opacity-80" 
                 />
                 
                 <div className="absolute top-0 left-0 bg-[var(--accent)] text-white border-r-4 border-b-4 border-black px-4 py-2 flex items-center gap-2 font-mono font-black text-xl">
