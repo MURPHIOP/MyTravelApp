@@ -39,27 +39,27 @@ export default function TopNavbar() {
             <Link 
               href="/" 
               onClick={() => setIsOpen(false)} 
-              className="flex items-center gap-3 brutal-btn hover:translate-y-0 hover:translate-x-0" 
+              className="flex items-center gap-3 brutal-btn hover:translate-y-0 hover:translate-x-0 text-[var(--text-primary)]" 
               style={{ padding: '8px 16px', boxShadow: 'none' }}
             >
               <div className="flex items-center justify-center w-8 h-8 bg-[var(--accent)] border-2 border-[var(--border-color)] transition-colors duration-300">
                 <Compass size={18} color="#FFF" />
               </div>
               <div className="flex flex-col">
-                <span className="font-black text-base sm:text-lg tracking-tighter uppercase leading-tight line-clamp-1 max-w-[200px] sm:max-w-[260px]">
+                <span className="font-black text-base sm:text-lg tracking-tighter uppercase leading-tight line-clamp-1 max-w-[200px] sm:max-w-[260px] text-[var(--text-primary)]">
                   {activeTrip.title}
                 </span>
               </div>
             </Link>
 
             {/* Tactical Status Pill */}
-            <div className="hidden xl:flex items-center gap-2 pl-2 border-l-2 border-zinc-300 dark:border-zinc-800">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--accent)] text-white text-[10px] font-mono font-black tracking-widest border-2 border-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <div className="hidden xl:flex items-center gap-2 pl-2 border-l-2 border-[var(--border-color)]/20">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--accent)] text-white text-[10px] font-mono font-black tracking-widest border-2 border-[var(--border-color)] uppercase shadow-[2px_2px_0px_0px_var(--shadow-color)]">
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 ACTIVE DEPLOYMENT
               </span>
               {activeTrip.start_date && (
-                <span className="font-mono text-[11px] text-zinc-500 font-bold uppercase">
+                <span className="font-mono text-[11px] text-[var(--text-muted)] font-bold uppercase">
                   [{activeTrip.start_date}]
                 </span>
               )}
@@ -67,7 +67,7 @@ export default function TopNavbar() {
           </div>
           
           {/* DESKTOP LINKS */}
-          <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-mono font-bold text-sm tracking-wider uppercase">
+          <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-mono font-bold text-sm tracking-wider uppercase text-[var(--text-primary)]">
             <Link href="/itinerary" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Route</Link>
             <Link href="/places" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Sites</Link>
             <Link href="/hotels" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Stays</Link>
@@ -86,7 +86,7 @@ export default function TopNavbar() {
             <div className="relative" ref={tripMenuRef}>
               <button
                 onClick={() => setIsTripMenuOpen(!isTripMenuOpen)}
-                className="px-3 py-1.5 bg-white dark:bg-zinc-900 border-2 border-[var(--border-color)] text-xs font-mono font-bold uppercase flex items-center gap-2 shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                className="px-3 py-1.5 bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] text-xs font-mono font-bold uppercase flex items-center gap-2 shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
                 title="Switch active fleet deployment"
               >
                 <Globe size={14} className="text-[var(--accent)]" />
@@ -102,9 +102,9 @@ export default function TopNavbar() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-72 bg-white dark:bg-black border-2 border-black p-3 shadow-[6px_6px_0px_0px_var(--accent)] z-50"
+                    className="absolute right-0 mt-2 w-72 bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] p-3 shadow-[6px_6px_0px_0px_var(--accent)] z-50"
                   >
-                    <div className="font-mono text-[10px] text-zinc-500 uppercase font-black tracking-widest pb-2 mb-2 border-b border-zinc-200 dark:border-zinc-800">
+                    <div className="font-mono text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest pb-2 mb-2 border-b border-[var(--border-color)]/20">
                       FLEET DEPLOYMENTS ({trips.length})
                     </div>
                     <div className="space-y-1.5 max-h-60 overflow-y-auto">
@@ -120,7 +120,7 @@ export default function TopNavbar() {
                             className={`w-full text-left p-2 border flex items-center justify-between text-xs font-mono transition-all ${
                               isCurrent
                                 ? 'border-[var(--accent)] bg-[var(--accent)] text-white font-black'
-                                : 'border-zinc-200 dark:border-zinc-800 hover:border-black dark:hover:border-white font-bold'
+                                : 'border-[var(--border-color)]/20 text-[var(--text-primary)] hover:border-[var(--border-color)] font-bold hover:bg-[var(--accent-light)]'
                             }`}
                           >
                             <span className="truncate pr-2">{t.title}</span>
@@ -130,11 +130,11 @@ export default function TopNavbar() {
                       })}
                     </div>
                     {user?.role === 'FAMILY_HEAD' && (
-                      <div className="pt-2.5 mt-2 border-t border-zinc-200 dark:border-zinc-800">
+                      <div className="pt-2.5 mt-2 border-t border-[var(--border-color)]/20">
                         <Link
                           href="/admin"
                           onClick={() => setIsTripMenuOpen(false)}
-                          className="w-full block text-center py-1.5 bg-zinc-100 dark:bg-zinc-900 border border-black text-[11px] font-mono font-black uppercase hover:bg-[var(--accent)] hover:text-white transition-colors"
+                          className="w-full block text-center py-1.5 bg-[var(--bg-color)] text-[var(--text-primary)] border border-[var(--border-color)] text-[11px] font-mono font-black uppercase hover:bg-[var(--accent)] hover:text-white transition-colors"
                         >
                           + Manage / Deploy in Admin
                         </Link>
@@ -168,7 +168,7 @@ export default function TopNavbar() {
 
           {/* MOBILE MENU TOGGLE */}
           <button 
-            className="lg:hidden flex items-center justify-center w-12 h-12 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:translate-x-1 active:shadow-none transition-all z-[60]"
+            className="lg:hidden flex items-center justify-center w-12 h-12 bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] shadow-[4px_4px_0px_0px_var(--shadow-color)] active:translate-y-1 active:translate-x-1 active:shadow-none transition-all z-[60]"
             onClick={toggleMenu}
             aria-label="Toggle Navigation Menu"
           >

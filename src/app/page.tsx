@@ -226,45 +226,93 @@ export default function HomePage() {
             </Link>
 
             {/* Destinations */}
-            <Link href="/places" className="brutal-card p-6 flex flex-col justify-between group bg-[#FFEDD5]">
-              <Compass size={40} className="text-[var(--accent)]" />
-              <div>
-                <h3 className="text-2xl font-black uppercase border-b-2 border-black pb-2 mb-2 group-hover:pl-2 transition-all">Destinations</h3>
-                <p className="font-mono text-xs font-bold uppercase tracking-widest">8 Sacred Sites</p>
+            <Link href="/places" className="brutal-card p-6 flex flex-col justify-between group bg-[#FFEDD5] relative overflow-hidden">
+              <div className="absolute inset-0 z-0">
+                <Image
+                  src={PLACE_IMAGES.ellora}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 25vw"
+                  className="object-cover opacity-15 group-hover:scale-105 transition-transform duration-700"
+                  alt="Destinations Background"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#FFEDD5] via-transparent to-transparent" />
+              </div>
+              <div className="relative z-10 flex flex-col justify-between h-full">
+                <Compass size={40} className="text-[var(--accent)]" />
+                <div>
+                  <h3 className="text-2xl font-black uppercase border-b-2 border-black pb-2 mb-2 group-hover:pl-2 transition-all">Destinations</h3>
+                  <p className="font-mono text-xs font-bold uppercase tracking-widest">8 Sacred Sites</p>
+                </div>
               </div>
             </Link>
 
             {/* Trains */}
-            <Link href="/trains" className="brutal-card p-6 flex flex-col justify-between group bg-white">
-              <Train size={40} className="text-[var(--border-color)]" />
-              <div>
-                <h3 className="text-2xl font-black uppercase border-b-2 border-black pb-2 mb-2 group-hover:pl-2 transition-all">Train Info</h3>
-                <p className="font-mono text-xs font-bold uppercase tracking-widest">Boarding Passes</p>
+            <Link href="/trains" className="brutal-card p-6 flex flex-col justify-between group bg-white relative overflow-hidden">
+              <div className="absolute inset-0 z-0">
+                <Image
+                  src={PLACE_IMAGES.train}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 25vw"
+                  className="object-cover opacity-15 group-hover:scale-105 transition-transform duration-700"
+                  alt="Train Background"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+              </div>
+              <div className="relative z-10 flex flex-col justify-between h-full">
+                <Train size={40} className="text-[var(--border-color)]" />
+                <div>
+                  <h3 className="text-2xl font-black uppercase border-b-2 border-black pb-2 mb-2 group-hover:pl-2 transition-all">Train Info</h3>
+                  <p className="font-mono text-xs font-bold uppercase tracking-widest">Boarding Passes</p>
+                </div>
               </div>
             </Link>
 
             {/* Hotels */}
-            <Link href="/hotels" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--text-primary)] text-white border-[var(--text-primary)] shadow-[4px_4px_0px_0px_var(--accent)]">
-              <Hotel size={40} className="text-[var(--accent)]" />
-              <div>
-                <h3 className="text-2xl font-black uppercase border-b-2 border-white pb-2 mb-2 group-hover:pl-2 transition-all">Stays</h3>
-                <p className="font-mono text-xs font-bold uppercase tracking-widest text-[var(--accent)]">5 Accommodations</p>
+            <Link href="/hotels" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--text-primary)] text-white border-[var(--text-primary)] shadow-[4px_4px_0px_0px_var(--accent)] relative overflow-hidden">
+              <div className="absolute inset-0 z-0">
+                <Image
+                  src={PLACE_IMAGES.hotel}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 25vw"
+                  className="object-cover opacity-20 group-hover:scale-105 transition-transform duration-700"
+                  alt="Hotels Background"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+              </div>
+              <div className="relative z-10 flex flex-col justify-between h-full">
+                <Hotel size={40} className="text-[var(--accent)]" />
+                <div>
+                  <h3 className="text-2xl font-black uppercase border-b-2 border-white pb-2 mb-2 group-hover:pl-2 transition-all">Stays</h3>
+                  <p className="font-mono text-xs font-bold uppercase tracking-widest text-[var(--accent)]">5 Accommodations</p>
+                </div>
               </div>
             </Link>
 
             {/* Expenses */}
-            <Link href="/expenses" className="brutal-card lg:col-span-2 p-8 flex flex-col justify-center group bg-[#ECFCCB]">
-              <div className="flex items-center gap-6 mb-4">
-                <div className="w-16 h-16 border-4 border-black bg-white flex items-center justify-center shadow-[4px_4px_0px_0px_var(--border-color)]">
-                  <Wallet size={32} />
-                </div>
-                <h3 className="text-3xl font-black uppercase underline decoration-[var(--accent)] decoration-4 underline-offset-8 group-hover:bg-[var(--accent)] group-hover:text-white transition-colors">
-                  Auto-Split Ledger
-                </h3>
+            <Link href="/expenses" className="brutal-card lg:col-span-2 p-8 flex flex-col justify-center group bg-[#ECFCCB] relative overflow-hidden">
+              <div className="absolute inset-0 z-0">
+                <Image
+                  src={PLACE_IMAGES.hero}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover opacity-10 group-hover:scale-105 transition-transform duration-700 mix-blend-multiply"
+                  alt="Ledger Background"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#ECFCCB] via-transparent to-[#ECFCCB]/80" />
               </div>
-              <p className="font-mono text-sm font-bold border-l-4 border-black pl-4 py-2 mt-4">
-                Real-time synchronization of shared expenses between families.
-              </p>
+              <div className="relative z-10">
+                <div className="flex items-center gap-6 mb-4">
+                  <div className="w-16 h-16 border-4 border-black bg-white flex items-center justify-center shadow-[4px_4px_0px_0px_var(--border-color)]">
+                    <Wallet size={32} />
+                  </div>
+                  <h3 className="text-3xl font-black uppercase underline decoration-[var(--accent)] decoration-4 underline-offset-8 group-hover:bg-[var(--accent)] group-hover:text-white transition-colors">
+                    Auto-Split Ledger
+                  </h3>
+                </div>
+                <p className="font-mono text-sm font-bold border-l-4 border-black pl-4 py-2 mt-4">
+                  Real-time synchronization of shared expenses between families.
+                </p>
+              </div>
             </Link>
 
           </div>

@@ -8,6 +8,7 @@ import {
   HOTELS as DEFAULT_HOTELS, 
   PLACES as DEFAULT_PLACES 
 } from '@/lib/tripData';
+import { resolveDestinationVisuals } from '@/lib/destinationImageService';
 
 export interface Trip {
   id: string;
@@ -184,24 +185,31 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Create a New Trip
+  // Create a New Trip with Automated Dynamic Destination Visuals
   const createTrip = async (payload: Partial<Trip>): Promise<Trip | null> => {
     const slug = payload.slug || `trip-${Date.now()}`;
+    const tripTitle = payload.title || 'Untitled Journey';
+    const visual = resolveDestinationVisuals(tripTitle);
+
     const newTrip: Trip = {
       id: payload.id || `trip-${Date.now()}`,
       slug,
-      title: payload.title || 'Untitled Journey',
-      description: payload.description || 'Custom Travel Itinerary',
+      title: tripTitle,
+      description: payload.description || `${visual.themeCategory} Plan`,
       start_date: payload.start_date || new Date().toISOString().split('T')[0],
       end_date: payload.end_date || new Date().toISOString().split('T')[0],
-      cover_image: payload.cover_image || '/destinations/hero_map.jpg',
-      accent_color: payload.accent_color || '#2563EB',
+      cover_image: payload.cover_image || visual.coverImage,
+      accent_color: payload.accent_color || visual.accentColor,
       is_active: false,
       itinerary: payload.itinerary || DEFAULT_ITINERARY,
       trains: payload.trains || DEFAULT_TRAINS,
       hotels: payload.hotels || DEFAULT_HOTELS,
       places: payload.places || DEFAULT_PLACES,
-      metadata: payload.metadata || {},
+      metadata: {
+        themeCategory: visual.themeCategory,
+        heroImage: visual.heroImage,
+        ...(payload.metadata || {}),
+      },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
