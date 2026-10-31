@@ -12,7 +12,7 @@ export default function TrainsPage() {
       <div className="container-wide">
         
         <div className="mb-24 border-b-4 border-[var(--border-color)] pb-12">
-          <div className="inline-block bg-[var(--text-primary)] text-white px-4 py-2 font-mono text-sm font-bold uppercase mb-8 shadow-[4px_4px_0px_0px_var(--accent)]">
+          <div className="inline-block bg-[var(--surface-contrast)] text-[var(--text-inverse)] px-4 py-2 font-mono text-sm font-bold uppercase mb-8 shadow-[4px_4px_0px_0px_var(--accent)]">
             Logistics Module
           </div>
           <h1 className="heading-hero">Train Status</h1>
@@ -20,7 +20,7 @@ export default function TrainsPage() {
 
         <div className="space-y-12">
           {TRAINS.map((ticket, idx) => (
-            <div key={idx} className="brutal-card p-0 flex flex-col md:flex-row overflow-hidden bg-white">
+            <div key={idx} className="brutal-card p-0 flex flex-col md:flex-row overflow-hidden bg-[var(--surface-light)]">
               
               {/* Train Name & PNR (Left) */}
               <div className="p-8 md:w-1/3 bg-[var(--accent)] text-white border-b-4 md:border-b-0 md:border-r-4 border-black flex flex-col justify-between">

@@ -140,7 +140,7 @@ export default function PhotosPage() {
         {/* HEADER SECTION */}
         <div className="mb-16 border-b-4 border-[var(--border-color)] pb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div>
-            <div className="inline-flex items-center gap-2 bg-[var(--text-primary)] text-white px-4 py-2 font-mono text-sm font-bold uppercase mb-8 shadow-[4px_4px_0px_0px_var(--accent)]">
+            <div className="inline-flex items-center gap-2 bg-[var(--surface-contrast)] text-[var(--text-inverse)] px-4 py-2 font-mono text-sm font-bold uppercase mb-8 shadow-[4px_4px_0px_0px_var(--accent)]">
               <Camera size={18} /> Memory Dump
             </div>
             <h1 className="heading-hero">Photos</h1>

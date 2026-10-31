@@ -34,12 +34,12 @@ export default function PlacesPage() {
         {/* Brutalist Header */}
         <div className="mb-16 border-b-[4px] border-[var(--border-color)] pb-12 flex flex-col md:flex-row justify-between items-end">
           <div>
-            <div className="inline-block bg-[var(--text-primary)] text-white px-3 py-1 font-mono text-sm font-bold uppercase mb-6 shadow-[4px_4px_0px_0px_var(--accent)]">
+            <div className="inline-block bg-[var(--surface-contrast)] text-[var(--text-inverse)] px-3 py-1 font-mono text-sm font-bold uppercase mb-6 shadow-[4px_4px_0px_0px_var(--accent)]">
               Index / 8 Sites
             </div>
             <h1 className="heading-hero">Destinations</h1>
           </div>
-          <p className="text-xl font-bold max-w-sm border-l-4 border-[var(--accent)] pl-4 bg-white p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mt-8 md:mt-0">
+          <p className="text-xl font-bold max-w-sm border-l-4 border-[var(--accent)] pl-4 bg-[var(--surface-light)] text-[var(--text-primary)] p-4 shadow-[6px_6px_0px_0px_var(--shadow-color)] mt-8 md:mt-0">
             Curated travel intelligence for our journey across Maharashtra.
           </p>
         </div>
@@ -49,7 +49,7 @@ export default function PlacesPage() {
           {FILTERS.map(f => (
             <button
               key={f.id}
-              className={`brutal-btn ${filter === f.id ? 'bg-[var(--accent)] text-white' : 'bg-white'}`}
+              className={`brutal-btn ${filter === f.id ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-light)] text-[var(--text-primary)]'}`}
               onClick={() => setFilter(f.id)}
             >
               {f.label}
@@ -78,10 +78,10 @@ export default function PlacesPage() {
               </div>
 
               {/* Details Section */}
-              <div className="p-6 flex flex-col flex-grow justify-between gap-6 bg-white group-hover:bg-transparent transition-colors">
+              <div className="p-6 flex flex-col flex-grow justify-between gap-6 bg-[var(--surface-light)] text-[var(--text-primary)] group-hover:bg-transparent transition-colors">
                 
                 <div>
-                  <div className="flex items-center gap-2 mb-3 text-xs font-black tracking-widest uppercase border-2 border-[var(--border-color)] w-max px-2 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center gap-2 mb-3 text-xs font-black tracking-widest uppercase border-2 border-[var(--border-color)] w-max px-2 py-1 shadow-[2px_2px_0px_0px_var(--shadow-color)]">
                     <PlaceTypeIcon type={place.type} />
                     {place.typeLabel}
                   </div>

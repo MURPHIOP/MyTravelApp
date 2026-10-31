@@ -151,9 +151,9 @@ export default function VaultPage() {
       <div className="container-wide">
         
         {/* Brutalist Header */}
-        <div className="mb-16 border-b-4 border-black pb-12 flex flex-col md:flex-row justify-between items-end gap-8">
+        <div className="mb-16 border-b-4 border-[var(--border-color)] pb-12 flex flex-col md:flex-row justify-between items-end gap-8">
           <div>
-            <div className="inline-block bg-[var(--text-primary)] text-white px-3 py-1 font-mono text-sm font-bold uppercase mb-6 shadow-[4px_4px_0px_0px_var(--accent)]">
+            <div className="inline-block bg-[var(--surface-contrast)] text-[var(--text-inverse)] px-3 py-1 font-mono text-sm font-bold uppercase mb-6 shadow-[4px_4px_0px_0px_var(--accent)]">
               Secure Cloud Storage
             </div>
             <h1 className="heading-hero">Vault</h1>

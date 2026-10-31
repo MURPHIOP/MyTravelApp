@@ -31,10 +31,10 @@ export default function PlaceDetailPage() {
     <div className="w-full pb-32 min-h-screen">
 
       {/* Brutalist Hero */}
-      <div className="relative w-full h-[70vh] min-h-[600px] border-b-4 border-black bg-white flex flex-col md:flex-row">
+      <div className="relative w-full h-[70vh] min-h-[600px] border-b-4 border-[var(--border-color)] bg-[var(--surface-light)] flex flex-col md:flex-row overflow-hidden">
         
         {/* Left Info Column */}
-        <div className="w-full md:w-5/12 border-b-4 md:border-b-0 md:border-r-4 border-black flex flex-col justify-between p-8 md:p-12 order-2 md:order-1 z-10 bg-white">
+        <div className="w-full md:w-5/12 border-b-4 md:border-b-0 md:border-r-4 border-[var(--border-color)] flex flex-col justify-between p-8 md:p-12 order-2 md:order-1 z-10 bg-[var(--surface-light)] text-[var(--text-primary)]">
           <div>
             <Link
               href="/places"
@@ -44,30 +44,30 @@ export default function PlaceDetailPage() {
             </Link>
 
             <div
-              className="inline-flex items-center gap-2 mb-6 px-4 py-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-mono font-black uppercase text-sm"
+              className="inline-flex items-center gap-2 mb-6 px-4 py-2 border-2 border-[var(--border-color)] shadow-[4px_4px_0px_0px_var(--shadow-color)] font-mono font-black uppercase text-sm"
               style={{ background: place.accentColor, color: '#FFFFFF' }}
             >
               <PlaceTypeIcon type={place.type} />
               {place.typeLabel}
             </div>
             
-            <h1 className="text-5xl lg:text-6xl xl:text-[5rem] font-black uppercase tracking-tighter text-black mb-6 leading-none break-words hyphens-auto">
+            <h1 className="text-5xl lg:text-6xl xl:text-[5rem] font-black uppercase tracking-tighter text-[var(--text-primary)] mb-6 leading-none break-words hyphens-auto">
               {place.name}
             </h1>
           </div>
           
           <div className="flex flex-col gap-4 font-mono font-bold text-sm">
-            <div className="flex items-center gap-3 bg-[var(--bg-color)] p-4 border-2 border-black">
+            <div className="flex items-center gap-3 bg-[var(--bg-color)] p-4 border-2 border-[var(--border-color)] text-[var(--text-primary)]">
               <MapPin size={24} style={{ color: place.accentColor }} /> {place.city}
             </div>
-            <div className="flex items-center gap-3 bg-[var(--bg-color)] p-4 border-2 border-black">
+            <div className="flex items-center gap-3 bg-[var(--bg-color)] p-4 border-2 border-[var(--border-color)] text-[var(--text-primary)]">
               <Calendar size={24} /> SCHEDULED DAY {place.visitDay}
             </div>
           </div>
         </div>
 
         {/* Right Image Column */}
-        <div className="w-full md:w-7/12 relative order-1 md:order-2 flex-grow min-h-[300px]">
+        <div className="w-full md:w-7/12 relative order-1 md:order-2 flex-grow min-h-[320px] md:min-h-[580px] overflow-hidden">
           <Image
             src={place.coverImage}
             alt={place.name}
@@ -161,8 +161,8 @@ export default function PlaceDetailPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center p-6 gap-6 bg-white">
-                  <div className="text-black"><Shirt size={32} /></div>
+                <div className="flex items-center p-6 gap-6 bg-[var(--surface-light)] text-[var(--text-primary)]">
+                  <div className="text-[var(--text-primary)]"><Shirt size={32} /></div>
                   <div>
                     <div className="text-xs font-black text-muted tracking-widest uppercase mb-1">Dress Code</div>
                     <div className="font-bold text-lg uppercase">{place.dressCode}</div>
@@ -172,7 +172,7 @@ export default function PlaceDetailPage() {
             </div>
 
             {/* Travel Tips */}
-            <div className="brutal-card p-8 bg-[var(--text-primary)] text-white border-[var(--text-primary)] shadow-[8px_8px_0px_0px_var(--accent)]">
+            <div className="brutal-card p-8 bg-[var(--surface-contrast)] text-[var(--text-inverse)] border-2 border-[var(--border-color)] shadow-[8px_8px_0px_0px_var(--accent)]">
               <div className="flex items-center gap-4 mb-8">
                 <ShieldAlert size={32} className="text-[var(--accent)]" />
                 <h3 className="font-black text-2xl uppercase">Traveler Tips</h3>

@@ -6,21 +6,35 @@
   :root {
     --bg-color: #FAFAFA; /* Ultra clean off-white */
     --text-primary: #09090B; /* Almost black */
-    --text-muted: #71717A;
+    --text-muted: #52525B; /* High-contrast zinc-600 */
+    --text-inverse: #FAFAFA;
     --border-color: #09090B;
     --accent: #2563EB; /* Royal/Electric Blue */
     --accent-light: #EFF6FF;
     --surface-light: #FFFFFF;
+    --surface-contrast: #09090B;
     --shadow-color: #09090B;
+    --bg-overlay: linear-gradient(to top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.1) 100%);
+    --card-tint-warm: #FFEDD5;
+    --card-tint-cool: #ECFCCB;
+    --card-overlay-solid: rgba(255, 255, 255, 0.85);
+    --grid-line-color: rgba(9, 9, 11, 0.05);
   }
 
   [data-theme='dark'] {
     --bg-color: #09090B;
     --text-primary: #FAFAFA;
     --text-muted: #A1A1AA;
+    --text-inverse: #09090B;
     --border-color: #27272A;
     --surface-light: #18181B;
+    --surface-contrast: #27272A;
     --shadow-color: #000000;
+    --bg-overlay: linear-gradient(to top, rgba(24, 24, 27, 0.96) 0%, rgba(24, 24, 27, 0.65) 50%, rgba(24, 24, 27, 0.15) 100%);
+    --card-tint-warm: #261B14;
+    --card-tint-cool: #162010;
+    --card-overlay-solid: rgba(24, 24, 27, 0.85);
+    --grid-line-color: rgba(255, 255, 255, 0.05);
   }
 
   body {
@@ -120,8 +134,12 @@
   .grid-bg {
     background-size: 40px 40px;
     background-image: 
-      linear-gradient(to right, rgba(9, 9, 11, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(9, 9, 11, 0.05) 1px, transparent 1px);
+      linear-gradient(to right, var(--grid-line-color) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line-color) 1px, transparent 1px);
+  }
+
+  .card-bg-overlay {
+    background: var(--bg-overlay);
   }
 }
 

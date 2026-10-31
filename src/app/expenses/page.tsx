@@ -532,7 +532,7 @@ export default function ExpensesPage() {
         {/* Brutalist Header */}
         <div className="mb-16 border-b-4 border-[var(--border-color)] pb-12 flex flex-col md:flex-row justify-between items-end gap-8">
           <div>
-            <div className="inline-block bg-[var(--text-primary)] text-white px-3 py-1 font-mono text-sm font-bold uppercase mb-6 shadow-[4px_4px_0px_0px_var(--accent)]">
+            <div className="inline-block bg-[var(--surface-contrast)] text-[var(--text-inverse)] px-3 py-1 font-mono text-sm font-bold uppercase mb-6 shadow-[4px_4px_0px_0px_var(--accent)]">
               Double-Entry Accounting Module
             </div>
             <h1 className="heading-hero">Auto-Split & Ledgers</h1>
@@ -540,7 +540,7 @@ export default function ExpensesPage() {
           <div className="flex flex-wrap gap-4">
             <button 
               onClick={handleGeneratePDF}
-              className="brutal-btn bg-white text-black hover:bg-gray-100 flex items-center gap-2"
+              className="brutal-btn bg-[var(--surface-light)] text-[var(--text-primary)] hover:bg-[var(--accent-light)] flex items-center gap-2"
             >
               <Download size={18} /> Export Full Ledger PDF
             </button>

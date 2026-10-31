@@ -2,14 +2,16 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Compass, Menu, X, LogIn, LogOut, ChevronDown, Globe, Check } from 'lucide-react';
+import { Compass, Menu, X, LogIn, LogOut, ChevronDown, Globe, Check, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useTrip } from '@/context/TripContext';
+import { useTheme } from '@/context/ThemeProvider';
 
 export default function TopNavbar() {
   const { user, openLoginModal } = useAuth();
   const { trips, activeTrip, activeTripId, switchActiveTrip } = useTrip();
+  const { toggleTheme, isDark } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [isTripMenuOpen, setIsTripMenuOpen] = useState(false);
   const tripMenuRef = useRef<HTMLDivElement>(null);
@@ -145,6 +147,16 @@ export default function TopNavbar() {
               </AnimatePresence>
             </div>
 
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="w-9 h-9 flex items-center justify-center bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+              title={isDark ? "Switch to daylight mode" : "Switch to night mode"}
+              aria-label="Toggle Theme"
+            >
+              {isDark ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-[var(--text-primary)]" />}
+            </button>
+
             {/* Auth Block */}
             {user ? (
               <div className="flex items-center gap-4">
@@ -166,14 +178,23 @@ export default function TopNavbar() {
             )}
           </div>
 
-          {/* MOBILE MENU TOGGLE */}
-          <button 
-            className="lg:hidden flex items-center justify-center w-12 h-12 bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] shadow-[4px_4px_0px_0px_var(--shadow-color)] active:translate-y-1 active:translate-x-1 active:shadow-none transition-all z-[60]"
-            onClick={toggleMenu}
-            aria-label="Toggle Navigation Menu"
-          >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {/* MOBILE MENU CONTROLS */}
+          <div className="lg:hidden flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center w-12 h-12 bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] shadow-[4px_4px_0px_0px_var(--shadow-color)] active:translate-y-1 active:translate-x-1 active:shadow-none transition-all"
+              aria-label="Toggle Theme"
+            >
+              {isDark ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-[var(--text-primary)]" />}
+            </button>
+            <button 
+              className="flex items-center justify-center w-12 h-12 bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] shadow-[4px_4px_0px_0px_var(--shadow-color)] active:translate-y-1 active:translate-x-1 active:shadow-none transition-all z-[60]"
+              onClick={toggleMenu}
+              aria-label="Toggle Navigation Menu"
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
 
         </div>
       </nav>
@@ -189,19 +210,19 @@ export default function TopNavbar() {
             className="fixed inset-0 z-[55] bg-[var(--accent)] flex flex-col pt-24 pb-8 px-6 overflow-y-auto"
           >
             {/* Active Trip Badge for Mobile */}
-            <div className="bg-black text-white p-4 border-2 border-white mb-6 shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
-              <div className="flex justify-between items-center text-[10px] font-mono font-bold tracking-widest uppercase mb-1 text-zinc-400">
+            <div className="bg-[var(--surface-light)] text-[var(--text-primary)] p-4 border-2 border-[var(--border-color)] mb-6 shadow-[4px_4px_0px_0px_var(--shadow-color)]">
+              <div className="flex justify-between items-center text-[10px] font-mono font-bold tracking-widest uppercase mb-1 text-[var(--text-muted)]">
                 <span>Active Deployment</span>
-                <span className="text-[var(--accent)]">● ONLINE</span>
+                <span className="text-[var(--accent)] font-black">● ONLINE</span>
               </div>
               <div className="text-xl font-black uppercase truncate">{activeTrip.title}</div>
-              <div className="text-xs font-mono text-zinc-400 mt-1">
+              <div className="text-xs font-mono text-[var(--text-muted)] mt-1">
                 {activeTrip.start_date || 'TBD'} → {activeTrip.end_date || 'TBD'}
               </div>
 
               {/* Mobile Quick Switcher if > 1 trips */}
               {trips.length > 1 && (
-                <div className="mt-3 pt-3 border-t border-zinc-800 flex flex-wrap gap-2">
+                <div className="mt-3 pt-3 border-t border-[var(--border-color)]/20 flex flex-wrap gap-2">
                   {trips.map(t => (
                     <button
                       key={t.id}
@@ -211,8 +232,8 @@ export default function TopNavbar() {
                       }}
                       className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase border ${
                         t.id === activeTripId
-                          ? 'border-white bg-white text-black'
-                          : 'border-zinc-700 bg-zinc-900 text-zinc-300'
+                          ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                          : 'border-[var(--border-color)]/40 bg-[var(--bg-color)] text-[var(--text-primary)]'
                       }`}
                     >
                       {t.slug}
@@ -231,24 +252,24 @@ export default function TopNavbar() {
               <Link href="/vault" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Secure Vault</Link>
               <Link href="/photos" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Photos Gallery</Link>
               {user?.role === 'FAMILY_HEAD' && (
-                <Link href="/expenses" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4 text-black">Auto Ledger</Link>
+                <Link href="/expenses" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Auto Ledger</Link>
               )}
             </div>
             
             <div className="mt-auto pt-8">
-              <div className="bg-black text-white p-4 border-2 border-white shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] flex justify-between items-center">
+              <div className="bg-[var(--surface-light)] text-[var(--text-primary)] p-4 border-2 border-[var(--border-color)] shadow-[4px_4px_0px_0px_var(--shadow-color)] flex justify-between items-center">
                 <span className="font-mono text-xs font-bold uppercase">
                   {user ? (user.role === 'FAMILY_HEAD' ? 'FAMILY HEAD' : user.name) : 'GUEST SESSION'}
                 </span>
                 {user ? (
                   <button 
                     onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); window.location.reload(); }}
-                    className="font-mono text-xs font-bold uppercase underline"
+                    className="font-mono text-xs font-bold uppercase underline hover:text-[var(--accent)]"
                   >
                     Logout
                   </button>
                 ) : (
-                  <button onClick={() => { toggleMenu(); openLoginModal(); }} className="font-mono text-xs font-bold uppercase underline">
+                  <button onClick={() => { toggleMenu(); openLoginModal(); }} className="font-mono text-xs font-bold uppercase underline hover:text-[var(--accent)]">
                     Login
                   </button>
                 )}

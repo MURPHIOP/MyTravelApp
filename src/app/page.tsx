@@ -126,7 +126,7 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
             className="order-2 w-full flex justify-center lg:justify-end"
           >
-             <div className="relative w-full aspect-square max-w-[500px] bg-white border-4 border-[var(--border-color)] p-6 flex flex-col shadow-[12px_12px_0px_0px_var(--shadow-color)] transform rotate-1 hover:rotate-0 transition-transform">
+             <div className="relative w-full aspect-square max-w-[500px] bg-[var(--surface-light)] text-[var(--text-primary)] border-4 border-[var(--border-color)] p-6 flex flex-col shadow-[12px_12px_0px_0px_var(--shadow-color)] transform rotate-1 hover:rotate-0 transition-transform">
                
                <div className="flex justify-between items-center border-b-4 border-[var(--border-color)] pb-4 mb-4">
                  <span className="font-mono text-sm font-black uppercase tracking-widest">Map Viewer v1.0</span>
@@ -145,7 +145,7 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-[var(--accent)] mix-blend-color opacity-50" />
                   <div className="absolute inset-0 grid-bg opacity-30" />
                   
-                  <div className="z-10 bg-white border-2 border-black p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="z-10 bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] p-3 shadow-[4px_4px_0px_0px_var(--shadow-color)]">
                     <Compass className="animate-spin-slow w-12 h-12 text-[var(--accent)]" />
                   </div>
                </div>
@@ -176,12 +176,12 @@ export default function HomePage() {
       </section>
 
       {/* ── LIVE ANNOUNCEMENTS BANNER ── */}
-      <section className="bg-[#FFEDD5] py-4 border-y-4 border-black relative z-30">
+      <section className="bg-[var(--card-tint-warm)] py-4 border-y-4 border-[var(--border-color)] relative z-30">
         <div className="container-wide flex flex-col md:flex-row md:items-center gap-4">
           <div className="bg-[var(--accent)] text-white font-mono text-xs font-black uppercase px-3 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] whitespace-nowrap inline-flex w-max items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-white animate-pulse" /> LIVE UPDATE
           </div>
-          <p className="font-mono text-sm font-bold uppercase text-amber-900 truncate">
+          <p className="font-mono text-sm font-bold uppercase text-[var(--text-primary)] truncate">
             &gt; ALL FAMILIES: PACK LIGHT JACKETS FOR BHIMASHANKAR. TRAIN TICKETS CONFIRMED.
           </p>
         </div>
@@ -195,7 +195,7 @@ export default function HomePage() {
               <h2 className="heading-section">Mission Control</h2>
               <p className="font-mono mt-4 font-bold uppercase tracking-widest text-[var(--accent)]">Select Module</p>
             </div>
-            <div className="mt-6 md:mt-0 font-mono text-xl font-black bg-white border-2 border-[var(--border-color)] px-4 py-2 shadow-[4px_4px_0px_0px_var(--shadow-color)]">
+            <div className="mt-6 md:mt-0 font-mono text-xl font-black bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] px-4 py-2 shadow-[4px_4px_0px_0px_var(--shadow-color)]">
               TOTAL: 5 MODULES
             </div>
           </div>
@@ -212,21 +212,21 @@ export default function HomePage() {
                   className="object-cover opacity-20 group-hover:scale-105 transition-transform duration-700" 
                   alt="Ajanta" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+                <div className="absolute inset-0 card-bg-overlay" />
               </div>
               <div className="relative z-10">
                 <div className="w-16 h-16 border-4 border-[var(--border-color)] bg-[var(--accent)] text-white flex items-center justify-center mb-6 shadow-[4px_4px_0px_0px_var(--shadow-color)] group-hover:translate-x-2 transition-transform">
                   <MapPin size={32} />
                 </div>
               </div>
-              <div className="relative z-10 bg-white border-2 border-black p-6 shadow-[8px_8px_0px_0px_var(--accent)] group-hover:shadow-[12px_12px_0px_0px_var(--accent)] transition-all">
+              <div className="relative z-10 bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] p-6 shadow-[8px_8px_0px_0px_var(--accent)] group-hover:shadow-[12px_12px_0px_0px_var(--accent)] transition-all">
                 <h3 className="text-3xl font-black mb-2 uppercase">10-Day Route Plan</h3>
                 <p className="font-mono text-sm font-bold">EXECUTE TIMELINE SEQUENCE</p>
               </div>
             </Link>
 
             {/* Destinations */}
-            <Link href="/places" className="brutal-card p-6 flex flex-col justify-between group bg-[#FFEDD5] relative overflow-hidden">
+            <Link href="/places" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--card-tint-warm)] text-[var(--text-primary)] relative overflow-hidden">
               <div className="absolute inset-0 z-0">
                 <Image
                   src={PLACE_IMAGES.ellora}
@@ -235,19 +235,19 @@ export default function HomePage() {
                   className="object-cover opacity-15 group-hover:scale-105 transition-transform duration-700"
                   alt="Destinations Background"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#FFEDD5] via-transparent to-transparent" />
+                <div className="absolute inset-0 card-bg-overlay" />
               </div>
               <div className="relative z-10 flex flex-col justify-between h-full">
                 <Compass size={40} className="text-[var(--accent)]" />
                 <div>
-                  <h3 className="text-2xl font-black uppercase border-b-2 border-black pb-2 mb-2 group-hover:pl-2 transition-all">Destinations</h3>
-                  <p className="font-mono text-xs font-bold uppercase tracking-widest">8 Sacred Sites</p>
+                  <h3 className="text-2xl font-black uppercase border-b-2 border-[var(--border-color)] pb-2 mb-2 group-hover:pl-2 transition-all">Destinations</h3>
+                  <p className="font-mono text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">8 Sacred Sites</p>
                 </div>
               </div>
             </Link>
 
             {/* Trains */}
-            <Link href="/trains" className="brutal-card p-6 flex flex-col justify-between group bg-white relative overflow-hidden">
+            <Link href="/trains" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--surface-light)] text-[var(--text-primary)] relative overflow-hidden">
               <div className="absolute inset-0 z-0">
                 <Image
                   src={PLACE_IMAGES.train}
@@ -256,28 +256,28 @@ export default function HomePage() {
                   className="object-cover opacity-15 group-hover:scale-105 transition-transform duration-700"
                   alt="Train Background"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+                <div className="absolute inset-0 card-bg-overlay" />
               </div>
               <div className="relative z-10 flex flex-col justify-between h-full">
-                <Train size={40} className="text-[var(--border-color)]" />
+                <Train size={40} className="text-[var(--accent)]" />
                 <div>
-                  <h3 className="text-2xl font-black uppercase border-b-2 border-black pb-2 mb-2 group-hover:pl-2 transition-all">Train Info</h3>
-                  <p className="font-mono text-xs font-bold uppercase tracking-widest">Boarding Passes</p>
+                  <h3 className="text-2xl font-black uppercase border-b-2 border-[var(--border-color)] pb-2 mb-2 group-hover:pl-2 transition-all">Train Info</h3>
+                  <p className="font-mono text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Boarding Passes</p>
                 </div>
               </div>
             </Link>
 
             {/* Hotels */}
-            <Link href="/hotels" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--text-primary)] text-white border-[var(--text-primary)] shadow-[4px_4px_0px_0px_var(--accent)] relative overflow-hidden">
+            <Link href="/hotels" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--surface-contrast)] text-white border-2 border-[var(--border-color)] shadow-[4px_4px_0px_0px_var(--accent)] relative overflow-hidden">
               <div className="absolute inset-0 z-0">
                 <Image
                   src={PLACE_IMAGES.hotel}
                   fill
                   sizes="(max-width: 768px) 100vw, 25vw"
-                  className="object-cover opacity-20 group-hover:scale-105 transition-transform duration-700"
+                  className="object-cover opacity-25 group-hover:scale-105 transition-transform duration-700"
                   alt="Hotels Background"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
               </div>
               <div className="relative z-10 flex flex-col justify-between h-full">
                 <Hotel size={40} className="text-[var(--accent)]" />
@@ -289,27 +289,27 @@ export default function HomePage() {
             </Link>
 
             {/* Expenses */}
-            <Link href="/expenses" className="brutal-card lg:col-span-2 p-8 flex flex-col justify-center group bg-[#ECFCCB] relative overflow-hidden">
+            <Link href="/expenses" className="brutal-card lg:col-span-2 p-8 flex flex-col justify-center group bg-[var(--card-tint-cool)] text-[var(--text-primary)] relative overflow-hidden">
               <div className="absolute inset-0 z-0">
                 <Image
                   src={PLACE_IMAGES.hero}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover opacity-10 group-hover:scale-105 transition-transform duration-700 mix-blend-multiply"
+                  className="object-cover opacity-15 group-hover:scale-105 transition-transform duration-700"
                   alt="Ledger Background"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#ECFCCB] via-transparent to-[#ECFCCB]/80" />
+                <div className="absolute inset-0 card-bg-overlay opacity-90" />
               </div>
               <div className="relative z-10">
                 <div className="flex items-center gap-6 mb-4">
-                  <div className="w-16 h-16 border-4 border-black bg-white flex items-center justify-center shadow-[4px_4px_0px_0px_var(--border-color)]">
+                  <div className="w-16 h-16 border-4 border-[var(--border-color)] bg-[var(--surface-light)] text-[var(--text-primary)] flex items-center justify-center shadow-[4px_4px_0px_0px_var(--border-color)]">
                     <Wallet size={32} />
                   </div>
                   <h3 className="text-3xl font-black uppercase underline decoration-[var(--accent)] decoration-4 underline-offset-8 group-hover:bg-[var(--accent)] group-hover:text-white transition-colors">
                     Auto-Split Ledger
                   </h3>
                 </div>
-                <p className="font-mono text-sm font-bold border-l-4 border-black pl-4 py-2 mt-4">
+                <p className="font-mono text-sm font-bold border-l-4 border-[var(--border-color)] pl-4 py-2 mt-4 text-[var(--text-primary)]">
                   Real-time synchronization of shared expenses between families.
                 </p>
               </div>
@@ -320,7 +320,7 @@ export default function HomePage() {
       </section>
 
       {/* ── FAMILY SECTION ── */}
-      <section className="py-24 border-t-[4px] border-black bg-white">
+      <section className="py-24 border-t-[4px] border-[var(--border-color)] bg-[var(--surface-light)] text-[var(--text-primary)]">
         <div className="container-wide text-center">
           <h2 className="heading-section mb-16">The Travelers</h2>
           <div className="flex flex-wrap justify-center gap-12">
