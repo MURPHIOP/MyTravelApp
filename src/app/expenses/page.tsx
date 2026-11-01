@@ -13,6 +13,8 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { useTripData } from '@/context/TripDataContext';
+import { useOffline } from '@/context/OfflineContext';
+import { saveCachedExpenses, getCachedExpenses } from '@/lib/offlineDb';
 
 export type Currency = 'INR' | 'USD' | 'EUR' | 'GBP' | 'AED';
 
@@ -85,6 +87,7 @@ export default function ExpensesPage() {
   const { user, openLoginModal, loading } = useAuth();
   const router = useRouter();
   const { families } = useTripData();
+  const { isOnline, enqueueExpenseAction } = useOffline();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -136,36 +139,7 @@ export default function ExpensesPage() {
 
   const fetchExpenses = async () => {
     try {
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('*')
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
-      
-      if (data) {
-        const formatted: Expense[] = (data as unknown as SupabaseExpenseRow[]).map((d) => ({
-          id: d.id,
-          date: d.date,
-          description: d.description,
-          category: d.category,
-          paidBy: d.paid_by,
-          amount: typeof d.amount === 'string' ? parseFloat(d.amount) : d.amount,
-          type: d.type,
-          splitMitra: d.split_mitra !== undefined ? (typeof d.split_mitra === 'string' ? parseFloat(d.split_mitra) : d.split_mitra) : undefined,
-          splitGhosh: d.split_ghosh !== undefined ? (typeof d.split_ghosh === 'string' ? parseFloat(d.split_ghosh) : d.split_ghosh) : undefined,
-        }));
-        setExpenses(formatted);
-      }
-    } catch (err) {
-      console.error('Failed to fetch ledger:', err);
-    }
-  };
-
-  useEffect(() => {
-    let ignore = false;
-    async function loadExpenses() {
-      try {
+      if (typeof navigator !== 'undefined' && navigator.onLine) {
         const { data, error } = await supabase
           .from('expenses')
           .select('*')
@@ -173,7 +147,7 @@ export default function ExpensesPage() {
           
         if (error) throw error;
         
-        if (!ignore && data) {
+        if (data) {
           const formatted: Expense[] = (data as unknown as SupabaseExpenseRow[]).map((d) => ({
             id: d.id,
             date: d.date,
@@ -186,15 +160,70 @@ export default function ExpensesPage() {
             splitGhosh: d.split_ghosh !== undefined ? (typeof d.split_ghosh === 'string' ? parseFloat(d.split_ghosh) : d.split_ghosh) : undefined,
           }));
           setExpenses(formatted);
+          await saveCachedExpenses(formatted);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Network ledger fetch failed, loading from local cache:', err);
+    }
+
+    // Offline or fetch failure fallback: read from IndexedDB cache
+    const cached = await getCachedExpenses<Expense>();
+    if (cached && cached.length > 0) {
+      setExpenses(cached);
+    }
+  };
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadInitialExpenses() {
+      try {
+        if (typeof navigator !== 'undefined' && navigator.onLine) {
+          const { data, error } = await supabase
+            .from('expenses')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+
+          if (!ignore && data) {
+            const formatted: Expense[] = (data as unknown as SupabaseExpenseRow[]).map((d) => ({
+              id: d.id,
+              date: d.date,
+              description: d.description,
+              category: d.category,
+              paidBy: d.paid_by,
+              amount: typeof d.amount === 'string' ? parseFloat(d.amount) : d.amount,
+              type: d.type,
+              splitMitra: d.split_mitra !== undefined ? (typeof d.split_mitra === 'string' ? parseFloat(d.split_mitra) : d.split_mitra) : undefined,
+              splitGhosh: d.split_ghosh !== undefined ? (typeof d.split_ghosh === 'string' ? parseFloat(d.split_ghosh) : d.split_ghosh) : undefined,
+            }));
+            setExpenses(formatted);
+            await saveCachedExpenses(formatted);
+            return;
+          }
         }
       } catch (err) {
-        console.error('Failed to fetch ledger:', err);
+        console.warn('Network ledger fetch failed, loading from local cache:', err);
+      }
+
+      const cached = await getCachedExpenses<Expense>();
+      if (!ignore && cached && cached.length > 0) {
+        setExpenses(cached);
       }
     }
 
-    loadExpenses();
+    loadInitialExpenses();
+
+    const handleSynced = () => {
+      fetchExpenses();
+    };
+    window.addEventListener('expenses-synced', handleSynced);
     return () => {
       ignore = true;
+      window.removeEventListener('expenses-synced', handleSynced);
     };
   }, []);
 
@@ -242,7 +271,9 @@ export default function ExpensesPage() {
       splitGhosh = 0;
     }
 
-    const payload = {
+    const targetId = editingId || `offline-${Date.now()}`;
+    const payload: Record<string, unknown> = {
+      id: targetId,
       date: displayDate,
       description: desc,
       category: transactionType === 'RECEIPT' ? 'ADVANCE' : category,
@@ -253,19 +284,56 @@ export default function ExpensesPage() {
       split_ghosh: splitGhosh
     };
 
-    try {
-      if (editingId) {
-        const { error } = await supabase.from('expenses').update(payload).eq('id', editingId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('expenses').insert([payload]);
-        if (error) throw error;
+    const optimisticEntry: Expense = {
+      id: targetId,
+      date: displayDate,
+      description: desc,
+      category: transactionType === 'RECEIPT' ? 'ADVANCE' : category,
+      paidBy,
+      amount: amt,
+      type: transactionType,
+      splitMitra,
+      splitGhosh,
+    };
+
+    if (!isOnline) {
+      // Offline mode: queue in IndexedDB and optimistically update state
+      await enqueueExpenseAction(editingId ? 'UPDATE' : 'CREATE', payload);
+      setExpenses((prev) => {
+        const next = editingId 
+          ? prev.map((exp) => (exp.id === editingId ? optimisticEntry : exp))
+          : [optimisticEntry, ...prev];
+        saveCachedExpenses(next);
+        return next;
+      });
+    } else {
+      // Online mode: attempt Supabase write, fall back to offline queue on error
+      try {
+        if (editingId) {
+          const updatePayload = { ...payload };
+          delete updatePayload.id;
+          const { error } = await supabase.from('expenses').update(updatePayload).eq('id', editingId);
+          if (error) throw error;
+        } else {
+          const insertPayload = { ...payload };
+          if (typeof insertPayload.id === 'string' && insertPayload.id.startsWith('offline-')) {
+            delete insertPayload.id;
+          }
+          const { error } = await supabase.from('expenses').insert([insertPayload]);
+          if (error) throw error;
+        }
+        fetchExpenses();
+      } catch (err) {
+        console.warn('Supabase write failed, queuing for offline reconciliation:', err);
+        await enqueueExpenseAction(editingId ? 'UPDATE' : 'CREATE', payload);
+        setExpenses((prev) => {
+          const next = editingId 
+            ? prev.map((exp) => (exp.id === editingId ? optimisticEntry : exp))
+            : [optimisticEntry, ...prev];
+          saveCachedExpenses(next);
+          return next;
+        });
       }
-      
-      fetchExpenses();
-    } catch (err) {
-      console.error('Failed to save transaction:', err);
-      alert('Failed to save transaction. Ensure the expenses table exists in Supabase.');
     }
 
     setIsAddModalOpen(false);
@@ -276,6 +344,34 @@ export default function ExpensesPage() {
     setSplitType('EQUAL');
     setCustomSplitMitra('');
     setCustomSplitGhosh('');
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this transaction entry?')) return;
+
+    if (!isOnline) {
+      await enqueueExpenseAction('DELETE', { id });
+      setExpenses((prev) => {
+        const next = prev.filter((e) => e.id !== id);
+        saveCachedExpenses(next);
+        return next;
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('expenses').delete().eq('id', id);
+      if (error) throw error;
+      fetchExpenses();
+    } catch (err) {
+      console.warn('Delete failed on remote, queuing offline deletion:', err);
+      await enqueueExpenseAction('DELETE', { id });
+      setExpenses((prev) => {
+        const next = prev.filter((e) => e.id !== id);
+        saveCachedExpenses(next);
+        return next;
+      });
+    }
   };
 
   // Currency Formatter
@@ -1273,17 +1369,7 @@ export default function ExpensesPage() {
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                   </button>
                                   <button 
-                                    onClick={async () => {
-                                      if (!confirm('Are you sure you want to delete this transaction entry?')) return;
-                                      try {
-                                        const { error } = await supabase.from('expenses').delete().eq('id', exp.id);
-                                        if (error) throw error;
-                                        fetchExpenses();
-                                      } catch (err) {
-                                        console.error('Delete failed:', err);
-                                        alert('Delete failed');
-                                      }
-                                    }}
+                                    onClick={() => handleDelete(exp.id)}
                                     className="text-red-500 hover:text-red-700 transition-colors"
                                     title="Delete Entry"
                                   >
@@ -1396,17 +1482,7 @@ export default function ExpensesPage() {
                               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                             </button>
                             <button 
-                              onClick={async () => {
-                                if (!confirm('Are you sure you want to delete this transaction?')) return;
-                                try {
-                                  const { error } = await supabase.from('expenses').delete().eq('id', exp.id);
-                                  if (error) throw error;
-                                  fetchExpenses();
-                                } catch (err) {
-                                  console.error('Delete failed:', err);
-                                  alert('Delete failed');
-                                }
-                              }}
+                              onClick={() => handleDelete(exp.id)}
                               className="text-red-500 hover:text-red-700 transition-colors"
                               title="Delete Transaction"
                             >

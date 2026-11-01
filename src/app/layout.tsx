@@ -10,6 +10,7 @@ import LoginModal from '@/components/auth/LoginModal';
 import InteractiveCanvasBackground from '@/components/ui/InteractiveCanvasBackground';
 import { TripProvider } from '@/context/TripContext';
 import { TripDataProvider } from '@/context/TripDataContext';
+import { OfflineProvider } from '@/context/OfflineContext';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -20,6 +21,12 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Ancient Maharashtra Tour',
   description: 'A premium family travel companion for the 11-day Ancient Maharashtra tour.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'TravelApp',
+  },
 };
 
 export const viewport: Viewport = {
@@ -39,20 +46,22 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <TripProvider>
-            <InteractiveCanvasBackground variant="global" />
-            <Preloader />
-            <LoginModal />
-            <ThemeProvider>
-              <div className="relative min-h-screen flex flex-col">
-                <TopNavbar />
-                <main className="flex-grow">
-                  <TripDataProvider>
-                    {children}
-                  </TripDataProvider>
-                </main>
-                <Footer />
-              </div>
-            </ThemeProvider>
+            <OfflineProvider>
+              <InteractiveCanvasBackground variant="global" />
+              <Preloader />
+              <LoginModal />
+              <ThemeProvider>
+                <div className="relative min-h-screen flex flex-col">
+                  <TopNavbar />
+                  <main className="flex-grow">
+                    <TripDataProvider>
+                      {children}
+                    </TripDataProvider>
+                  </main>
+                  <Footer />
+                </div>
+              </ThemeProvider>
+            </OfflineProvider>
           </TripProvider>
         </AuthProvider>
       </body>
