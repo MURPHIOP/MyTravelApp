@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Wallet, Plus, ArrowDownRight, Activity, X, Download, Trash2, 
-  BookOpen, List, Utensils, Train, Building2, Ticket, Package, Coins, Check 
+  BookOpen, List, Utensils, Train, Building2, Ticket, Package, Coins, Check,
+  ArrowRight, ShieldCheck, ChevronDown, RefreshCw, FileText
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable, { RowInput } from 'jspdf-autotable';
@@ -11,13 +12,24 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
+import { useTripData } from '@/context/TripDataContext';
+
+export type Currency = 'INR' | 'USD' | 'EUR' | 'GBP' | 'AED';
+
+export const CURRENCY_CONFIG: Record<Currency, { symbol: string; label: string; rate: number; flag: string }> = {
+  INR: { symbol: '₹', label: 'INR', rate: 1, flag: '🇮🇳' },
+  USD: { symbol: '$', label: 'USD', rate: 0.012, flag: '🇺🇸' },
+  EUR: { symbol: '€', label: 'EUR', rate: 0.011, flag: '🇪🇺' },
+  GBP: { symbol: '£', label: 'GBP', rate: 0.0095, flag: '🇬🇧' },
+  AED: { symbol: 'AED', label: 'AED', rate: 0.044, flag: '🇦🇪' },
+};
 
 type Expense = {
   id: string;
   date: string;
   description: string;
   category: string;
-  paidBy: 'Mitra' | 'Ghosh';
+  paidBy: string;
   amount: number;
   type?: 'EXPENSE' | 'RECEIPT';
   splitMitra?: number;
@@ -29,18 +41,40 @@ interface SupabaseExpenseRow {
   date: string;
   description: string;
   category: string;
-  paid_by: 'Mitra' | 'Ghosh';
+  paid_by: string;
   amount: string | number;
   type?: 'EXPENSE' | 'RECEIPT';
   split_mitra?: string | number;
   split_ghosh?: string | number;
 }
 
-function createInvoiceNumber(): string {
+interface NormalizedFamily {
+  id: string;
+  name: string;
+  fullName: string;
+  head: string;
+  email: string;
+  avatar: string;
+  color: string;
+}
+
+interface FamilyBalance extends NormalizedFamily {
+  totalContributed: number;
+  share: number;
+  netBalance: number;
+}
+
+interface MinimalTransfer {
+  from: string; // debtor
+  to: string;   // creditor
+  amount: number; // in INR
+}
+
+function createInvoiceNumber(prefix = 'LEDGER'): string {
   const d = new Date();
   const datePart = d.toISOString().slice(0, 10).replace(/-/g, '');
   const timePart = d.getTime().toString().slice(-4);
-  return `LEDGER-${datePart}-${timePart}`;
+  return `${prefix}-${datePart}-${timePart}`;
 }
 
 function getIssueDate(): string {
@@ -50,23 +84,55 @@ function getIssueDate(): string {
 export default function ExpensesPage() {
   const { user, openLoginModal, loading } = useAuth();
   const router = useRouter();
+  const { families } = useTripData();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [selectedFamilyFilter, setSelectedFamilyFilter] = useState<'ALL' | 'Mitra' | 'Ghosh'>('ALL');
+  const [selectedFamilyFilter, setSelectedFamilyFilter] = useState<string>('ALL');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<'ALL' | 'FOOD' | 'TRANS' | 'HOTEL' | 'SIGHT' | 'OTHER' | 'RECEIPT'>('ALL');
   const [viewMode, setViewMode] = useState<'BOOK' | 'LOG'>('BOOK');
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>('INR');
+  const [isCategoryPdfMenuOpen, setIsCategoryPdfMenuOpen] = useState(false);
+  const pdfMenuRef = useRef<HTMLDivElement>(null);
 
+  // Form states
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<string>('OTHER');
-  const [paidBy, setPaidBy] = useState<Expense['paidBy']>('Mitra');
+  const [paidBy, setPaidBy] = useState<string>('Mitra');
   const [dateStr, setDateStr] = useState<string>(new Date().toISOString().split('T')[0]);
   const [transactionType, setTransactionType] = useState<'EXPENSE' | 'RECEIPT'>('EXPENSE');
   const [splitType, setSplitType] = useState<'EQUAL' | 'MITRA' | 'GHOSH' | 'CUSTOM'>('EQUAL');
   const [customSplitMitra, setCustomSplitMitra] = useState('');
   const [customSplitGhosh, setCustomSplitGhosh] = useState('');
+
+  // Close category PDF menu on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (pdfMenuRef.current && !pdfMenuRef.current.contains(event.target as Node)) {
+        setIsCategoryPdfMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const activeFamilies: NormalizedFamily[] = (families && families.length > 0 ? families : [
+    { id: 'mitra', family: 'Mitra Family', head: 'Asim Kumar Mitra', email: 'asimkrmitra@gmail.com', avatar: 'AKM', color: '#10B981' },
+    { id: 'ghosh', family: 'Ghosh Family', head: 'Pranab Ghosh', email: 'pranabghosh@gmail.com', avatar: 'PG', color: '#3B82F6' },
+  ]).map((f: { id?: string; family?: string; name?: string; head?: string; email?: string; avatar?: string; color?: string }) => {
+    const rawName = f.name || (f.family ? f.family.replace(/\s*Family$/i, '').trim() : 'Family');
+    return {
+      id: f.id || rawName.toLowerCase(),
+      name: rawName,
+      fullName: f.family || `${rawName} Family`,
+      head: f.head || '',
+      email: f.email || '',
+      avatar: f.avatar || rawName.slice(0, 2).toUpperCase(),
+      color: f.color || '#3B82F6',
+    };
+  });
 
   const fetchExpenses = async () => {
     try {
@@ -166,7 +232,7 @@ export default function ExpensesPage() {
       } else if (splitType === 'CUSTOM') {
         splitMitra = parseFloat(customSplitMitra) || 0;
         splitGhosh = parseFloat(customSplitGhosh) || 0;
-        if (splitMitra + splitGhosh !== amt) {
+        if (Math.abs(splitMitra + splitGhosh - amt) > 0.01) {
           alert('Custom split amounts must equal the total amount.');
           return;
         }
@@ -212,6 +278,16 @@ export default function ExpensesPage() {
     setCustomSplitGhosh('');
   };
 
+  // Currency Formatter
+  const formatCur = (amountINR: number, currency: Currency = selectedCurrency): string => {
+    const { symbol, rate } = CURRENCY_CONFIG[currency];
+    const converted = amountINR * rate;
+    if (currency === 'INR') {
+      return `${symbol}${Math.round(converted).toLocaleString('en-IN')}`;
+    }
+    return `${symbol} ${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
   // Calculations
   const safeType = (e: Expense) => e.type || 'EXPENSE';
 
@@ -221,19 +297,84 @@ export default function ExpensesPage() {
   const totalExpense = expenses.filter(e => safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + exp.amount, 0);
   const totalReceipts = expenses.filter(e => safeType(e) === 'RECEIPT').reduce((sum, exp) => sum + exp.amount, 0);
   
-  const mitraPaidExpenses = expenses.filter(e => e.paidBy === 'Mitra' && safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + exp.amount, 0);
-  const mitraPaidReceipts = expenses.filter(e => e.paidBy === 'Mitra' && safeType(e) === 'RECEIPT').reduce((sum, exp) => sum + exp.amount, 0);
-  const mitraTotalContribution = mitraPaidExpenses + mitraPaidReceipts;
+  // Calculate dynamically per family
+  const familyBalances: FamilyBalance[] = activeFamilies.map(fam => {
+    const paidExpenses = expenses.filter(e => e.paidBy.toLowerCase() === fam.name.toLowerCase() && safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + exp.amount, 0);
+    const paidReceipts = expenses.filter(e => e.paidBy.toLowerCase() === fam.name.toLowerCase() && safeType(e) === 'RECEIPT').reduce((sum, exp) => sum + exp.amount, 0);
+    const totalContributed = paidExpenses + paidReceipts;
 
-  const ghoshPaidExpenses = expenses.filter(e => e.paidBy === 'Ghosh' && safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + exp.amount, 0);
-  const ghoshPaidReceipts = expenses.filter(e => e.paidBy === 'Ghosh' && safeType(e) === 'RECEIPT').reduce((sum, exp) => sum + exp.amount, 0);
-  const ghoshTotalContribution = ghoshPaidExpenses + ghoshPaidReceipts;
+    let share = 0;
+    if (fam.name.toLowerCase() === 'mitra') {
+      share = expenses.filter(e => safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + getSplitMitra(exp), 0);
+    } else if (fam.name.toLowerCase() === 'ghosh') {
+      share = expenses.filter(e => safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + getSplitGhosh(exp), 0);
+    } else {
+      // General N-family fallback
+      share = totalExpense / Math.max(1, activeFamilies.length);
+    }
 
-  const mitraShare = expenses.filter(e => safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + getSplitMitra(exp), 0);
-  const ghoshShare = expenses.filter(e => safeType(e) === 'EXPENSE').reduce((sum, exp) => sum + getSplitGhosh(exp), 0);
+    const netBalance = totalContributed - share; // positive = gets, negative = owes
 
-  const mitraBalance = mitraTotalContribution - mitraShare; // negative means owes, positive means gets
-  const ghoshBalance = ghoshTotalContribution - ghoshShare;
+    return {
+      ...fam,
+      totalContributed,
+      share,
+      netBalance: Math.round(netBalance * 100) / 100
+    };
+  });
+
+  const mitraData = familyBalances.find(f => f.name.toLowerCase() === 'mitra') || {
+    totalContributed: 0,
+    share: 0,
+    netBalance: 0
+  };
+
+  const ghoshData = familyBalances.find(f => f.name.toLowerCase() === 'ghosh') || {
+    totalContributed: 0,
+    share: 0,
+    netBalance: 0
+  };
+
+  // Greedy Graph Debt Minimization Algorithm (Bipartite Min-Cash-Flow matching)
+  const computeMinimalTransfers = (): MinimalTransfer[] => {
+    const debtors = familyBalances
+      .filter(f => f.netBalance < -0.01)
+      .map(f => ({ name: f.name, debt: -f.netBalance }))
+      .sort((a, b) => b.debt - a.debt);
+
+    const creditors = familyBalances
+      .filter(f => f.netBalance > 0.01)
+      .map(f => ({ name: f.name, credit: f.netBalance }))
+      .sort((a, b) => b.credit - a.credit);
+
+    const transfers: MinimalTransfer[] = [];
+    let d = 0;
+    let c = 0;
+
+    while (d < debtors.length && c < creditors.length) {
+      const debtor = debtors[d];
+      const creditor = creditors[c];
+      const settled = Math.min(debtor.debt, creditor.credit);
+
+      if (settled > 0.01) {
+        transfers.push({
+          from: debtor.name,
+          to: creditor.name,
+          amount: Math.round(settled * 100) / 100
+        });
+      }
+
+      debtor.debt -= settled;
+      creditor.credit -= settled;
+
+      if (debtor.debt < 0.01) d++;
+      if (creditor.credit < 0.01) c++;
+    }
+
+    return transfers;
+  };
+
+  const minimalTransfers = computeMinimalTransfers();
 
   const categorySpends = {
     FOOD: expenses.filter(e => safeType(e) === 'EXPENSE' && e.category === 'FOOD').reduce((sum, exp) => sum + exp.amount, 0),
@@ -254,7 +395,7 @@ export default function ExpensesPage() {
 
   // Filter logic
   const filteredExpenses = expenses.filter(e => {
-    const familyMatch = selectedFamilyFilter === 'ALL' || e.paidBy === selectedFamilyFilter;
+    const familyMatch = selectedFamilyFilter === 'ALL' || e.paidBy.toLowerCase() === selectedFamilyFilter.toLowerCase();
     const catMatch = matchesCategory(e, selectedCategoryFilter);
     return familyMatch && catMatch;
   });
@@ -296,7 +437,7 @@ export default function ExpensesPage() {
     const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
     const b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
 
-    const numStr = num.toString();
+    const numStr = Math.round(num).toString();
     if (numStr.length > 9) return 'overflow';
     const n = ('000000000' + numStr).slice(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
     if (!n) return '';
@@ -309,130 +450,181 @@ export default function ExpensesPage() {
     return str.trim() === '' ? 'Zero Only' : str.trim();
   };
 
-  const handleGeneratePDF = () => {
+  // High-fidelity itemized PDF generation (Full Ledger or Category-Specific)
+  const handleGeneratePDF = (targetCategory?: string) => {
+    const isCategorySpecific = Boolean(targetCategory && targetCategory !== 'ALL');
+    const catCode = isCategorySpecific ? (targetCategory as string) : 'ALL';
+
+    const CATEGORY_TITLES: Record<string, string> = {
+      FOOD: 'Fooding & Meals Account',
+      TRANS: 'Transportation & Travel Account',
+      HOTEL: 'Hotels & Accommodation Account',
+      SIGHT: 'Sightseeing & Attractions Account',
+      OTHER: 'General & Miscellaneous Account',
+      RECEIPT: 'Trip Fund Advances & Deposits',
+    };
+
     const doc = new jsPDF('p', 'pt', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 40;
 
+    const invoiceNo = isCategorySpecific ? createInvoiceNumber(`INV-${catCode}`) : createInvoiceNumber('LEDGER');
+    const issueDate = getIssueDate();
+
     // 1. Header Section
-    doc.setFont("helvetica", "bold");
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
-    doc.setTextColor(51, 51, 51);
-    doc.text("MITRA TRAVELS AUTO-LEDGER", margin, 50);
+    doc.setTextColor(26, 26, 36);
+    doc.text('TRAVEL FLEET EXPEDITION AUDIT', margin, 50);
     
-    doc.setFont("helvetica", "normal");
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(102, 102, 102);
-    doc.text("Official General Ledger & Settlement Statement", margin, 65);
+    doc.text(
+      isCategorySpecific
+        ? `Official Itemized Category Statement: ${CATEGORY_TITLES[catCode] || catCode}`
+        : 'Official General Double-Entry Ledger & Settlement Statement',
+      margin,
+      65
+    );
 
-    const invoiceNo = createInvoiceNumber();
-    const issueDate = getIssueDate();
-    
-    doc.setFont("helvetica", "bold");
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.setTextColor(51, 51, 51);
-    doc.text("SETTLEMENT INVOICE", pageWidth - margin, 50, { align: 'right' });
+    doc.setTextColor(26, 26, 36);
+    doc.text(
+      isCategorySpecific ? 'CATEGORY BILL' : 'SETTLEMENT INVOICE',
+      pageWidth - margin,
+      50,
+      { align: 'right' }
+    );
     
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Invoice No: ${invoiceNo}`, pageWidth - margin, 65, { align: 'right' });
-    doc.text(`Date of Issue: ${issueDate}`, pageWidth - margin, 80, { align: 'right' });
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Ref No: ${invoiceNo}`, pageWidth - margin, 65, { align: 'right' });
+    doc.text(`Date of Issue: ${issueDate}`, pageWidth - margin, 78, { align: 'right' });
 
     doc.setDrawColor(200, 200, 200);
     doc.setLineWidth(1);
-    doc.line(margin, 95, pageWidth - margin, 95);
+    doc.line(margin, 92, pageWidth - margin, 92);
 
     // 2. Summary Section
-    const startY = 115;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(51, 51, 51);
-    doc.text("Billed To:", margin, startY);
-    
-    doc.setFont("helvetica", "normal");
+    const startY = 112;
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.text("Participating Family Heads", margin, startY + 15);
-    doc.text("Families: Mitra Family & Ghosh Family", margin, startY + 30);
-    doc.text("Account Status: ACTIVE & RECONCILED", margin, startY + 45);
+    doc.setTextColor(51, 51, 51);
+    doc.text('Audited Entities:', margin, startY);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Participating Expedition Families', margin, startY + 15);
+    const familyNames = activeFamilies.map(f => `${f.name} Family`).join(', ');
+    doc.text(`Fleet Units: ${familyNames}`, margin, startY + 28);
+    doc.text('Reconciliation Status: CERTIFIED & ACTIVE', margin, startY + 41);
 
-    const boxWidth = 230;
+    const boxWidth = 240;
     const boxHeight = 85;
     const boxX = pageWidth - margin - boxWidth;
-    const boxY = startY - 10;
+    const boxY = startY - 8;
     
-    doc.setFillColor(245, 245, 245);
+    doc.setFillColor(248, 249, 250);
     doc.setDrawColor(200, 200, 200);
     doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 3, 3, 'FD');
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(51, 51, 51);
-    doc.text("NET SETTLEMENT SUMMARY", boxX + 15, boxY + 20);
-    
-    doc.setFontSize(12);
-    doc.setTextColor(26, 26, 36);
-    doc.text(`Total Expenditure: INR ${totalExpense.toLocaleString('en-IN')}`, boxX + 15, boxY + 38);
-    
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    const mStatus = mitraBalance < 0 ? `Owes INR ${Math.abs(mitraBalance).toLocaleString('en-IN')}` : `Gets INR ${mitraBalance.toLocaleString('en-IN')}`;
-    const gStatus = ghoshBalance < 0 ? `Owes INR ${Math.abs(ghoshBalance).toLocaleString('en-IN')}` : `Gets INR ${ghoshBalance.toLocaleString('en-IN')}`;
+    doc.setTextColor(51, 51, 51);
+    doc.text(
+      isCategorySpecific ? `${catCode} EXPENDITURE SUMMARY` : 'NET SETTLEMENT MATRIX SUMMARY',
+      boxX + 12,
+      boxY + 18
+    );
     
-    doc.setTextColor(102, 102, 102);
-    doc.text(`Mitra Status: ${mitraBalance === 0 ? 'SETTLED' : mStatus}`, boxX + 15, boxY + 56);
-    doc.text(`Ghosh Status: ${ghoshBalance === 0 ? 'SETTLED' : gStatus}`, boxX + 15, boxY + 72);
+    const targetExpenses = isCategorySpecific
+      ? expenses.filter(e => matchesCategory(e, catCode))
+      : expenses;
+    const targetTotal = targetExpenses
+      .filter(e => isCategorySpecific ? true : safeType(e) === 'EXPENSE')
+      .reduce((sum, e) => sum + e.amount, 0);
 
-    // 3. Category Breakdown Table (Ledger Accounts Summary)
-    const categorySummaryRows: RowInput[] = [
-      ['1', 'Fooding & Meals', `INR ${categorySpends.FOOD.toLocaleString('en-IN')}`, `${totalExpense > 0 ? ((categorySpends.FOOD / totalExpense) * 100).toFixed(1) : 0}%`],
-      ['2', 'Transport & Travel', `INR ${categorySpends.TRANS.toLocaleString('en-IN')}`, `${totalExpense > 0 ? ((categorySpends.TRANS / totalExpense) * 100).toFixed(1) : 0}%`],
-      ['3', 'Hotels & Accommodation', `INR ${categorySpends.HOTEL.toLocaleString('en-IN')}`, `${totalExpense > 0 ? ((categorySpends.HOTEL / totalExpense) * 100).toFixed(1) : 0}%`],
-      ['4', 'Sightseeing & Shrines', `INR ${categorySpends.SIGHT.toLocaleString('en-IN')}`, `${totalExpense > 0 ? ((categorySpends.SIGHT / totalExpense) * 100).toFixed(1) : 0}%`],
-      ['5', 'Miscellaneous / Other', `INR ${categorySpends.OTHER.toLocaleString('en-IN')}`, `${totalExpense > 0 ? ((categorySpends.OTHER / totalExpense) * 100).toFixed(1) : 0}%`],
-      ['6', 'Trip Fund Deposits (Receipts)', `INR ${categorySpends.RECEIPT.toLocaleString('en-IN')}`, 'Deposit'],
-      [
-        { content: 'GRAND TOTAL EXPENSE', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } },
-        { content: `INR ${totalExpense.toLocaleString('en-IN')}`, styles: { fontStyle: 'bold' } },
-        { content: '100%', styles: { fontStyle: 'bold' } }
-      ]
-    ];
+    doc.setFontSize(11);
+    doc.setTextColor(26, 26, 36);
+    doc.text(`Total Amount: INR ${targetTotal.toLocaleString('en-IN')}`, boxX + 12, boxY + 36);
+    
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
 
-    autoTable(doc, {
-      startY: boxY + boxHeight + 25,
-      head: [['#', 'Ledger Category', 'Total Spent', '% of Budget']],
-      body: categorySummaryRows,
-      theme: 'grid',
-      headStyles: {
-        fillColor: [79, 70, 229], // Indigo
-        textColor: 255,
-        fontStyle: 'bold',
-      },
-      styles: {
-        font: 'helvetica',
-        fontSize: 8,
-        cellPadding: 4,
-      },
-      columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 200 },
-        2: { halign: 'right', cellWidth: 120 },
-        3: { halign: 'center', cellWidth: 80 }
-      }
-    });
+    if (isCategorySpecific) {
+      const catMitraPaid = targetExpenses.filter(e => e.paidBy.toLowerCase() === 'mitra').reduce((s, e) => s + e.amount, 0);
+      const catGhoshPaid = targetExpenses.filter(e => e.paidBy.toLowerCase() === 'ghosh').reduce((s, e) => s + e.amount, 0);
+      doc.text(`Mitra Outflow: INR ${catMitraPaid.toLocaleString('en-IN')}`, boxX + 12, boxY + 54);
+      doc.text(`Ghosh Outflow: INR ${catGhoshPaid.toLocaleString('en-IN')}`, boxX + 12, boxY + 70);
+    } else {
+      const mStatus = mitraData.netBalance < 0 
+        ? `Owes INR ${Math.abs(mitraData.netBalance).toLocaleString('en-IN')}` 
+        : `Gets INR ${mitraData.netBalance.toLocaleString('en-IN')}`;
+      const gStatus = ghoshData.netBalance < 0 
+        ? `Owes INR ${Math.abs(ghoshData.netBalance).toLocaleString('en-IN')}` 
+        : `Gets INR ${ghoshData.netBalance.toLocaleString('en-IN')}`;
+      doc.text(`Mitra Status: ${mitraData.netBalance === 0 ? 'SETTLED' : mStatus}`, boxX + 12, boxY + 54);
+      doc.text(`Ghosh Status: ${ghoshData.netBalance === 0 ? 'SETTLED' : gStatus}`, boxX + 12, boxY + 70);
+    }
 
-    const categoryTableFinalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || (boxY + boxHeight + 140);
+    let nextTableStartY = boxY + boxHeight + 20;
 
-    // 4. Main Itemized Table
-    const tableData: RowInput[] = expenses.map((exp, index) => {
-      let splitText = "Both (50/50)";
+    // 3. Category Breakdown Table (Only on full ledger export)
+    if (!isCategorySpecific) {
+      const categorySummaryRows: RowInput[] = [
+        ['1', 'Fooding & Meals', `INR ${categorySpends.FOOD.toLocaleString('en-IN')}`, `${totalExpense > 0 ? ((categorySpends.FOOD / totalExpense) * 100).toFixed(1) : 0}%`],
+        ['2', 'Transport & Travel', `INR ${categorySpends.TRANS.toLocaleString('en-IN')}`, `${totalExpense > 0 ? ((categorySpends.TRANS / totalExpense) * 100).toFixed(1) : 0}%`],
+        ['3', 'Hotels & Accommodation', `INR ${categorySpends.HOTEL.toLocaleString('en-IN')}`, `${totalExpense > 0 ? ((categorySpends.HOTEL / totalExpense) * 100).toFixed(1) : 0}%`],
+        ['4', 'Sightseeing & Shrines', `INR ${categorySpends.SIGHT.toLocaleString('en-IN')}`, `${totalExpense > 0 ? ((categorySpends.SIGHT / totalExpense) * 100).toFixed(1) : 0}%`],
+        ['5', 'Miscellaneous / Other', `INR ${categorySpends.OTHER.toLocaleString('en-IN')}`, `${totalExpense > 0 ? ((categorySpends.OTHER / totalExpense) * 100).toFixed(1) : 0}%`],
+        ['6', 'Trip Fund Deposits (Receipts)', `INR ${categorySpends.RECEIPT.toLocaleString('en-IN')}`, 'Deposit'],
+        [
+          { content: 'GRAND TOTAL EXPENSE', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } },
+          { content: `INR ${totalExpense.toLocaleString('en-IN')}`, styles: { fontStyle: 'bold' } },
+          { content: '100%', styles: { fontStyle: 'bold' } }
+        ]
+      ];
+
+      autoTable(doc, {
+        startY: nextTableStartY,
+        head: [['#', 'Ledger Category', 'Total Spent', '% of Budget']],
+        body: categorySummaryRows,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [37, 99, 235], // Accent blue
+          textColor: 255,
+          fontStyle: 'bold',
+        },
+        styles: {
+          font: 'helvetica',
+          fontSize: 8,
+          cellPadding: 4,
+        },
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 200 },
+          2: { halign: 'right', cellWidth: 120 },
+          3: { halign: 'center', cellWidth: 80 }
+        }
+      });
+
+      nextTableStartY = ((doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || (boxY + boxHeight + 140)) + 20;
+    }
+
+    // 4. Itemized Expenses Table
+    const tableData: RowInput[] = targetExpenses.map((exp, index) => {
+      let splitText = 'Both (50/50)';
       if (safeType(exp) === 'RECEIPT') {
-        splitText = "Deposit (N/A)";
+        splitText = 'Deposit (N/A)';
       } else {
         const sm = getSplitMitra(exp);
         const sg = getSplitGhosh(exp);
-        if (sm === exp.amount && sg === 0) splitText = "100% Mitra";
-        else if (sg === exp.amount && sm === 0) splitText = "100% Ghosh";
+        if (sm === exp.amount && sg === 0) splitText = '100% Mitra';
+        else if (sg === exp.amount && sm === 0) splitText = '100% Ghosh';
         else if (sm !== exp.amount / 2 || sg !== exp.amount / 2) splitText = `M: ${sm} / G: ${sg}`;
       }
 
@@ -448,13 +640,13 @@ export default function ExpensesPage() {
     });
 
     tableData.push([
-      { content: 'GRAND TOTAL', colSpan: 6, styles: { halign: 'right', fontStyle: 'bold' } },
-      { content: `INR ${totalExpense.toLocaleString('en-IN')}`, styles: { fontStyle: 'bold' } }
+      { content: 'SUBTOTAL FOR THIS STATEMENT', colSpan: 6, styles: { halign: 'right', fontStyle: 'bold' } },
+      { content: `INR ${targetTotal.toLocaleString('en-IN')}`, styles: { fontStyle: 'bold' } }
     ]);
 
     autoTable(doc, {
-      startY: categoryTableFinalY + 20,
-      head: [['S.No', 'Date', 'Description', 'Category', 'Paid By', 'Split Rule', 'Amount (INR)']],
+      startY: nextTableStartY,
+      head: [['S.No', 'Date', 'Description / Particulars', 'Category', 'Disbursed By', 'Split Rule', 'Amount (INR)']],
       body: tableData,
       theme: 'striped',
       headStyles: {
@@ -470,38 +662,38 @@ export default function ExpensesPage() {
         cellWidth: 'wrap'
       },
       columnStyles: {
-        0: { cellWidth: 30 },
-        1: { cellWidth: 50 },
+        0: { cellWidth: 28 },
+        1: { cellWidth: 48 },
         2: { cellWidth: 'auto' },
         3: { cellWidth: 55 },
-        4: { cellWidth: 50 },
-        5: { cellWidth: 70 },
+        4: { cellWidth: 55 },
+        5: { cellWidth: 72 },
         6: { halign: 'right', cellWidth: 70 }
       },
       didDrawPage: function (data) {
         const pageCount = doc.getNumberOfPages();
-        const yPos = pageHeight - 50;
+        const yPos = pageHeight - 45;
         
         if (data.pageNumber === pageCount) {
-          doc.setFont("helvetica", "bold");
+          doc.setFont('helvetica', 'bold');
           doc.setFontSize(8);
           doc.setTextColor(51, 51, 51);
-          const amtWords = `Amount in Words: INR ${numberToWords(totalExpense)}`;
-          doc.text(amtWords, margin, yPos - 15);
+          const amtWords = `Amount in Words: INR ${numberToWords(targetTotal)}`;
+          doc.text(amtWords, margin, yPos - 12);
 
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(8);
-          doc.setTextColor(150, 150, 150);
-          doc.text("[System Auto-Generated - Certified Digital Ledger]", pageWidth - margin, yPos - 15, { align: 'right' });
-          doc.setFont("helvetica", "bold");
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7.5);
+          doc.setTextColor(140, 140, 140);
+          doc.text('[System Certified Digital Bill - Immutable Audit]', pageWidth - margin, yPos - 12, { align: 'right' });
+          doc.setFont('helvetica', 'bold');
           doc.setTextColor(51, 51, 51);
-          doc.text("Audited Family Head Ledger", pageWidth - margin, yPos - 5, { align: 'right' });
+          doc.text('Authorized Expedition Finance Matrix', pageWidth - margin, yPos - 2, { align: 'right' });
         }
 
-        doc.setFont("helvetica", "normal");
+        doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(102, 102, 102);
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth / 2, pageHeight - 25, { align: 'center' });
+        doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth / 2, pageHeight - 20, { align: 'center' });
       }
     });
 
@@ -509,258 +701,448 @@ export default function ExpensesPage() {
   };
 
   const LEDGER_ACCOUNTS = [
-    { key: 'FOOD', title: 'Fooding & Meals Ledger', icon: <Utensils size={18} />, colorClass: 'text-green-800 bg-[#DCFCE7] border-green-600', total: categorySpends.FOOD },
-    { key: 'TRANS', title: 'Transport & Travel Ledger', icon: <Train size={18} />, colorClass: 'text-blue-800 bg-[#DBEAFE] border-blue-600', total: categorySpends.TRANS },
-    { key: 'HOTEL', title: 'Hotel & Stay Ledger', icon: <Building2 size={18} />, colorClass: 'text-orange-800 bg-[#FFEDD5] border-orange-600', total: categorySpends.HOTEL },
-    { key: 'SIGHT', title: 'Sightseeing & Passes Ledger', icon: <Ticket size={18} />, colorClass: 'text-pink-800 bg-[#FCE7F3] border-pink-600', total: categorySpends.SIGHT },
-    { key: 'OTHER', title: 'General & Misc Ledger', icon: <Package size={18} />, colorClass: 'text-purple-800 bg-[#F3E8FF] border-purple-600', total: categorySpends.OTHER },
-    { key: 'RECEIPT', title: 'Advances & Deposits Ledger', icon: <Coins size={18} />, colorClass: 'text-emerald-800 bg-[#ECFDF5] border-emerald-600', total: categorySpends.RECEIPT },
+    { key: 'FOOD', title: 'Fooding & Meals Ledger', icon: <Utensils size={18} />, total: categorySpends.FOOD, color: 'text-emerald-500' },
+    { key: 'TRANS', title: 'Transport & Travel Ledger', icon: <Train size={18} />, total: categorySpends.TRANS, color: 'text-blue-500' },
+    { key: 'HOTEL', title: 'Hotel & Stay Ledger', icon: <Building2 size={18} />, total: categorySpends.HOTEL, color: 'text-amber-500' },
+    { key: 'SIGHT', title: 'Sightseeing & Passes Ledger', icon: <Ticket size={18} />, total: categorySpends.SIGHT, color: 'text-pink-500' },
+    { key: 'OTHER', title: 'General & Misc Ledger', icon: <Package size={18} />, total: categorySpends.OTHER, color: 'text-purple-500' },
+    { key: 'RECEIPT', title: 'Advances & Deposits Ledger', icon: <Coins size={18} />, total: categorySpends.RECEIPT, color: 'text-teal-500' },
   ] as const;
 
   if (loading || !user || user.role !== 'FAMILY_HEAD') {
     return (
-      <div className="w-full min-h-screen flex items-center justify-center font-mono font-black uppercase text-2xl tracking-tighter animate-pulse">
+      <div className="w-full min-h-screen flex items-center justify-center font-mono font-black uppercase text-2xl tracking-tighter animate-pulse text-[var(--text-primary)]">
         Checking Security Clearance...
       </div>
     );
   }
 
   return (
-    <div className="w-full pt-32 pb-24 min-h-screen bg-[var(--bg-color)]">
+    <div className="w-full pt-32 pb-24 min-h-screen bg-[var(--bg-color)] text-[var(--text-primary)] transition-colors duration-300">
       <div className="container-wide">
         
         {/* Brutalist Header */}
-        <div className="mb-16 border-b-4 border-[var(--border-color)] pb-12 flex flex-col md:flex-row justify-between items-end gap-8">
+        <div className="mb-14 border-b-4 border-[var(--border-color)] pb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
-            <div className="inline-block bg-[var(--surface-contrast)] text-[var(--text-inverse)] px-3 py-1 font-mono text-sm font-bold uppercase mb-6 shadow-[4px_4px_0px_0px_var(--accent)]">
-              Double-Entry Accounting Module
+            <div className="inline-block bg-[var(--surface-contrast)] text-[var(--text-inverse)] px-3 py-1 font-mono text-xs font-bold uppercase mb-4 shadow-[3px_3px_0px_0px_var(--accent)]">
+              Double-Entry Accounting & Debt Minimization Matrix
             </div>
-            <h1 className="heading-hero">Auto-Split & Ledgers</h1>
+            <h1 className="heading-hero text-[var(--text-primary)]">Auto-Split & Ledgers</h1>
           </div>
-          <div className="flex flex-wrap gap-4">
-            <button 
-              onClick={handleGeneratePDF}
-              className="brutal-btn bg-[var(--surface-light)] text-[var(--text-primary)] hover:bg-[var(--accent-light)] flex items-center gap-2"
-            >
-              <Download size={18} /> Export Full Ledger PDF
-            </button>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Multi-Currency Selector Pill Group */}
+            <div className="flex items-center border-2 border-[var(--border-color)] bg-[var(--surface-light)] p-1 shadow-[3px_3px_0px_0px_var(--shadow-color)]">
+              {(Object.keys(CURRENCY_CONFIG) as Currency[]).map((cur) => {
+                const isCurActive = selectedCurrency === cur;
+                return (
+                  <button
+                    key={cur}
+                    onClick={() => setSelectedCurrency(cur)}
+                    className={`px-2.5 py-1 font-mono text-xs font-black uppercase flex items-center gap-1 transition-all ${
+                      isCurActive 
+                        ? 'bg-[var(--accent)] text-white shadow-[1px_1px_0px_0px_var(--shadow-color)]' 
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--accent-light)]'
+                    }`}
+                    title={`Switch currency to ${cur}`}
+                  >
+                    <span>{CURRENCY_CONFIG[cur].flag}</span>
+                    <span>{cur}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Category Bills PDF Dropdown */}
+            <div className="relative" ref={pdfMenuRef}>
+              <button 
+                onClick={() => setIsCategoryPdfMenuOpen(!isCategoryPdfMenuOpen)}
+                className="brutal-btn bg-[var(--surface-light)] text-[var(--text-primary)] hover:bg-[var(--accent-light)] flex items-center gap-2"
+                title="Download Itemized Category Bills"
+              >
+                <Download size={16} /> 
+                <span>Export PDF</span>
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isCategoryPdfMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {isCategoryPdfMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-64 bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] p-2 shadow-[6px_6px_0px_0px_var(--accent)] z-50 font-mono text-xs"
+                  >
+                    <div className="px-2 py-1.5 font-black uppercase tracking-wider text-[var(--text-muted)] text-[10px] border-b border-[var(--border-color)]/20 mb-1">
+                      Choose Statement Scope
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        handleGeneratePDF();
+                        setIsCategoryPdfMenuOpen(false);
+                      }}
+                      className="w-full text-left p-2 font-bold hover:bg-[var(--accent-light)] flex items-center gap-2 border border-transparent hover:border-[var(--border-color)] transition-all"
+                    >
+                      <FileText size={14} className="text-[var(--accent)]" />
+                      <span>Full General Ledger PDF</span>
+                    </button>
+
+                    <div className="px-2 pt-2 pb-1 font-black uppercase tracking-wider text-[var(--text-muted)] text-[10px] border-t border-[var(--border-color)]/20 mt-1">
+                      Itemized Category Bills
+                    </div>
+
+                    {LEDGER_ACCOUNTS.map((acc) => (
+                      <button
+                        key={acc.key}
+                        onClick={() => {
+                          handleGeneratePDF(acc.key);
+                          setIsCategoryPdfMenuOpen(false);
+                        }}
+                        className="w-full text-left p-2 font-bold hover:bg-[var(--accent-light)] flex items-center justify-between border border-transparent hover:border-[var(--border-color)] transition-all"
+                      >
+                        <span className="flex items-center gap-2 truncate">
+                          {acc.icon}
+                          <span className="truncate">{acc.title.replace(' Ledger', '')}</span>
+                        </span>
+                        <span className="text-[10px] text-[var(--text-muted)]">{formatCur(acc.total)}</span>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Record Entry CTA */}
             <button 
               onClick={() => setIsAddModalOpen(true)}
               className="brutal-btn brutal-btn-accent flex items-center gap-2"
             >
-              <Plus size={18} /> Record New Entry
+              <Plus size={18} /> Record Entry
             </button>
           </div>
         </div>
 
-        {/* Top Accounting Dashboard */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        {/* ── HIGH-CONTRAST THEMED ACCOUNTING DASHBOARD ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           {/* Block 1: Total Expense */}
-          <div className="brutal-card p-6 bg-[#FFEDD5]">
-            <h3 className="font-mono font-black uppercase tracking-widest text-amber-900 mb-6 flex items-center gap-2">
-              <Activity size={20} /> 1. Total Expenses Incurred
+          <div className="brutal-card p-6 bg-[var(--surface-light)] border-2 border-[var(--border-color)] relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-amber-500" />
+            <h3 className="font-mono font-black uppercase tracking-widest text-[var(--text-muted)] mb-4 flex items-center gap-2">
+              <Activity size={18} className="text-amber-500" /> 1. Total Expenses Incurred
             </h3>
-            <div className="text-5xl font-black mb-2 text-amber-900">₹{totalExpense.toLocaleString('en-IN')}</div>
-            <div className="bg-white border-2 border-black px-3 py-1 font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase w-max text-amber-900">
-              Across Both Families
+            <div className="text-4xl sm:text-5xl font-black mb-3 text-[var(--text-primary)]">
+              {formatCur(totalExpense)}
+            </div>
+            <div className="inline-block bg-[var(--surface-contrast)] text-[var(--text-inverse)] px-3 py-1 font-mono text-xs font-bold uppercase shadow-[2px_2px_0px_0px_var(--shadow-color)]">
+              Across {activeFamilies.length} Registered {activeFamilies.length === 1 ? 'Family' : 'Families'}
             </div>
           </div>
 
           {/* Block 2: Individual Share */}
-          <div className="brutal-card p-6 bg-[#E0E7FF]">
-            <h3 className="font-mono font-black uppercase tracking-widest text-blue-600 mb-6 flex items-center gap-2">
-              <Wallet size={20} /> 2. Spends List By Family (Who Owes)
+          <div className="brutal-card p-6 bg-[var(--surface-light)] border-2 border-[var(--border-color)] relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-blue-500" />
+            <h3 className="font-mono font-black uppercase tracking-widest text-[var(--text-muted)] mb-4 flex items-center gap-2">
+              <Wallet size={18} className="text-blue-500" /> 2. Spends List By Family (Who Owes)
             </h3>
-            <div className="flex flex-col gap-4">
-              <div 
-                className="flex justify-between items-end border-b-2 border-black pb-2 cursor-pointer hover:bg-blue-200/50 p-2 rounded transition-colors"
-                onClick={() => setSelectedFamilyFilter(selectedFamilyFilter === 'Mitra' ? 'ALL' : 'Mitra')}
-              >
-                <span className="font-bold text-xl uppercase">Mitra Family {selectedFamilyFilter === 'Mitra' && '(Filter Active)'}</span>
-                <span className="font-black text-3xl text-blue-900">₹{mitraShare.toLocaleString('en-IN')}</span>
-              </div>
-              <div 
-                className="flex justify-between items-end cursor-pointer hover:bg-blue-200/50 p-2 rounded transition-colors"
-                onClick={() => setSelectedFamilyFilter(selectedFamilyFilter === 'Ghosh' ? 'ALL' : 'Ghosh')}
-              >
-                <span className="font-bold text-xl uppercase">Ghosh Family {selectedFamilyFilter === 'Ghosh' && '(Filter Active)'}</span>
-                <span className="font-black text-3xl text-blue-900">₹{ghoshShare.toLocaleString('en-IN')}</span>
-              </div>
+            <div className="flex flex-col gap-3">
+              {familyBalances.map(fam => {
+                const isFamActive = selectedFamilyFilter.toLowerCase() === fam.name.toLowerCase();
+                return (
+                  <div 
+                    key={fam.name}
+                    className={`flex justify-between items-center p-2.5 border-2 border-[var(--border-color)] cursor-pointer transition-all ${
+                      isFamActive 
+                        ? 'bg-[var(--accent)] text-white shadow-[3px_3px_0px_0px_var(--shadow-color)]' 
+                        : 'bg-[var(--bg-color)] hover:bg-[var(--accent-light)] text-[var(--text-primary)]'
+                    }`}
+                    onClick={() => setSelectedFamilyFilter(isFamActive ? 'ALL' : fam.name)}
+                    title="Click to filter by this family"
+                  >
+                    <span className="font-bold text-sm sm:text-base uppercase flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: fam.color }} />
+                      {fam.name} Family {isFamActive && '(Filter Active)'}
+                    </span>
+                    <span className="font-black text-xl sm:text-2xl">
+                      {formatCur(fam.share)}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           {/* Block 3: Total Contributions (Payments + Receipts) */}
-          <div className="brutal-card p-6 bg-[#FEF3C7]">
-            <h3 className="font-mono font-black uppercase tracking-widest text-amber-600 mb-6 flex items-center gap-2">
-              <ArrowDownRight size={20} /> 3. Total Cash Outflow (Paid By)
+          <div className="brutal-card p-6 bg-[var(--surface-light)] border-2 border-[var(--border-color)] relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500" />
+            <h3 className="font-mono font-black uppercase tracking-widest text-[var(--text-muted)] mb-4 flex items-center gap-2">
+              <ArrowDownRight size={18} className="text-emerald-500" /> 3. Total Cash Outflow (Paid By)
             </h3>
-            <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-end border-b-2 border-black pb-2">
-                <span className="font-bold text-xl uppercase">Mitra Family</span>
-                <span className="font-black text-3xl">₹{mitraTotalContribution.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="flex justify-between items-end">
-                <span className="font-bold text-xl uppercase">Ghosh Family</span>
-                <span className="font-black text-3xl">₹{ghoshTotalContribution.toLocaleString('en-IN')}</span>
-              </div>
+            <div className="flex flex-col gap-3">
+              {familyBalances.map(fam => (
+                <div key={fam.name} className="flex justify-between items-center p-2.5 border-2 border-[var(--border-color)] bg-[var(--bg-color)]">
+                  <span className="font-bold text-sm sm:text-base uppercase flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: fam.color }} />
+                    {fam.name} Family
+                  </span>
+                  <span className="font-black text-xl sm:text-2xl text-[var(--text-primary)]">
+                    {formatCur(fam.totalContributed)}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Block 4: Net Dues */}
-          <div className="brutal-card p-6 bg-[#ECFCCB]">
-            <h3 className="font-mono font-black uppercase tracking-widest text-green-700 mb-6 flex items-center gap-2">
-              <Activity size={20} /> 4. Net Dues (Final Settlement)
+          <div className="brutal-card p-6 bg-[var(--surface-light)] border-2 border-[var(--border-color)] relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-indigo-500" />
+            <h3 className="font-mono font-black uppercase tracking-widest text-[var(--text-muted)] mb-4 flex items-center gap-2">
+              <Activity size={18} className="text-indigo-500" /> 4. Net Dues (Reconciled Balance)
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className={`border-4 border-black p-4 bg-white shadow-[4px_4px_0px_0px_${mitraBalance < 0 ? '#EF4444' : mitraBalance > 0 ? '#10B981' : '#94A3B8'}]`}>
-                <div className="font-bold uppercase text-sm mb-2 border-b-2 border-black pb-1">Mitra Family</div>
-                <div className={`text-2xl font-black ${mitraBalance < 0 ? 'text-red-600' : mitraBalance > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
-                  {mitraBalance < 0 ? `DUES ₹${Math.abs(mitraBalance).toLocaleString('en-IN')}` : mitraBalance > 0 ? `GETS ₹${mitraBalance.toLocaleString('en-IN')}` : 'SETTLED'}
-                </div>
-              </div>
-              <div className={`border-4 border-black p-4 bg-white shadow-[4px_4px_0px_0px_${ghoshBalance < 0 ? '#EF4444' : ghoshBalance > 0 ? '#10B981' : '#94A3B8'}]`}>
-                <div className="font-bold uppercase text-sm mb-2 border-b-2 border-black pb-1">Ghosh Family</div>
-                <div className={`text-2xl font-black ${ghoshBalance < 0 ? 'text-red-600' : ghoshBalance > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
-                  {ghoshBalance < 0 ? `DUES ₹${Math.abs(ghoshBalance).toLocaleString('en-IN')}` : ghoshBalance > 0 ? `GETS ₹${ghoshBalance.toLocaleString('en-IN')}` : 'SETTLED'}
-                </div>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {familyBalances.map(fam => {
+                const owes = fam.netBalance < -0.01;
+                const gets = fam.netBalance > 0.01;
+                return (
+                  <div 
+                    key={fam.name}
+                    className={`border-2 border-[var(--border-color)] p-3 bg-[var(--bg-color)] shadow-[3px_3px_0px_0px_var(--shadow-color)]`}
+                  >
+                    <div className="font-bold uppercase text-xs mb-1.5 border-b border-[var(--border-color)]/30 pb-1 flex justify-between items-center">
+                      <span>{fam.name} Family</span>
+                      <span className={`text-[10px] font-mono px-1.5 py-0.5 border ${
+                        owes ? 'bg-red-500/10 text-red-600 border-red-500/30' :
+                        gets ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' :
+                        'bg-zinc-500/10 text-zinc-600 border-zinc-500/30'
+                      }`}>
+                        {owes ? 'DEBTOR' : gets ? 'CREDITOR' : 'SETTLED'}
+                      </span>
+                    </div>
+                    <div className={`text-xl font-black ${
+                      owes ? 'text-red-500' :
+                      gets ? 'text-emerald-500' :
+                      'text-[var(--text-muted)]'
+                    }`}>
+                      {owes 
+                        ? `OWES ${formatCur(Math.abs(fam.netBalance))}`
+                        : gets 
+                        ? `GETS ${formatCur(fam.netBalance)}`
+                        : 'BALANCED'}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Block 5: Category Wise Spends (Clickable to Filter) */}
-          <div className="brutal-card p-6 bg-[#F3E8FF] md:col-span-2">
+          {/* ── BLOCK 5: GREEDY GRAPH DEBT MINIMIZATION MATRIX ── */}
+          <div className="brutal-card p-6 bg-[var(--surface-light)] border-2 border-[var(--border-color)] md:col-span-2 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500" />
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <h3 className="font-mono font-black uppercase tracking-widest text-purple-900 flex items-center gap-2">
-                <Activity size={20} /> 5. Category Wise Ledger Summaries
+              <div>
+                <h3 className="font-mono font-black uppercase tracking-widest text-[var(--text-primary)] flex items-center gap-2 text-lg">
+                  <ShieldCheck size={22} className="text-emerald-500" />
+                  Graph Debt Minimization Ledger Matrix
+                </h3>
+                <p className="font-mono text-xs text-[var(--text-muted)] mt-1">
+                  Bipartite Min-Cash-Flow Greedily Reconciles Multilateral Balances to ≤ N-1 Optimized Transfers
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1">
+                  {minimalTransfers.length === 0 ? '✓ All Accounts Balanced' : `⚡ ${minimalTransfers.length} Optimized Transfer Resolves Full Ledger`}
+                </span>
+              </div>
+            </div>
+
+            {minimalTransfers.length === 0 ? (
+              <div className="p-8 text-center border-2 border-dashed border-[var(--border-color)]/40 font-mono text-sm text-[var(--text-muted)]">
+                All expedition accounts are fully balanced. No inter-family debt settlement transfers required.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Visual Direct Settlement Flow Cards */}
+                <div className="lg:col-span-2 flex flex-col gap-3">
+                  <div className="font-mono text-xs font-black uppercase text-[var(--text-muted)] tracking-wider">
+                    Optimal Transfer Paths
+                  </div>
+                  {minimalTransfers.map((tx, idx) => (
+                    <div 
+                      key={idx}
+                      className="p-4 border-2 border-[var(--border-color)] bg-[var(--bg-color)] shadow-[3px_3px_0px_0px_var(--shadow-color)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="px-3 py-1.5 bg-red-500 text-white font-mono font-black text-xs uppercase border border-[var(--border-color)]">
+                          {tx.from}
+                        </div>
+                        <div className="flex items-center gap-1 text-[var(--text-muted)] font-mono text-xs font-bold">
+                          <span>OWES</span>
+                          <ArrowRight size={16} className="text-[var(--accent)]" />
+                        </div>
+                        <div className="px-3 py-1.5 bg-emerald-600 text-white font-mono font-black text-xs uppercase border border-[var(--border-color)]">
+                          {tx.to}
+                        </div>
+                      </div>
+
+                      <div className="text-right flex items-baseline gap-2">
+                        <span className="font-mono text-xs text-[var(--text-muted)]">AMOUNT:</span>
+                        <span className="text-2xl font-black text-[var(--text-primary)]">
+                          {formatCur(tx.amount)}
+                        </span>
+                        {selectedCurrency !== 'INR' && (
+                          <span className="font-mono text-xs text-[var(--text-muted)]">
+                            (₹{tx.amount.toLocaleString('en-IN')})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Direct Cross-Settlement Matrix Table */}
+                <div className="flex flex-col gap-3">
+                  <div className="font-mono text-xs font-black uppercase text-[var(--text-muted)] tracking-wider">
+                    Bipartite Settlement Table
+                  </div>
+                  <div className="border-2 border-[var(--border-color)] overflow-hidden bg-[var(--bg-color)]">
+                    <table className="w-full text-left font-mono text-xs">
+                      <thead>
+                        <tr className="bg-[var(--surface-contrast)] text-[var(--text-inverse)] border-b-2 border-[var(--border-color)]">
+                          <th className="p-2 border-r border-[var(--border-color)]">Debtor (From)</th>
+                          <th className="p-2 border-r border-[var(--border-color)]">Creditor (To)</th>
+                          <th className="p-2 text-right">Sum</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {minimalTransfers.map((tx, i) => (
+                          <tr key={i} className="border-b border-[var(--border-color)]/20 last:border-b-0 font-bold">
+                            <td className="p-2 border-r border-[var(--border-color)]/20">{tx.from}</td>
+                            <td className="p-2 border-r border-[var(--border-color)]/20">{tx.to}</td>
+                            <td className="p-2 text-right font-black text-emerald-600 dark:text-emerald-400">
+                              {formatCur(tx.amount)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Block 6: Category Wise Spends (Clickable to Filter + Instant PDF Trigger) */}
+          <div className="brutal-card p-6 bg-[var(--surface-light)] border-2 border-[var(--border-color)] md:col-span-2 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-purple-500" />
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <h3 className="font-mono font-black uppercase tracking-widest text-[var(--text-primary)] flex items-center gap-2">
+                <Activity size={20} className="text-purple-500" /> 5. Category Wise Ledger Summaries
               </h3>
-              <span className="font-mono text-xs font-bold text-purple-700 bg-purple-200 px-3 py-1 border border-purple-400">
-                Click any category box below to filter that ledger
+              <span className="font-mono text-xs font-bold text-[var(--text-muted)] bg-[var(--bg-color)] border border-[var(--border-color)] px-3 py-1">
+                Click any box to filter • Use PDF button to download itemized bill
               </span>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-              <div 
-                onClick={() => setSelectedCategoryFilter(selectedCategoryFilter === 'FOOD' ? 'ALL' : 'FOOD')}
-                className={`border-4 border-black p-4 bg-white cursor-pointer transition-all hover:-translate-y-1 ${selectedCategoryFilter === 'FOOD' ? 'ring-4 ring-green-600 bg-green-50 shadow-[6px_6px_0px_0px_#16A34A]' : 'shadow-[4px_4px_0px_0px_#16A34A]'}`}
-              >
-                <div className="font-bold uppercase text-xs mb-2 border-b-2 border-black pb-1 flex justify-between items-center text-green-800">
-                  <span>🍲 Food</span>
-                  {selectedCategoryFilter === 'FOOD' && <Check size={14} className="text-green-700" />}
-                </div>
-                <div className="text-xl font-black text-green-700">₹{categorySpends.FOOD.toLocaleString('en-IN')}</div>
-                <div className="text-[10px] font-mono font-bold text-gray-500 mt-1 uppercase">Meals & Snacks</div>
-              </div>
-
-              <div 
-                onClick={() => setSelectedCategoryFilter(selectedCategoryFilter === 'TRANS' ? 'ALL' : 'TRANS')}
-                className={`border-4 border-black p-4 bg-white cursor-pointer transition-all hover:-translate-y-1 ${selectedCategoryFilter === 'TRANS' ? 'ring-4 ring-blue-600 bg-blue-50 shadow-[6px_6px_0px_0px_#2563EB]' : 'shadow-[4px_4px_0px_0px_#2563EB]'}`}
-              >
-                <div className="font-bold uppercase text-xs mb-2 border-b-2 border-black pb-1 flex justify-between items-center text-blue-800">
-                  <span>🚆 Transport</span>
-                  {selectedCategoryFilter === 'TRANS' && <Check size={14} className="text-blue-700" />}
-                </div>
-                <div className="text-xl font-black text-blue-700">₹{categorySpends.TRANS.toLocaleString('en-IN')}</div>
-                <div className="text-[10px] font-mono font-bold text-gray-500 mt-1 uppercase">Cabs, Trains</div>
-              </div>
-
-              <div 
-                onClick={() => setSelectedCategoryFilter(selectedCategoryFilter === 'HOTEL' ? 'ALL' : 'HOTEL')}
-                className={`border-4 border-black p-4 bg-white cursor-pointer transition-all hover:-translate-y-1 ${selectedCategoryFilter === 'HOTEL' ? 'ring-4 ring-orange-600 bg-orange-50 shadow-[6px_6px_0px_0px_#EA580C]' : 'shadow-[4px_4px_0px_0px_#EA580C]'}`}
-              >
-                <div className="font-bold uppercase text-xs mb-2 border-b-2 border-black pb-1 flex justify-between items-center text-orange-800">
-                  <span>🏨 Hotel</span>
-                  {selectedCategoryFilter === 'HOTEL' && <Check size={14} className="text-orange-700" />}
-                </div>
-                <div className="text-xl font-black text-orange-700">₹{categorySpends.HOTEL.toLocaleString('en-IN')}</div>
-                <div className="text-[10px] font-mono font-bold text-gray-500 mt-1 uppercase">Rooms & Stays</div>
-              </div>
-
-              <div 
-                onClick={() => setSelectedCategoryFilter(selectedCategoryFilter === 'SIGHT' ? 'ALL' : 'SIGHT')}
-                className={`border-4 border-black p-4 bg-white cursor-pointer transition-all hover:-translate-y-1 ${selectedCategoryFilter === 'SIGHT' ? 'ring-4 ring-pink-600 bg-pink-50 shadow-[6px_6px_0px_0px_#DB2777]' : 'shadow-[4px_4px_0px_0px_#DB2777]'}`}
-              >
-                <div className="font-bold uppercase text-xs mb-2 border-b-2 border-black pb-1 flex justify-between items-center text-pink-800">
-                  <span>🏛️ Sightseeing</span>
-                  {selectedCategoryFilter === 'SIGHT' && <Check size={14} className="text-pink-700" />}
-                </div>
-                <div className="text-xl font-black text-pink-700">₹{categorySpends.SIGHT.toLocaleString('en-IN')}</div>
-                <div className="text-[10px] font-mono font-bold text-gray-500 mt-1 uppercase">Passes, Shrines</div>
-              </div>
-
-              <div 
-                onClick={() => setSelectedCategoryFilter(selectedCategoryFilter === 'OTHER' ? 'ALL' : 'OTHER')}
-                className={`border-4 border-black p-4 bg-white cursor-pointer transition-all hover:-translate-y-1 ${selectedCategoryFilter === 'OTHER' ? 'ring-4 ring-purple-600 bg-purple-50 shadow-[6px_6px_0px_0px_#9333EA]' : 'shadow-[4px_4px_0px_0px_#9333EA]'}`}
-              >
-                <div className="font-bold uppercase text-xs mb-2 border-b-2 border-black pb-1 flex justify-between items-center text-purple-800">
-                  <span>📦 Other</span>
-                  {selectedCategoryFilter === 'OTHER' && <Check size={14} className="text-purple-700" />}
-                </div>
-                <div className="text-xl font-black text-purple-700">₹{categorySpends.OTHER.toLocaleString('en-IN')}</div>
-                <div className="text-[10px] font-mono font-bold text-gray-500 mt-1 uppercase">General Misc</div>
-              </div>
-
-              <div 
-                onClick={() => setSelectedCategoryFilter(selectedCategoryFilter === 'RECEIPT' ? 'ALL' : 'RECEIPT')}
-                className={`border-4 border-black p-4 bg-white cursor-pointer transition-all hover:-translate-y-1 ${selectedCategoryFilter === 'RECEIPT' ? 'ring-4 ring-emerald-600 bg-emerald-50 shadow-[6px_6px_0px_0px_#059669]' : 'shadow-[4px_4px_0px_0px_#059669]'}`}
-              >
-                <div className="font-bold uppercase text-xs mb-2 border-b-2 border-black pb-1 flex justify-between items-center text-emerald-800">
-                  <span>💰 Deposits</span>
-                  {selectedCategoryFilter === 'RECEIPT' && <Check size={14} className="text-emerald-700" />}
-                </div>
-                <div className="text-xl font-black text-emerald-700">₹{categorySpends.RECEIPT.toLocaleString('en-IN')}</div>
-                <div className="text-[10px] font-mono font-bold text-gray-500 mt-1 uppercase">Advances/Fund</div>
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+              {LEDGER_ACCOUNTS.map((acc) => {
+                const isSelected = selectedCategoryFilter === acc.key;
+                return (
+                  <div 
+                    key={acc.key}
+                    onClick={() => setSelectedCategoryFilter(isSelected ? 'ALL' : acc.key)}
+                    className={`border-2 border-[var(--border-color)] p-3 bg-[var(--bg-color)] cursor-pointer transition-all hover:-translate-y-1 relative group ${
+                      isSelected 
+                        ? 'border-[var(--accent)] ring-2 ring-[var(--accent)] shadow-[4px_4px_0px_0px_var(--accent)]' 
+                        : 'shadow-[3px_3px_0px_0px_var(--shadow-color)]'
+                    }`}
+                  >
+                    <div className="font-bold uppercase text-xs mb-1.5 border-b border-[var(--border-color)]/30 pb-1 flex justify-between items-center text-[var(--text-primary)]">
+                      <span className="truncate">{acc.title.replace(' Ledger', '')}</span>
+                      {isSelected && <Check size={14} className="text-[var(--accent)]" />}
+                    </div>
+                    <div className="text-lg font-black text-[var(--text-primary)]">
+                      {formatCur(acc.total)}
+                    </div>
+                    <div className="flex justify-between items-center mt-2 pt-1 border-t border-[var(--border-color)]/20">
+                      <span className="text-[10px] font-mono text-[var(--text-muted)] uppercase">
+                        AC-{acc.key}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleGeneratePDF(acc.key);
+                        }}
+                        className="p-1 hover:bg-[var(--accent)] hover:text-white transition-colors border border-[var(--border-color)] text-[var(--text-muted)]"
+                        title={`Download ${acc.key} Itemized Bill PDF`}
+                      >
+                        <Download size={12} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* LEDGER NAVIGATION & CONTROLS */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 bg-white p-6 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        {/* ── LEDGER NAVIGATION & CONTROLS ── */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 bg-[var(--surface-light)] p-5 border-2 border-[var(--border-color)] shadow-[4px_4px_0px_0px_var(--shadow-color)]">
           {/* View Mode Toggle */}
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xs font-black uppercase tracking-wider">Accounting View:</span>
-            <div className="flex border-2 border-black p-1 bg-gray-100">
+            <span className="font-mono text-xs font-black uppercase tracking-wider text-[var(--text-muted)]">View:</span>
+            <div className="flex border-2 border-[var(--border-color)] p-0.5 bg-[var(--bg-color)]">
               <button
                 onClick={() => setViewMode('BOOK')}
-                className={`px-4 py-2 font-mono text-xs font-black uppercase flex items-center gap-2 transition-all ${viewMode === 'BOOK' ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'hover:bg-gray-200 text-black'}`}
+                className={`px-3 py-1.5 font-mono text-xs font-black uppercase flex items-center gap-1.5 transition-all ${
+                  viewMode === 'BOOK' 
+                    ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_var(--shadow-color)]' 
+                    : 'hover:bg-[var(--surface-light)] text-[var(--text-primary)]'
+                }`}
               >
-                <BookOpen size={16} /> Ledger Book View
+                <BookOpen size={14} /> Ledger Accounts
               </button>
               <button
                 onClick={() => setViewMode('LOG')}
-                className={`px-4 py-2 font-mono text-xs font-black uppercase flex items-center gap-2 transition-all ${viewMode === 'LOG' ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'hover:bg-gray-200 text-black'}`}
+                className={`px-3 py-1.5 font-mono text-xs font-black uppercase flex items-center gap-1.5 transition-all ${
+                  viewMode === 'LOG' 
+                    ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_var(--shadow-color)]' 
+                    : 'hover:bg-[var(--surface-light)] text-[var(--text-primary)]'
+                }`}
               >
-                <List size={16} /> Unified Chronological Log
+                <List size={14} /> Chronological Log
               </button>
             </div>
           </div>
 
           {/* Quick Filters */}
           <div className="flex flex-wrap items-center gap-3">
-            <span className="font-mono text-xs font-black uppercase tracking-wider">Filter Category:</span>
+            <span className="font-mono text-xs font-black uppercase tracking-wider text-[var(--text-muted)]">Category:</span>
             <select
               value={selectedCategoryFilter}
               onChange={(e) => setSelectedCategoryFilter(e.target.value as typeof selectedCategoryFilter)}
-              className="border-2 border-black p-2 font-mono text-xs font-bold bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase"
+              className="border-2 border-[var(--border-color)] p-2 font-mono text-xs font-bold bg-[var(--surface-light)] text-[var(--text-primary)] shadow-[2px_2px_0px_0px_var(--shadow-color)] uppercase"
             >
               <option value="ALL">All Categories</option>
-              <option value="FOOD">Fooding (₹{categorySpends.FOOD.toLocaleString('en-IN')})</option>
-              <option value="TRANS">Transport (₹{categorySpends.TRANS.toLocaleString('en-IN')})</option>
-              <option value="HOTEL">Hotels (₹{categorySpends.HOTEL.toLocaleString('en-IN')})</option>
-              <option value="SIGHT">Sightseeing (₹{categorySpends.SIGHT.toLocaleString('en-IN')})</option>
-              <option value="OTHER">Misc / Other (₹{categorySpends.OTHER.toLocaleString('en-IN')})</option>
-              <option value="RECEIPT">Deposits / Advances (₹{categorySpends.RECEIPT.toLocaleString('en-IN')})</option>
+              <option value="FOOD">Fooding ({formatCur(categorySpends.FOOD)})</option>
+              <option value="TRANS">Transport ({formatCur(categorySpends.TRANS)})</option>
+              <option value="HOTEL">Hotels ({formatCur(categorySpends.HOTEL)})</option>
+              <option value="SIGHT">Sightseeing ({formatCur(categorySpends.SIGHT)})</option>
+              <option value="OTHER">Misc / Other ({formatCur(categorySpends.OTHER)})</option>
+              <option value="RECEIPT">Deposits / Advances ({formatCur(categorySpends.RECEIPT)})</option>
             </select>
 
-            <span className="font-mono text-xs font-black uppercase tracking-wider ml-2">Family:</span>
+            <span className="font-mono text-xs font-black uppercase tracking-wider text-[var(--text-muted)] ml-2">Family:</span>
             <select
               value={selectedFamilyFilter}
-              onChange={(e) => setSelectedFamilyFilter(e.target.value as typeof selectedFamilyFilter)}
-              className="border-2 border-black p-2 font-mono text-xs font-bold bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase"
+              onChange={(e) => setSelectedFamilyFilter(e.target.value)}
+              className="border-2 border-[var(--border-color)] p-2 font-mono text-xs font-bold bg-[var(--surface-light)] text-[var(--text-primary)] shadow-[2px_2px_0px_0px_var(--shadow-color)] uppercase"
             >
               <option value="ALL">All Families</option>
-              <option value="Mitra">Mitra Family Only</option>
-              <option value="Ghosh">Ghosh Family Only</option>
+              {activeFamilies.map(f => (
+                <option key={f.name} value={f.name}>{f.name} Family Only</option>
+              ))}
             </select>
 
             {(selectedCategoryFilter !== 'ALL' || selectedFamilyFilter !== 'ALL') && (
@@ -769,9 +1151,9 @@ export default function ExpensesPage() {
                   setSelectedCategoryFilter('ALL');
                   setSelectedFamilyFilter('ALL');
                 }}
-                className="font-mono text-xs font-bold bg-red-100 text-red-800 border-2 border-red-800 px-3 py-2 hover:bg-red-200 transition-colors uppercase"
+                className="font-mono text-xs font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30 px-3 py-2 hover:bg-red-500/20 transition-colors uppercase flex items-center gap-1"
               >
-                Reset Filters
+                <RefreshCw size={12} /> Reset Filters
               </button>
             )}
           </div>
@@ -779,108 +1161,116 @@ export default function ExpensesPage() {
 
         {/* ── VIEW 1: AUTHENTIC LEDGER BOOK (CATEGORIZED ACCOUNTS) ── */}
         {viewMode === 'BOOK' && (
-          <div className="flex flex-col gap-12">
+          <div className="flex flex-col gap-10">
             {LEDGER_ACCOUNTS.map((account) => {
               if (selectedCategoryFilter !== 'ALL' && selectedCategoryFilter !== account.key) {
                 return null;
               }
 
               const accountEntries = expenses.filter(e => {
-                const familyMatch = selectedFamilyFilter === 'ALL' || e.paidBy === selectedFamilyFilter;
+                const familyMatch = selectedFamilyFilter === 'ALL' || e.paidBy.toLowerCase() === selectedFamilyFilter.toLowerCase();
                 const catMatch = matchesCategory(e, account.key);
                 return familyMatch && catMatch;
               });
 
               const accountSubtotal = accountEntries.reduce((sum, e) => sum + e.amount, 0);
-              const mitraAccountPaid = accountEntries.filter(e => e.paidBy === 'Mitra').reduce((sum, e) => sum + e.amount, 0);
-              const ghoshAccountPaid = accountEntries.filter(e => e.paidBy === 'Ghosh').reduce((sum, e) => sum + e.amount, 0);
 
               return (
-                <div key={account.key} className="brutal-card p-0 overflow-hidden bg-white">
+                <div key={account.key} className="brutal-card p-0 overflow-hidden bg-[var(--surface-light)] border-2 border-[var(--border-color)]">
                   {/* Account Ledger Header */}
-                  <div className={`p-6 border-b-4 border-black flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${account.colorClass}`}>
+                  <div className="p-5 border-b-2 border-[var(--border-color)] bg-[var(--bg-color)] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-3 bg-black text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
+                      <div className="p-2.5 bg-[var(--surface-contrast)] text-[var(--text-inverse)] border border-[var(--border-color)] shadow-[2px_2px_0px_0px_var(--shadow-color)]">
                         {account.icon}
                       </div>
                       <div>
-                        <h3 className="font-black text-2xl uppercase tracking-wider">{account.title}</h3>
-                        <p className="font-mono text-xs font-bold uppercase opacity-80">
-                          Account Ledger Code: AC-{account.key} • {accountEntries.length} {accountEntries.length === 1 ? 'Entry' : 'Entries'}
+                        <h3 className="font-black text-xl uppercase tracking-wider text-[var(--text-primary)]">
+                          {account.title}
+                        </h3>
+                        <p className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                          Code: AC-{account.key} • {accountEntries.length} {accountEntries.length === 1 ? 'Entry' : 'Entries'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-6 bg-white/90 p-3 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                      <div className="text-right">
-                        <div className="font-mono text-[10px] font-bold text-gray-500 uppercase">Ledger Subtotal</div>
-                        <div className="font-black text-2xl text-black">₹{accountSubtotal.toLocaleString('en-IN')}</div>
+                    <div className="flex flex-wrap items-center gap-4 bg-[var(--surface-light)] p-2.5 border-2 border-[var(--border-color)] shadow-[2px_2px_0px_0px_var(--shadow-color)]">
+                      <div className="text-right pr-3 border-r-2 border-[var(--border-color)]">
+                        <div className="font-mono text-[10px] font-bold text-[var(--text-muted)] uppercase">Subtotal ({selectedCurrency})</div>
+                        <div className="font-black text-xl text-[var(--text-primary)]">{formatCur(accountSubtotal)}</div>
                       </div>
-                      <div className="border-l-2 border-black pl-4 font-mono text-xs font-bold flex flex-col gap-1 text-black">
-                        <div>Mitra Paid: <span className="font-black">₹{mitraAccountPaid.toLocaleString('en-IN')}</span></div>
-                        <div>Ghosh Paid: <span className="font-black">₹{ghoshAccountPaid.toLocaleString('en-IN')}</span></div>
-                      </div>
+                      
+                      <button
+                        onClick={() => handleGeneratePDF(account.key)}
+                        className="brutal-btn bg-[var(--surface-light)] text-[var(--text-primary)] hover:bg-[var(--accent-light)] text-xs flex items-center gap-1.5 py-1.5 px-3"
+                        title={`Download itemized PDF for ${account.title}`}
+                      >
+                        <Download size={14} /> PDF Bill
+                      </button>
                     </div>
                   </div>
 
                   {/* Ledger Account Entries Table */}
-                  <div className="overflow-x-auto bg-white">
+                  <div className="overflow-x-auto bg-[var(--surface-light)]">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-[#F4F4F5] font-mono text-xs tracking-widest uppercase border-b-2 border-black">
-                          <th className="p-4 font-black border-r-2 border-black w-32">Date</th>
-                          <th className="p-4 font-black border-r-2 border-black">Particulars / Description</th>
-                          <th className="p-4 font-black border-r-2 border-black w-36">Disbursed By</th>
-                          <th className="p-4 font-black border-r-2 border-black w-48">Liability Split</th>
-                          <th className="p-4 font-black text-right border-r-2 border-black w-44">Amount (INR)</th>
-                          <th className="p-4 font-black text-center w-24">Actions</th>
+                        <tr className="bg-[var(--bg-color)] font-mono text-xs tracking-widest uppercase border-b-2 border-[var(--border-color)] text-[var(--text-muted)]">
+                          <th className="p-3.5 font-black border-r-2 border-[var(--border-color)] w-28">Date</th>
+                          <th className="p-3.5 font-black border-r-2 border-[var(--border-color)]">Particulars / Details</th>
+                          <th className="p-3.5 font-black border-r-2 border-[var(--border-color)] w-36">Disbursed By</th>
+                          <th className="p-3.5 font-black border-r-2 border-[var(--border-color)] w-48">Liability Split</th>
+                          <th className="p-3.5 font-black text-right border-r-2 border-[var(--border-color)] w-40">Amount ({selectedCurrency})</th>
+                          <th className="p-3.5 font-black text-center w-24">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="font-bold text-base uppercase">
+                      <tbody className="font-bold text-sm uppercase text-[var(--text-primary)]">
                         {accountEntries.length === 0 ? (
                           <tr>
-                            <td colSpan={6} className="p-8 text-center text-gray-400 font-mono text-sm normal-case">
-                              No entries logged under this category ledger yet. Click &quot;Record New Entry&quot; to post spends.
+                            <td colSpan={6} className="p-8 text-center text-[var(--text-muted)] font-mono text-xs normal-case">
+                              No entries logged under this category ledger yet. Click &quot;Record Entry&quot; to post spends.
                             </td>
                           </tr>
                         ) : (
                           accountEntries.map((exp) => (
-                            <tr key={exp.id} className="hover:bg-gray-50 transition-colors border-b border-gray-200">
-                              <td className="p-4 border-r-2 border-black font-mono text-sm text-gray-700">{exp.date}</td>
-                              <td className="p-4 border-r-2 border-black">
+                            <tr key={exp.id} className="hover:bg-[var(--accent-light)] transition-colors border-b border-[var(--border-color)]/20">
+                              <td className="p-3.5 border-r-2 border-[var(--border-color)] font-mono text-xs text-[var(--text-muted)]">{exp.date}</td>
+                              <td className="p-3.5 border-r-2 border-[var(--border-color)]">
                                 <div className="flex items-center gap-2">
-                                  {safeType(exp) === 'RECEIPT' && <span className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 font-mono">CREDIT</span>}
+                                  {safeType(exp) === 'RECEIPT' && (
+                                    <span className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 font-mono">CREDIT</span>
+                                  )}
                                   <span>{exp.description}</span>
                                 </div>
                               </td>
-                              <td className="p-4 border-r-2 border-black font-mono text-sm">{exp.paidBy} Family</td>
-                              <td className="p-4 border-r-2 border-black font-mono text-xs">
+                              <td className="p-3.5 border-r-2 border-[var(--border-color)] font-mono text-xs">{exp.paidBy} Family</td>
+                              <td className="p-3.5 border-r-2 border-[var(--border-color)] font-mono text-xs">
                                 {safeType(exp) === 'RECEIPT' ? (
-                                  <span className="text-gray-400 font-normal">Trip Fund Deposit</span>
+                                  <span className="text-[var(--text-muted)] font-normal">Trip Fund Deposit</span>
                                 ) : (
                                   getSplitMitra(exp) === exp.amount && getSplitGhosh(exp) === 0 ? (
-                                    <span className="text-blue-600 font-black">100% MITRA</span>
+                                    <span className="text-blue-600 dark:text-blue-400 font-black">100% MITRA</span>
                                   ) : getSplitGhosh(exp) === exp.amount && getSplitMitra(exp) === 0 ? (
-                                    <span className="text-blue-600 font-black">100% GHOSH</span>
+                                    <span className="text-blue-600 dark:text-blue-400 font-black">100% GHOSH</span>
                                   ) : getSplitMitra(exp) === exp.amount / 2 && getSplitGhosh(exp) === exp.amount / 2 ? (
-                                    <span className="text-emerald-700">50/50 EQUAL</span>
+                                    <span className="text-emerald-600 dark:text-emerald-400">50/50 EQUAL</span>
                                   ) : (
                                     <div className="flex flex-col">
-                                      <span className="text-blue-600">M: ₹{getSplitMitra(exp).toLocaleString('en-IN')}</span>
-                                      <span className="text-blue-600">G: ₹{getSplitGhosh(exp).toLocaleString('en-IN')}</span>
+                                      <span className="text-blue-600 dark:text-blue-400">M: {formatCur(getSplitMitra(exp))}</span>
+                                      <span className="text-blue-600 dark:text-blue-400">G: {formatCur(getSplitGhosh(exp))}</span>
                                     </div>
                                   )
                                 )}
                               </td>
-                              <td className="p-4 text-right font-black border-r-2 border-black text-lg">₹{exp.amount.toLocaleString('en-IN')}</td>
-                              <td className="p-4 text-center">
+                              <td className="p-3.5 text-right font-black border-r-2 border-[var(--border-color)] text-base">
+                                {formatCur(exp.amount)}
+                              </td>
+                              <td className="p-3.5 text-center">
                                 <div className="flex items-center justify-center gap-3">
                                   <button 
                                     onClick={() => handleEdit(exp)}
                                     className="text-blue-600 hover:text-blue-800 transition-colors"
                                     title="Edit Entry"
                                   >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                   </button>
                                   <button 
                                     onClick={async () => {
@@ -897,7 +1287,7 @@ export default function ExpensesPage() {
                                     className="text-red-500 hover:text-red-700 transition-colors"
                                     title="Delete Entry"
                                   >
-                                    <Trash2 size={18} />
+                                    <Trash2 size={16} />
                                   </button>
                                 </div>
                               </td>
@@ -905,14 +1295,14 @@ export default function ExpensesPage() {
                           ))
                         )}
                         {accountEntries.length > 0 && (
-                          <tr className="bg-gray-100 font-mono text-sm border-t-2 border-black">
-                            <td colSpan={4} className="p-4 text-right font-black border-r-2 border-black uppercase tracking-wider">
+                          <tr className="bg-[var(--bg-color)] font-mono text-xs border-t-2 border-[var(--border-color)]">
+                            <td colSpan={4} className="p-3.5 text-right font-black border-r-2 border-[var(--border-color)] uppercase tracking-wider text-[var(--text-muted)]">
                               Subtotal for {account.title}:
                             </td>
-                            <td className="p-4 text-right font-black border-r-2 border-black text-xl text-black">
-                              ₹{accountSubtotal.toLocaleString('en-IN')}
+                            <td className="p-3.5 text-right font-black border-r-2 border-[var(--border-color)] text-lg text-[var(--text-primary)]">
+                              {formatCur(accountSubtotal)}
                             </td>
-                            <td className="p-4"></td>
+                            <td className="p-3.5"></td>
                           </tr>
                         )}
                       </tbody>
@@ -926,91 +1316,84 @@ export default function ExpensesPage() {
 
         {/* ── VIEW 2: UNIFIED CHRONOLOGICAL TRANSACTION LOG ── */}
         {viewMode === 'LOG' && (
-          <div className="brutal-card p-0 overflow-hidden bg-white">
-            <div className="bg-black text-white p-6 border-b-4 border-black flex justify-between items-center">
+          <div className="brutal-card p-0 overflow-hidden bg-[var(--surface-light)] border-2 border-[var(--border-color)]">
+            <div className="bg-[var(--surface-contrast)] text-[var(--text-inverse)] p-5 border-b-2 border-[var(--border-color)] flex justify-between items-center">
               <div className="flex flex-col gap-1">
-                <h3 className="font-black text-xl uppercase tracking-widest flex items-center gap-4">
-                  <Wallet size={28} className="text-[var(--accent)]" /> 
+                <h3 className="font-black text-lg uppercase tracking-widest flex items-center gap-3">
+                  <Wallet size={24} className="text-[var(--accent)]" /> 
                   Unified Transaction Log 
                   {selectedFamilyFilter !== 'ALL' && ` • ${selectedFamilyFilter} Family`}
                   {selectedCategoryFilter !== 'ALL' && ` • Category: ${selectedCategoryFilter}`}
                 </h3>
-                <div className="text-sm font-mono text-gray-300">
-                  Total for this view: ₹{filteredTotal.toLocaleString('en-IN')} ({filteredExpenses.length} entries)
+                <div className="text-xs font-mono text-[var(--text-muted)]">
+                  Total for this view: {formatCur(filteredTotal)} ({filteredExpenses.length} entries)
                 </div>
               </div>
             </div>
             
-            <div className="overflow-x-auto bg-white">
+            <div className="overflow-x-auto bg-[var(--surface-light)]">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-[#E5E5E5] font-mono text-xs tracking-widest uppercase border-b-4 border-black">
-                    <th className="p-6 font-black border-r-2 border-black">Date</th>
-                    <th className="p-6 font-black border-r-2 border-black">Description</th>
-                    <th className="p-6 font-black border-r-2 border-black">Category</th>
-                    <th className="p-6 font-black border-r-2 border-black">Paid By</th>
-                    <th className="p-6 font-black border-r-2 border-black">Split Rule</th>
-                    <th className="p-6 font-black text-right border-r-2 border-black">Amount</th>
-                    <th className="p-6 font-black text-center w-24">Action</th>
+                  <tr className="bg-[var(--bg-color)] font-mono text-xs tracking-widest uppercase border-b-2 border-[var(--border-color)] text-[var(--text-muted)]">
+                    <th className="p-4 font-black border-r-2 border-[var(--border-color)]">Date</th>
+                    <th className="p-4 font-black border-r-2 border-[var(--border-color)]">Description</th>
+                    <th className="p-4 font-black border-r-2 border-[var(--border-color)]">Category</th>
+                    <th className="p-4 font-black border-r-2 border-[var(--border-color)]">Paid By</th>
+                    <th className="p-4 font-black border-r-2 border-[var(--border-color)]">Split Rule</th>
+                    <th className="p-4 font-black text-right border-r-2 border-[var(--border-color)]">Amount ({selectedCurrency})</th>
+                    <th className="p-4 font-black text-center w-24">Action</th>
                   </tr>
                 </thead>
-                <tbody className="font-bold text-lg uppercase">
+                <tbody className="font-bold text-sm uppercase text-[var(--text-primary)]">
                   {filteredExpenses.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-12 text-center text-gray-500 font-mono">
+                      <td colSpan={7} className="p-12 text-center text-[var(--text-muted)] font-mono">
                         No transactions found matching current filters.
                       </td>
                     </tr>
                   ) : (
                     filteredExpenses.map(exp => (
-                      <tr key={exp.id} className="hover:bg-gray-100 transition-colors border-b-2 border-black">
-                        <td className="p-6 border-r-2 border-black font-mono text-sm">{exp.date}</td>
-                        <td className="p-6 border-r-2 border-black">
+                      <tr key={exp.id} className="hover:bg-[var(--accent-light)] transition-colors border-b border-[var(--border-color)]/20">
+                        <td className="p-4 border-r-2 border-[var(--border-color)] font-mono text-xs text-[var(--text-muted)]">{exp.date}</td>
+                        <td className="p-4 border-r-2 border-[var(--border-color)]">
                           <div className="flex items-center gap-2">
-                            {safeType(exp) === 'RECEIPT' && <span className="bg-green-600 text-white text-xs px-2 py-1 font-mono">RECEIPT</span>}
-                            {exp.description}
+                            {safeType(exp) === 'RECEIPT' && <span className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 font-mono">RECEIPT</span>}
+                            <span>{exp.description}</span>
                           </div>
                         </td>
-                        <td className="p-6 border-r-2 border-black">
-                          <span className={`px-3 py-1 font-mono text-xs border-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-                            safeType(exp) === 'RECEIPT' ? 'bg-green-100 border-green-600 text-green-600' :
-                            exp.category === 'TRANS' ? 'bg-blue-100 border-blue-600 text-blue-600' :
-                            exp.category === 'HOTEL' ? 'bg-orange-100 border-orange-600 text-orange-600' :
-                            exp.category === 'SIGHT' ? 'bg-pink-100 border-pink-600 text-pink-600' :
-                            exp.category === 'FOOD' ? 'bg-green-100 border-green-600 text-green-600' :
-                            'bg-gray-100 border-gray-600 text-gray-600'
-                          }`}>
+                        <td className="p-4 border-r-2 border-[var(--border-color)]">
+                          <span className="px-2.5 py-0.5 font-mono text-[10px] border border-[var(--border-color)] bg-[var(--bg-color)]">
                             {exp.category}
                           </span>
                         </td>
-                        <td className="p-6 border-r-2 border-black">{exp.paidBy}</td>
-                        <td className="p-6 border-r-2 border-black font-mono text-xs">
+                        <td className="p-4 border-r-2 border-[var(--border-color)] font-mono text-xs">{exp.paidBy}</td>
+                        <td className="p-4 border-r-2 border-[var(--border-color)] font-mono text-xs">
                           {safeType(exp) === 'RECEIPT' ? (
-                            <span className="text-gray-500">N/A</span>
+                            <span className="text-[var(--text-muted)]">N/A</span>
                           ) : (
                             getSplitMitra(exp) === exp.amount && getSplitGhosh(exp) === 0 ? (
-                              <span className="text-blue-600 font-black">100% MITRA</span>
+                              <span className="text-blue-600 dark:text-blue-400 font-black">100% MITRA</span>
                             ) : getSplitGhosh(exp) === exp.amount && getSplitMitra(exp) === 0 ? (
-                              <span className="text-blue-600 font-black">100% GHOSH</span>
+                              <span className="text-blue-600 dark:text-blue-400 font-black">100% GHOSH</span>
                             ) : getSplitMitra(exp) === exp.amount / 2 && getSplitGhosh(exp) === exp.amount / 2 ? (
                               <span>50/50 EQUAL</span>
                             ) : (
                               <div className="flex flex-col">
-                                <span className="text-blue-600">M: ₹{getSplitMitra(exp).toLocaleString('en-IN')}</span>
-                                <span className="text-blue-600">G: ₹{getSplitGhosh(exp).toLocaleString('en-IN')}</span>
+                                <span className="text-blue-600 dark:text-blue-400">M: {formatCur(getSplitMitra(exp))}</span>
+                                <span className="text-blue-600 dark:text-blue-400">G: {formatCur(getSplitGhosh(exp))}</span>
                               </div>
                             )
                           )}
                         </td>
-                        <td className="p-6 text-right font-black border-r-2 border-black">₹{exp.amount.toLocaleString('en-IN')}</td>
-                        <td className="p-6 text-center">
-                          <div className="flex items-center justify-center gap-4">
+                        <td className="p-4 text-right font-black border-r-2 border-[var(--border-color)]">{formatCur(exp.amount)}</td>
+                        <td className="p-4 text-center">
+                          <div className="flex items-center justify-center gap-3">
                             <button 
                               onClick={() => handleEdit(exp)}
                               className="text-blue-600 hover:text-blue-800 transition-colors"
                               title="Edit Transaction"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                             </button>
                             <button 
                               onClick={async () => {
@@ -1027,7 +1410,7 @@ export default function ExpensesPage() {
                               className="text-red-500 hover:text-red-700 transition-colors"
                               title="Delete Transaction"
                             >
-                              <Trash2 size={22} />
+                              <Trash2 size={18} />
                             </button>
                           </div>
                         </td>
@@ -1055,52 +1438,52 @@ export default function ExpensesPage() {
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] w-full max-w-lg overflow-hidden"
+              className="bg-[var(--surface-light)] text-[var(--text-primary)] border-2 border-[var(--border-color)] shadow-[8px_8px_0px_0px_var(--shadow-color)] w-full max-w-lg overflow-hidden"
             >
-              <div className="bg-black text-white p-4 flex justify-between items-center">
-                <h2 className="font-black text-xl uppercase tracking-widest">{editingId ? 'Edit Ledger Entry' : 'Record New Ledger Entry'}</h2>
-                <button onClick={() => { setIsAddModalOpen(false); setEditingId(null); }} className="hover:text-red-400"><X size={24} /></button>
+              <div className="bg-[var(--surface-contrast)] text-[var(--text-inverse)] p-4 flex justify-between items-center">
+                <h2 className="font-black text-lg uppercase tracking-widest">{editingId ? 'Edit Ledger Entry' : 'Record New Ledger Entry'}</h2>
+                <button onClick={() => { setIsAddModalOpen(false); setEditingId(null); }} className="hover:text-red-400"><X size={20} /></button>
               </div>
-              <form onSubmit={handleAddExpense} className="p-6 flex flex-col gap-6 font-bold uppercase text-sm">
+              <form onSubmit={handleAddExpense} className="p-6 flex flex-col gap-5 font-bold uppercase text-xs">
                 
-                <div className="flex gap-4 mb-2">
-                  <button type="button" onClick={() => setTransactionType('EXPENSE')} className={`flex-1 p-3 border-2 border-black font-black uppercase ${transactionType === 'EXPENSE' ? 'bg-[var(--accent)] text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'bg-gray-100 hover:bg-gray-200'}`}>EXPENSE (DEBIT)</button>
-                  <button type="button" onClick={() => setTransactionType('RECEIPT')} className={`flex-1 p-3 border-2 border-black font-black uppercase ${transactionType === 'RECEIPT' ? 'bg-green-600 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'bg-gray-100 hover:bg-gray-200'}`}>DEPOSIT (CREDIT)</button>
+                <div className="flex gap-3 mb-1">
+                  <button type="button" onClick={() => setTransactionType('EXPENSE')} className={`flex-1 p-2.5 border-2 border-[var(--border-color)] font-black uppercase ${transactionType === 'EXPENSE' ? 'bg-[var(--accent)] text-white shadow-[3px_3px_0px_0px_var(--shadow-color)]' : 'bg-[var(--bg-color)] hover:bg-[var(--accent-light)]'}`}>EXPENSE (DEBIT)</button>
+                  <button type="button" onClick={() => setTransactionType('RECEIPT')} className={`flex-1 p-2.5 border-2 border-[var(--border-color)] font-black uppercase ${transactionType === 'RECEIPT' ? 'bg-emerald-600 text-white shadow-[3px_3px_0px_0px_var(--shadow-color)]' : 'bg-[var(--bg-color)] hover:bg-[var(--accent-light)]'}`}>DEPOSIT (CREDIT)</button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block mb-2 font-mono text-xs tracking-widest">Date</label>
+                    <label className="block mb-1.5 font-mono text-[11px] tracking-widest text-[var(--text-muted)]">Date</label>
                     <input 
                       type="date" 
                       value={dateStr}
                       onChange={e => setDateStr(e.target.value)}
                       required
-                      className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white" 
+                      className="w-full border-2 border-[var(--border-color)] p-2.5 focus:outline-none focus:border-[var(--accent)] shadow-[2px_2px_0px_0px_var(--shadow-color)] bg-[var(--surface-light)] text-[var(--text-primary)]" 
                     />
                   </div>
                   <div>
-                    <label className="block mb-2 font-mono text-xs tracking-widest">Amount (₹)</label>
+                    <label className="block mb-1.5 font-mono text-[11px] tracking-widest text-[var(--text-muted)]">Amount (INR ₹)</label>
                     <input 
                       type="number" 
                       value={amount}
                       onChange={e => setAmount(e.target.value)}
                       required
                       min="1"
-                      className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
+                      className="w-full border-2 border-[var(--border-color)] p-2.5 focus:outline-none focus:border-[var(--accent)] shadow-[2px_2px_0px_0px_var(--shadow-color)] bg-[var(--surface-light)] text-[var(--text-primary)]" 
                       placeholder="500"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-4 mb-2">
                   {transactionType === 'EXPENSE' && (
                     <div>
-                      <label className="block mb-2 font-mono text-xs tracking-widest">Category Account</label>
+                      <label className="block mb-1.5 font-mono text-[11px] tracking-widest text-[var(--text-muted)]">Category Account</label>
                       <select 
                         value={category}
                         onChange={e => setCategory(e.target.value)}
-                        className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white appearance-none"
+                        className="w-full border-2 border-[var(--border-color)] p-2.5 focus:outline-none focus:border-[var(--accent)] shadow-[2px_2px_0px_0px_var(--shadow-color)] bg-[var(--surface-light)] text-[var(--text-primary)]"
                       >
                         <option value="FOOD">FOODING (Meals, Snacks, Water)</option>
                         <option value="TRANS">TRANSPORT (Flights, Cabs, Trains)</option>
@@ -1111,64 +1494,65 @@ export default function ExpensesPage() {
                     </div>
                   )}
                   <div className={transactionType === 'RECEIPT' ? 'col-span-2' : ''}>
-                    <label className="block mb-2 font-mono text-xs tracking-widest">Disbursed / Paid By</label>
+                    <label className="block mb-1.5 font-mono text-[11px] tracking-widest text-[var(--text-muted)]">Disbursed / Paid By</label>
                     <select 
                       value={paidBy}
-                      onChange={e => setPaidBy(e.target.value as 'Mitra' | 'Ghosh')}
-                      className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white appearance-none"
+                      onChange={e => setPaidBy(e.target.value)}
+                      className="w-full border-2 border-[var(--border-color)] p-2.5 focus:outline-none focus:border-[var(--accent)] shadow-[2px_2px_0px_0px_var(--shadow-color)] bg-[var(--surface-light)] text-[var(--text-primary)]"
                     >
-                      <option value="Mitra">Mitra Family</option>
-                      <option value="Ghosh">Ghosh Family</option>
+                      {activeFamilies.map(f => (
+                        <option key={f.name} value={f.name}>{f.name} Family</option>
+                      ))}
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block mb-2 font-mono text-xs tracking-widest">Particulars / Item Details</label>
+                  <label className="block mb-1.5 font-mono text-[11px] tracking-widest text-[var(--text-muted)]">Particulars / Item Details</label>
                   <input 
                     type="text" 
                     value={desc}
                     onChange={e => setDesc(e.target.value)}
                     required
-                    className="w-full border-2 border-black p-3 focus:outline-none focus:border-blue-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
-                    placeholder={transactionType === 'RECEIPT' ? "e.g. Deposit to Trip Fund" : "e.g. Dinner, Breakfast, Train snacks, Water Bisleri"}
+                    className="w-full border-2 border-[var(--border-color)] p-2.5 focus:outline-none focus:border-[var(--accent)] shadow-[2px_2px_0px_0px_var(--shadow-color)] bg-[var(--surface-light)] text-[var(--text-primary)]" 
+                    placeholder={transactionType === 'RECEIPT' ? 'e.g. Deposit to Trip Fund' : 'e.g. Dinner, Breakfast, Train snacks, Bisleri'}
                   />
-                  <p className="text-[10px] text-gray-500 mt-1 font-mono normal-case">Write detailed particulars for accurate ledger accounting.</p>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1 font-mono normal-case">Write detailed particulars for audited accounting records.</p>
                 </div>
 
                 {transactionType === 'EXPENSE' && (
-                  <div className="border-4 border-black p-4 bg-gray-50 mt-2">
-                    <label className="block mb-4 font-mono text-xs tracking-widest uppercase">Split Liability (Who Owes)</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                      <button type="button" onClick={() => setSplitType('EQUAL')} className={`p-2 border-2 border-black text-xs font-black uppercase ${splitType === 'EQUAL' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white hover:bg-gray-100'}`}>50/50</button>
-                      <button type="button" onClick={() => setSplitType('MITRA')} className={`p-2 border-2 border-black text-xs font-black uppercase ${splitType === 'MITRA' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white hover:bg-gray-100'}`}>Mitra Only</button>
-                      <button type="button" onClick={() => setSplitType('GHOSH')} className={`p-2 border-2 border-black text-xs font-black uppercase ${splitType === 'GHOSH' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white hover:bg-gray-100'}`}>Ghosh Only</button>
-                      <button type="button" onClick={() => setSplitType('CUSTOM')} className={`p-2 border-2 border-black text-xs font-black uppercase ${splitType === 'CUSTOM' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white hover:bg-gray-100'}`}>Custom</button>
+                  <div className="border-2 border-[var(--border-color)] p-3 bg-[var(--bg-color)] mt-1">
+                    <label className="block mb-2 font-mono text-[11px] tracking-widest uppercase text-[var(--text-muted)]">Split Liability (Who Owes)</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                      <button type="button" onClick={() => setSplitType('EQUAL')} className={`p-2 border border-[var(--border-color)] text-xs font-black uppercase ${splitType === 'EQUAL' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_var(--shadow-color)]' : 'bg-[var(--surface-light)] hover:bg-[var(--accent-light)]'}`}>50/50</button>
+                      <button type="button" onClick={() => setSplitType('MITRA')} className={`p-2 border border-[var(--border-color)] text-xs font-black uppercase ${splitType === 'MITRA' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_var(--shadow-color)]' : 'bg-[var(--surface-light)] hover:bg-[var(--accent-light)]'}`}>Mitra Only</button>
+                      <button type="button" onClick={() => setSplitType('GHOSH')} className={`p-2 border border-[var(--border-color)] text-xs font-black uppercase ${splitType === 'GHOSH' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_var(--shadow-color)]' : 'bg-[var(--surface-light)] hover:bg-[var(--accent-light)]'}`}>Ghosh Only</button>
+                      <button type="button" onClick={() => setSplitType('CUSTOM')} className={`p-2 border border-[var(--border-color)] text-xs font-black uppercase ${splitType === 'CUSTOM' ? 'bg-[var(--accent)] text-white shadow-[2px_2px_0px_0px_var(--shadow-color)]' : 'bg-[var(--surface-light)] hover:bg-[var(--accent-light)]'}`}>Custom</button>
                     </div>
 
                     {splitType === 'CUSTOM' && (
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block mb-1 font-mono text-[10px] tracking-widest text-gray-500">Mitra Owe Amount (₹)</label>
+                          <label className="block mb-1 font-mono text-[10px] tracking-widest text-[var(--text-muted)]">Mitra Owe Amount (₹)</label>
                           <input 
                             type="number" 
                             value={customSplitMitra}
                             onChange={e => setCustomSplitMitra(e.target.value)}
                             required
                             min="0"
-                            className="w-full border-2 border-black p-2 focus:outline-none focus:border-blue-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-sm" 
+                            className="w-full border-2 border-[var(--border-color)] p-2 focus:outline-none focus:border-[var(--accent)] shadow-[2px_2px_0px_0px_var(--shadow-color)] text-xs bg-[var(--surface-light)] text-[var(--text-primary)]" 
                             placeholder="0"
                           />
                         </div>
                         <div>
-                          <label className="block mb-1 font-mono text-[10px] tracking-widest text-gray-500">Ghosh Owe Amount (₹)</label>
+                          <label className="block mb-1 font-mono text-[10px] tracking-widest text-[var(--text-muted)]">Ghosh Owe Amount (₹)</label>
                           <input 
                             type="number" 
                             value={customSplitGhosh}
                             onChange={e => setCustomSplitGhosh(e.target.value)}
                             required
                             min="0"
-                            className="w-full border-2 border-black p-2 focus:outline-none focus:border-blue-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-sm" 
+                            className="w-full border-2 border-[var(--border-color)] p-2 focus:outline-none focus:border-[var(--accent)] shadow-[2px_2px_0px_0px_var(--shadow-color)] text-xs bg-[var(--surface-light)] text-[var(--text-primary)]" 
                             placeholder="0"
                           />
                         </div>
@@ -1176,7 +1560,8 @@ export default function ExpensesPage() {
                     )}
                   </div>
                 )}
-                <button type="submit" className="w-full mt-4 bg-[var(--accent)] text-white font-black py-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all">
+                
+                <button type="submit" className="w-full mt-2 brutal-btn brutal-btn-accent py-3">
                   {editingId ? 'UPDATE LEDGER ENTRY' : 'POST ENTRY TO LEDGER'}
                 </button>
               </form>

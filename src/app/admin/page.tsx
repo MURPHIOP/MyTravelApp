@@ -5,22 +5,25 @@ import { useTripData } from '@/context/TripDataContext';
 import { useTrip } from '@/context/TripContext';
 import GodCursor from '@/components/admin/GodCursor';
 import InteractiveCanvasBackground from '@/components/ui/InteractiveCanvasBackground';
-import { Save, RefreshCw, Terminal, Hotel, Train, MapPin, Globe, Plus, Compass, X } from 'lucide-react';
+import { Save, RefreshCw, Terminal, Hotel, Train, MapPin, Globe, Plus, Compass, X, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { 
   ITINERARY as DEFAULT_ITINERARY, 
   TRAINS as DEFAULT_TRAINS, 
-  HOTELS as DEFAULT_HOTELS 
+  HOTELS as DEFAULT_HOTELS,
+  TRIP_CONFIG
 } from '@/lib/tripData';
 
 interface TripDataEditorProps {
   initialItinerary: typeof DEFAULT_ITINERARY;
   initialTrains: typeof DEFAULT_TRAINS;
   initialHotels: typeof DEFAULT_HOTELS;
+  initialFamilies: typeof TRIP_CONFIG.families;
   onSave: (data: {
     itinerary: typeof DEFAULT_ITINERARY;
     trains: typeof DEFAULT_TRAINS;
     hotels: typeof DEFAULT_HOTELS;
+    families: typeof TRIP_CONFIG.families;
   }) => void;
 }
 
@@ -28,19 +31,22 @@ function TripDataEditor({
   initialItinerary,
   initialTrains,
   initialHotels,
+  initialFamilies,
   onSave,
 }: TripDataEditorProps) {
-  const [activeTab, setActiveTab] = useState<'itinerary' | 'trains' | 'hotels'>('itinerary');
+  const [activeTab, setActiveTab] = useState<'itinerary' | 'trains' | 'hotels' | 'families'>('itinerary');
 
   // Local buffer for active editing
   const [localItinerary, setLocalItinerary] = useState([...initialItinerary]);
   const [localTrains, setLocalTrains] = useState([...initialTrains]);
   const [localHotels, setLocalHotels] = useState([...initialHotels]);
+  const [localFamilies, setLocalFamilies] = useState([...initialFamilies]);
 
   const handleReset = () => {
     setLocalItinerary([...initialItinerary]);
     setLocalTrains([...initialTrains]);
     setLocalHotels([...initialHotels]);
+    setLocalFamilies([...initialFamilies]);
   };
 
   const handleCommit = () => {
@@ -48,7 +54,34 @@ function TripDataEditor({
       itinerary: localItinerary,
       trains: localTrains,
       hotels: localHotels,
+      families: localFamilies,
     });
+  };
+
+  const handleFamilyChange = (idx: number, field: string, value: string) => {
+    const newFams = [...localFamilies];
+    newFams[idx] = { ...newFams[idx], [field]: value };
+    setLocalFamilies(newFams);
+  };
+
+  const addFamily = () => {
+    const newId = `fam-${Date.now()}`;
+    setLocalFamilies([
+      ...localFamilies,
+      {
+        id: newId,
+        family: 'New Family',
+        head: 'Family Head',
+        email: 'head@family.com',
+        color: '#10B981',
+        avatar: 'NF',
+      },
+    ]);
+  };
+
+  const removeFamily = (idx: number) => {
+    if (localFamilies.length <= 1) return;
+    setLocalFamilies(localFamilies.filter((_, i) => i !== idx));
   };
 
   const handleItineraryChange = (idx: number, field: string, value: string) => {
@@ -119,6 +152,12 @@ function TripDataEditor({
             onClick={() => setActiveTab('hotels')}
           >
             <Hotel size={18} /> Hotels
+          </button>
+          <button 
+            className={`px-6 py-3 font-mono font-bold uppercase flex items-center gap-2 border-2 ${activeTab === 'families' ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
+            onClick={() => setActiveTab('families')}
+          >
+            <Users size={18} /> Families
           </button>
         </div>
 
@@ -249,13 +288,119 @@ function TripDataEditor({
             ))}
           </div>
         )}
+
+        {/* FAMILIES TAB */}
+        {activeTab === 'families' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <div className="font-mono text-xs uppercase tracking-widest text-zinc-400">
+                CONFIGURED TRAVELING FAMILIES ({localFamilies.length})
+              </div>
+              <button 
+                onClick={addFamily} 
+                className="px-4 py-2 border border-emerald-500 text-emerald-400 hover:bg-emerald-500 hover:text-black font-mono text-xs font-bold uppercase flex items-center gap-2 transition-colors"
+              >
+                <Plus size={14} /> Add Traveling Family
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {localFamilies.map((fam, idx) => (
+                <div key={fam.id || idx} className="p-6 bg-zinc-950 border-2 border-zinc-800 relative group shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+                  <div className="flex justify-between items-center mb-4 pb-2 border-b border-zinc-800">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center font-mono font-black text-xs text-white"
+                        style={{ backgroundColor: fam.color }}
+                      >
+                        {fam.avatar || 'FA'}
+                      </div>
+                      <span className="font-mono text-xs font-black uppercase text-zinc-300">
+                        FAMILY RECORD #{idx + 1}
+                      </span>
+                    </div>
+                    {localFamilies.length > 1 && (
+                      <button 
+                        onClick={() => removeFamily(idx)}
+                        className="text-zinc-500 hover:text-red-400 font-mono text-xs uppercase transition-colors"
+                        title="Remove Family"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-4 font-mono text-xs">
+                    <div>
+                      <label className="block text-zinc-500 mb-1">FAMILY / SURNAMES TITLE</label>
+                      <input 
+                        className="w-full bg-zinc-900 border border-zinc-700 p-2 text-white font-bold"
+                        value={fam.family}
+                        onChange={(e) => handleFamilyChange(idx, 'family', e.target.value)}
+                        placeholder="e.g. Mitra Family"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-zinc-500 mb-1">HEAD OF FAMILY</label>
+                        <input 
+                          className="w-full bg-zinc-900 border border-zinc-700 p-2 text-white"
+                          value={fam.head}
+                          onChange={(e) => handleFamilyChange(idx, 'head', e.target.value)}
+                          placeholder="e.g. Gopal Mitra"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-500 mb-1">AVATAR INITIALS</label>
+                        <input 
+                          className="w-full bg-zinc-900 border border-zinc-700 p-2 text-white uppercase text-center font-black"
+                          maxLength={3}
+                          value={fam.avatar}
+                          onChange={(e) => handleFamilyChange(idx, 'avatar', e.target.value.toUpperCase())}
+                          placeholder="GM"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-zinc-500 mb-1">CONTACT EMAIL</label>
+                        <input 
+                          className="w-full bg-zinc-900 border border-zinc-700 p-2 text-white"
+                          value={fam.email}
+                          onChange={(e) => handleFamilyChange(idx, 'email', e.target.value)}
+                          placeholder="family@domain.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-500 mb-1">THEME COLOR ACCENT</label>
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="color"
+                            className="w-8 h-8 p-0 bg-transparent border-0 cursor-pointer"
+                            value={fam.color}
+                            onChange={(e) => handleFamilyChange(idx, 'color', e.target.value)}
+                          />
+                          <input 
+                            className="w-full bg-zinc-900 border border-zinc-700 p-2 text-white font-mono uppercase"
+                            value={fam.color}
+                            onChange={(e) => handleFamilyChange(idx, 'color', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 export default function GodModeAdminPage() {
-  const { itinerary, setItinerary, trains, setTrains, hotels, setHotels } = useTripData();
+  const { itinerary, setItinerary, trains, setTrains, hotels, setHotels, families, setFamilies } = useTripData();
   const { trips, activeTrip, activeTripId, switchActiveTrip, createTrip, updateActiveTrip } = useTrip();
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -298,14 +443,17 @@ export default function GodModeAdminPage() {
     itinerary: typeof DEFAULT_ITINERARY;
     trains: typeof DEFAULT_TRAINS;
     hotels: typeof DEFAULT_HOTELS;
+    families: typeof TRIP_CONFIG.families;
   }) => {
     setItinerary(data.itinerary);
     setTrains(data.trains);
     setHotels(data.hotels);
+    setFamilies(data.families);
     updateActiveTrip({
       itinerary: data.itinerary,
       trains: data.trains,
       hotels: data.hotels,
+      families: data.families,
     });
     setSuccessMsg(`SYSTEM OVERRIDE COMMITTED FOR [${activeTrip.title}]`);
     setTimeout(() => setSuccessMsg(''), 3000);
@@ -470,6 +618,7 @@ export default function GodModeAdminPage() {
           initialItinerary={itinerary}
           initialTrains={trains}
           initialHotels={hotels}
+          initialFamilies={families}
           onSave={handleSave}
         />
       </div>

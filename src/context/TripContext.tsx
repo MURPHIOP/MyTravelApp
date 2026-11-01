@@ -6,7 +6,8 @@ import {
   ITINERARY as DEFAULT_ITINERARY, 
   TRAINS as DEFAULT_TRAINS, 
   HOTELS as DEFAULT_HOTELS, 
-  PLACES as DEFAULT_PLACES 
+  PLACES as DEFAULT_PLACES,
+  TRIP_CONFIG
 } from '@/lib/tripData';
 import { resolveDestinationVisuals } from '@/lib/destinationImageService';
 
@@ -24,6 +25,7 @@ export interface Trip {
   trains?: typeof DEFAULT_TRAINS;
   hotels?: typeof DEFAULT_HOTELS;
   places?: typeof DEFAULT_PLACES;
+  families?: typeof TRIP_CONFIG.families;
   metadata?: Record<string, unknown>;
   created_at?: string;
   updated_at?: string;
@@ -43,6 +45,7 @@ export const DEFAULT_TRIP: Trip = {
   trains: DEFAULT_TRAINS,
   hotels: DEFAULT_HOTELS,
   places: DEFAULT_PLACES,
+  families: TRIP_CONFIG.families,
 };
 
 type TripContextType = {

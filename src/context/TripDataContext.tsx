@@ -5,7 +5,8 @@ import {
   ITINERARY as DEFAULT_ITINERARY, 
   TRAINS as DEFAULT_TRAINS, 
   HOTELS as DEFAULT_HOTELS, 
-  PLACES as DEFAULT_PLACES
+  PLACES as DEFAULT_PLACES,
+  TRIP_CONFIG
 } from '@/lib/tripData';
 
 import { supabase } from '@/lib/supabase';
@@ -20,6 +21,8 @@ type TripContextType = {
   setHotels: (data: typeof DEFAULT_HOTELS) => void;
   places: typeof DEFAULT_PLACES;
   setPlaces: (data: typeof DEFAULT_PLACES) => void;
+  families: typeof TRIP_CONFIG.families;
+  setFamilies: (data: typeof TRIP_CONFIG.families) => void;
 };
 
 const TripDataContext = createContext<TripContextType | undefined>(undefined);
@@ -42,6 +45,10 @@ export function TripDataProvider({ children }: { children: React.ReactNode }) {
   const places = activeTrip?.places && activeTrip.places.length > 0 
     ? activeTrip.places 
     : DEFAULT_PLACES;
+
+  const families = activeTrip?.families && activeTrip.families.length > 0
+    ? activeTrip.families
+    : TRIP_CONFIG.families;
 
   const saveToSupabase = async (key: string, value: unknown) => {
     try {
@@ -71,12 +78,18 @@ export function TripDataProvider({ children }: { children: React.ReactNode }) {
     updateActiveTrip({ places: data });
   };
 
+  const setFamilies = (data: typeof TRIP_CONFIG.families) => {
+    saveToSupabase('godmode_families', data);
+    updateActiveTrip({ families: data });
+  };
+
   return (
     <TripDataContext.Provider value={{
       itinerary, setItinerary,
       trains, setTrains,
       hotels, setHotels,
-      places, setPlaces
+      places, setPlaces,
+      families, setFamilies,
     }}>
       {children}
     </TripDataContext.Provider>
