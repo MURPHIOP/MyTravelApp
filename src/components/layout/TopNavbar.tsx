@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Compass, Menu, X, LogIn, LogOut, ChevronDown, Globe, Check, Sun, Moon } from 'lucide-react';
+import { Compass, Menu, X, LogIn, LogOut, ChevronDown, Globe, Check, Sun, Moon, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useTrip } from '@/context/TripContext';
@@ -276,6 +276,18 @@ export default function TopNavbar() {
                   ))}
                 </div>
               )}
+
+              {/* Deploy New Trip Mobile Action Trigger */}
+              <div className="mt-3 pt-3 border-t border-[var(--border-color)]/20">
+                <Link
+                  href="/admin?deploy=new"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full py-2.5 px-3 bg-[var(--surface-contrast)] text-[var(--text-inverse)] border-2 border-[var(--border-color)] font-mono text-xs font-black uppercase flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:bg-[var(--accent)] hover:text-white transition-all active:translate-y-0.5"
+                >
+                  <Plus size={14} className="text-[var(--accent)]" />
+                  Deploy New Trip
+                </Link>
+              </div>
             </div>
 
             <div className="flex flex-col gap-6 text-white font-black text-3xl sm:text-4xl uppercase tracking-tighter">
@@ -287,7 +299,10 @@ export default function TopNavbar() {
               <Link href="/vault" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/vault') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Secure Vault</Link>
               <Link href="/photos" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/photos') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Photos Gallery</Link>
               {user?.role === 'FAMILY_HEAD' && (
-                <Link href="/expenses" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/expenses') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Auto Ledger</Link>
+                <>
+                  <Link href="/expenses" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/expenses') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Auto Ledger</Link>
+                  <Link href="/admin" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/admin') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Admin Console</Link>
+                </>
               )}
             </div>
             
