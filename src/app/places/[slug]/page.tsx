@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { resolvePlaceImage } from '@/lib/destinationImageService';
 
 function PlaceTypeIcon({ type }: { type: string }) {
   const props = { size: 24, strokeWidth: 3 };
@@ -69,7 +70,7 @@ export default function PlaceDetailPage() {
         {/* Right Image Column */}
         <div className="w-full md:w-7/12 relative order-1 md:order-2 flex-grow min-h-[320px] md:min-h-[580px] overflow-hidden">
           <Image
-            src={place.coverImage}
+            src={resolvePlaceImage(place.name, place.coverImage)}
             alt={place.name}
             fill
             priority

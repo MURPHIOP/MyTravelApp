@@ -5,6 +5,7 @@ import { useTripData } from '@/context/TripDataContext';
 import { MapPin, Mountain, Zap, Star, Leaf, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { resolvePlaceImage } from '@/lib/destinationImageService';
 
 const FILTERS = [
   { id: 'all', label: 'All Destinations' },
@@ -65,7 +66,7 @@ export default function PlacesPage() {
               {/* Photo Section */}
               <div className="relative h-64 border-b-2 border-[var(--border-color)] overflow-hidden">
                 <Image 
-                  src={place.coverImage} 
+                  src={resolvePlaceImage(place.name, place.coverImage)} 
                   alt={place.name} 
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"

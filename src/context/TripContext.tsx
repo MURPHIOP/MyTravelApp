@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { 
   ITINERARY as DEFAULT_ITINERARY, 
@@ -9,7 +9,13 @@ import {
   PLACES as DEFAULT_PLACES,
   TRIP_CONFIG
 } from '@/lib/tripData';
-import { resolveDestinationVisuals } from '@/lib/destinationImageService';
+import { 
+  resolveDestinationVisuals, 
+  resolveBentoVisualSuite, 
+  resolvePlaceImage, 
+  type DestinationVisualState, 
+  type BentoVisualSuite 
+} from '@/lib/destinationImageService';
 
 export interface Trip {
   id: string;
@@ -53,6 +59,9 @@ type TripContextType = {
   activeTrip: Trip;
   activeTripId: string;
   isLoading: boolean;
+  bentoImages: BentoVisualSuite;
+  resolvePlaceImage: (nameOrCity: string, fallback?: string) => string;
+  getTripVisuals: (title?: string) => DestinationVisualState;
   switchActiveTrip: (tripId: string) => Promise<void>;
   createTrip: (payload: Partial<Trip>) => Promise<Trip | null>;
   updateActiveTrip: (updates: Partial<Trip>) => Promise<void>;
@@ -169,6 +178,16 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
 
   // Current active trip reference
   const activeTrip = trips.find(t => t.id === activeTripId) || trips[0] || DEFAULT_TRIP;
+
+  // Keyword-Driven Bento Visual Suite automatically reactive to active trip theme
+  const bentoImages = useMemo(() => {
+    return resolveBentoVisualSuite(activeTrip.title);
+  }, [activeTrip.title]);
+
+  // Dynamic trip visual profile lookup
+  const getTripVisuals = useCallback((title?: string) => {
+    return resolveDestinationVisuals(title || activeTrip.title);
+  }, [activeTrip.title]);
 
   // Switch Active Trip
   const switchActiveTrip = async (tripId: string) => {
@@ -326,6 +345,9 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
         activeTrip,
         activeTripId,
         isLoading,
+        bentoImages,
+        resolvePlaceImage,
+        getTripVisuals,
         switchActiveTrip,
         createTrip,
         updateActiveTrip,

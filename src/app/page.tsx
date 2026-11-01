@@ -6,12 +6,14 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowRight, Terminal, MapPin, Train, Hotel, Wallet, Compass } from 'lucide-react';
 import { PLACE_IMAGES, TRIP_CONFIG } from '@/lib/tripData';
+import { useTrip } from '@/context/TripContext';
 import ScrambleText from '@/components/ui/ScrambleText';
 import BrutalistMarquee from '@/components/ui/BrutalistMarquee';
 
 const emptySubscribe = () => () => {};
 
 export default function HomePage() {
+  const { bentoImages, activeTrip } = useTrip();
   const headlineWords = ["ANCIENT.", "SACRED.", "JOURNEY."];
   const lastWord = "MAHARASHTRA.";
 
@@ -135,11 +137,11 @@ export default function HomePage() {
                
                <div className="flex-1 border-2 border-[var(--border-color)] relative overflow-hidden flex items-center justify-center">
                   <Image 
-                    src={PLACE_IMAGES.ellora} 
+                    src={bentoImages?.hero || PLACE_IMAGES.ellora} 
                     fill 
                     sizes="(max-width: 768px) 100vw, 50vw" 
                     className="object-cover" 
-                    alt="Hero Art" 
+                    alt={activeTrip?.title || "Hero Art"} 
                     priority 
                   />
                   <div className="absolute inset-0 bg-[var(--accent)] mix-blend-color opacity-50" />
@@ -206,11 +208,11 @@ export default function HomePage() {
             <Link href="/itinerary" className="brutal-card md:col-span-2 md:row-span-2 relative overflow-hidden group p-8 flex flex-col justify-between">
               <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <Image 
-                  src={PLACE_IMAGES.ajanta} 
+                  src={bentoImages?.itinerary || PLACE_IMAGES.ajanta} 
                   fill 
                   sizes="(max-width: 768px) 100vw, 50vw" 
-                  className="object-cover opacity-60 dark:opacity-40 group-hover:scale-108 group-hover:opacity-80 transition-all duration-700 ease-out" 
-                  alt="Ajanta" 
+                  className="object-cover opacity-60 dark:opacity-40 group-hover:scale-105 group-hover:opacity-80 transition-all duration-700 ease-out" 
+                  alt="Itinerary Visual" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-light)] via-[var(--surface-light)]/40 to-transparent dark:from-[var(--surface-light)] dark:via-[var(--surface-light)]/50" />
               </div>
@@ -229,10 +231,10 @@ export default function HomePage() {
             <Link href="/places" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--card-tint-warm)] text-[var(--text-primary)] relative overflow-hidden">
               <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <Image
-                  src={PLACE_IMAGES.ellora}
+                  src={bentoImages?.destinations || PLACE_IMAGES.ellora}
                   fill
                   sizes="(max-width: 768px) 100vw, 25vw"
-                  className="object-cover opacity-65 dark:opacity-45 group-hover:scale-108 group-hover:opacity-85 transition-all duration-700 ease-out"
+                  className="object-cover opacity-65 dark:opacity-45 group-hover:scale-105 group-hover:opacity-85 transition-all duration-700 ease-out"
                   alt="Destinations Background"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-light)] via-[var(--surface-light)]/40 to-transparent dark:from-[var(--surface-light)] dark:via-[var(--surface-light)]/50" />
@@ -250,10 +252,10 @@ export default function HomePage() {
             <Link href="/trains" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--surface-light)] text-[var(--text-primary)] relative overflow-hidden">
               <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <Image
-                  src={PLACE_IMAGES.train}
+                  src={bentoImages?.trains || PLACE_IMAGES.train}
                   fill
                   sizes="(max-width: 768px) 100vw, 25vw"
-                  className="object-cover opacity-65 dark:opacity-45 group-hover:scale-108 group-hover:opacity-85 transition-all duration-700 ease-out"
+                  className="object-cover opacity-65 dark:opacity-45 group-hover:scale-105 group-hover:opacity-85 transition-all duration-700 ease-out"
                   alt="Train Background"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-light)] via-[var(--surface-light)]/40 to-transparent dark:from-[var(--surface-light)] dark:via-[var(--surface-light)]/50" />
@@ -271,10 +273,10 @@ export default function HomePage() {
             <Link href="/hotels" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--surface-contrast)] text-white border-2 border-[var(--border-color)] shadow-[4px_4px_0px_0px_var(--accent)] relative overflow-hidden">
               <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <Image
-                  src={PLACE_IMAGES.hotel}
+                  src={bentoImages?.hotels || PLACE_IMAGES.hotel}
                   fill
                   sizes="(max-width: 768px) 100vw, 25vw"
-                  className="object-cover opacity-65 group-hover:scale-108 group-hover:opacity-85 transition-all duration-700 ease-out"
+                  className="object-cover opacity-65 group-hover:scale-105 group-hover:opacity-85 transition-all duration-700 ease-out"
                   alt="Hotels Background"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
@@ -292,10 +294,10 @@ export default function HomePage() {
             <Link href="/expenses" className="brutal-card lg:col-span-2 p-8 flex flex-col justify-center group bg-[var(--card-tint-cool)] text-[var(--text-primary)] relative overflow-hidden">
               <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <Image
-                  src={PLACE_IMAGES.hero}
+                  src={bentoImages?.ledger || PLACE_IMAGES.hero}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover opacity-60 dark:opacity-40 group-hover:scale-108 group-hover:opacity-80 transition-all duration-700 ease-out"
+                  className="object-cover opacity-60 dark:opacity-40 group-hover:scale-105 group-hover:opacity-80 transition-all duration-700 ease-out"
                   alt="Ledger Background"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-light)] via-[var(--surface-light)]/40 to-transparent dark:from-[var(--surface-light)] dark:via-[var(--surface-light)]/50" />

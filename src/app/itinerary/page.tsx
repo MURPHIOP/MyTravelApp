@@ -3,6 +3,7 @@
 import React, { useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import { useTripData } from '@/context/TripDataContext';
+import { resolvePlaceImage } from '@/lib/destinationImageService';
 import { MapPin, ChevronDown, ChevronUp, Navigation } from 'lucide-react';
 
 const emptySubscribe = () => () => {};
@@ -58,7 +59,7 @@ export default function ItineraryPage() {
                       
                       <div className={`w-full md:w-72 h-52 md:h-auto md:min-h-[220px] flex-shrink-0 relative overflow-hidden border-b-2 md:border-b-0 md:border-r-2 ${isActive ? 'border-[var(--accent)]' : 'border-[var(--border-color)]'}`}>
                         <Image 
-                          src={day.coverImage} 
+                          src={resolvePlaceImage(day.title, day.coverImage)} 
                           alt={day.title} 
                           fill
                           sizes="(max-width: 768px) 100vw, 288px"

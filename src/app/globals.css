@@ -60,6 +60,7 @@
 
   /* Brutalist Cards */
   .brutal-card {
+    position: relative;
     background: var(--surface-light);
     border: 2px solid var(--border-color);
     box-shadow: 4px 4px 0px 0px var(--shadow-color);

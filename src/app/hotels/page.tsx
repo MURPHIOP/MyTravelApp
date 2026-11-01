@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { MapPin } from 'lucide-react';
+import { resolvePlaceImage } from '@/lib/destinationImageService';
 
 import { useTripData } from '@/context/TripDataContext';
 import UploadDownload from '@/components/UploadDownload';
@@ -26,7 +27,7 @@ export default function HotelsPage() {
               
               <div className="relative h-72 border-b-4 border-[var(--border-color)] overflow-hidden bg-black">
                 <Image 
-                  src={hotel.coverImage} 
+                  src={resolvePlaceImage(hotel.name + ' ' + hotel.city, hotel.coverImage)} 
                   alt={hotel.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
