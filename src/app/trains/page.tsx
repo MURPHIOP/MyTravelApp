@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Train, Ticket, Clock, AlertCircle } from 'lucide-react';
 import { useTripData } from '@/context/TripDataContext';
+import { PLACE_IMAGES } from '@/lib/tripData';
 import UploadDownload from '@/components/UploadDownload';
 
 export default function TrainsPage() {
@@ -20,14 +22,24 @@ export default function TrainsPage() {
 
         <div className="space-y-12">
           {TRAINS.map((ticket, idx) => (
-            <div key={idx} className="brutal-card p-0 flex flex-col md:flex-row overflow-hidden bg-[var(--surface-light)]">
+            <div key={idx} className="brutal-card p-0 flex flex-col md:flex-row overflow-hidden bg-[var(--surface-light)] relative group">
               
               {/* Train Name & PNR (Left) */}
-              <div className="p-8 md:w-1/3 bg-[var(--accent)] text-white border-b-4 md:border-b-0 md:border-r-4 border-black flex flex-col justify-between">
-                <div>
-                  <Train size={48} className="mb-6 opacity-80" />
+              <div className="p-8 md:w-1/3 bg-[var(--accent)] text-white border-b-4 md:border-b-0 md:border-r-4 border-[var(--border-color)] flex flex-col justify-between relative overflow-hidden z-10">
+                <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+                  <Image 
+                    src={ticket.number === '12860' ? PLACE_IMAGES.howrah : PLACE_IMAGES.train} 
+                    fill 
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover" 
+                    alt="Train Route Visual" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent)] via-[var(--accent)]/80 to-[var(--accent)]/30" />
+                </div>
+                <div className="relative z-10">
+                  <Train size={48} className="mb-6 opacity-90" />
                   <h3 className="text-4xl font-black uppercase leading-none mb-2">{ticket.name}</h3>
-                  <div className="font-mono font-bold tracking-widest text-lg bg-black px-3 py-1 w-max shadow-[4px_4px_0px_0px_white]">
+                  <div className="font-mono font-bold tracking-widest text-lg bg-[var(--surface-contrast)] text-[var(--text-inverse)] px-3 py-1 w-max shadow-[4px_4px_0px_0px_white]">
                     {ticket.number}
                   </div>
                 </div>

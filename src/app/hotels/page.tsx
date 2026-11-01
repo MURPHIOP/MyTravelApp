@@ -30,7 +30,7 @@ export default function HotelsPage() {
                   alt={hotel.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover transition-all duration-500 opacity-80" 
+                  className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out" 
                 />
                 
                 <div className="absolute top-0 left-0 bg-[var(--accent)] text-white border-r-4 border-b-4 border-[var(--border-color)] px-4 py-2 flex items-center gap-2 font-mono font-black text-xl">

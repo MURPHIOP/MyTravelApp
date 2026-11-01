@@ -69,7 +69,7 @@ export default function PlacesPage() {
                   alt={place.name} 
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  className="object-cover transition-all duration-500" 
+                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
                 />
                 
                 <div className="absolute top-0 left-0 bg-[var(--accent)] text-white border-r-2 border-b-2 border-[var(--border-color)] font-mono font-black text-sm px-4 py-2">

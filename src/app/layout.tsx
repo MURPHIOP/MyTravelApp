@@ -7,6 +7,7 @@ import TopNavbar from '@/components/layout/TopNavbar';
 import Footer from '@/components/layout/Footer';
 import Preloader from '@/components/layout/Preloader';
 import LoginModal from '@/components/auth/LoginModal';
+import InteractiveCanvasBackground from '@/components/ui/InteractiveCanvasBackground';
 import { TripProvider } from '@/context/TripContext';
 import { TripDataProvider } from '@/context/TripDataContext';
 
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <TripProvider>
+            <InteractiveCanvasBackground variant="global" />
             <Preloader />
             <LoginModal />
             <ThemeProvider>

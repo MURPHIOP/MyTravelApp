@@ -62,7 +62,7 @@ export default function ItineraryPage() {
                           alt={day.title} 
                           fill
                           sizes="(max-width: 768px) 100vw, 288px"
-                          className="object-cover" 
+                          className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
                         />
                         <div className="absolute inset-0 bg-black/20" />
                         <div className={`absolute top-0 left-0 text-white border-r-2 border-b-2 font-mono font-black text-sm px-4 py-2 ${isActive ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--accent)] border-[var(--border-color)]'}`}>

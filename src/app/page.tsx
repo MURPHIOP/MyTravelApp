@@ -204,15 +204,15 @@ export default function HomePage() {
             
             {/* Itinerary */}
             <Link href="/itinerary" className="brutal-card md:col-span-2 md:row-span-2 relative overflow-hidden group p-8 flex flex-col justify-between">
-              <div className="absolute inset-0 z-0">
+              <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <Image 
                   src={PLACE_IMAGES.ajanta} 
                   fill 
                   sizes="(max-width: 768px) 100vw, 50vw" 
-                  className="object-cover opacity-20 group-hover:scale-105 transition-transform duration-700" 
+                  className="object-cover opacity-60 dark:opacity-40 group-hover:scale-108 group-hover:opacity-80 transition-all duration-700 ease-out" 
                   alt="Ajanta" 
                 />
-                <div className="absolute inset-0 card-bg-overlay" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-light)] via-[var(--surface-light)]/40 to-transparent dark:from-[var(--surface-light)] dark:via-[var(--surface-light)]/50" />
               </div>
               <div className="relative z-10">
                 <div className="w-16 h-16 border-4 border-[var(--border-color)] bg-[var(--accent)] text-white flex items-center justify-center mb-6 shadow-[4px_4px_0px_0px_var(--shadow-color)] group-hover:translate-x-2 transition-transform">
@@ -227,15 +227,15 @@ export default function HomePage() {
 
             {/* Destinations */}
             <Link href="/places" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--card-tint-warm)] text-[var(--text-primary)] relative overflow-hidden">
-              <div className="absolute inset-0 z-0">
+              <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <Image
                   src={PLACE_IMAGES.ellora}
                   fill
                   sizes="(max-width: 768px) 100vw, 25vw"
-                  className="object-cover opacity-15 group-hover:scale-105 transition-transform duration-700"
+                  className="object-cover opacity-65 dark:opacity-45 group-hover:scale-108 group-hover:opacity-85 transition-all duration-700 ease-out"
                   alt="Destinations Background"
                 />
-                <div className="absolute inset-0 card-bg-overlay" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-light)] via-[var(--surface-light)]/40 to-transparent dark:from-[var(--surface-light)] dark:via-[var(--surface-light)]/50" />
               </div>
               <div className="relative z-10 flex flex-col justify-between h-full">
                 <Compass size={40} className="text-[var(--accent)]" />
@@ -248,15 +248,15 @@ export default function HomePage() {
 
             {/* Trains */}
             <Link href="/trains" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--surface-light)] text-[var(--text-primary)] relative overflow-hidden">
-              <div className="absolute inset-0 z-0">
+              <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <Image
                   src={PLACE_IMAGES.train}
                   fill
                   sizes="(max-width: 768px) 100vw, 25vw"
-                  className="object-cover opacity-15 group-hover:scale-105 transition-transform duration-700"
+                  className="object-cover opacity-65 dark:opacity-45 group-hover:scale-108 group-hover:opacity-85 transition-all duration-700 ease-out"
                   alt="Train Background"
                 />
-                <div className="absolute inset-0 card-bg-overlay" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-light)] via-[var(--surface-light)]/40 to-transparent dark:from-[var(--surface-light)] dark:via-[var(--surface-light)]/50" />
               </div>
               <div className="relative z-10 flex flex-col justify-between h-full">
                 <Train size={40} className="text-[var(--accent)]" />
@@ -269,12 +269,12 @@ export default function HomePage() {
 
             {/* Hotels */}
             <Link href="/hotels" className="brutal-card p-6 flex flex-col justify-between group bg-[var(--surface-contrast)] text-white border-2 border-[var(--border-color)] shadow-[4px_4px_0px_0px_var(--accent)] relative overflow-hidden">
-              <div className="absolute inset-0 z-0">
+              <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <Image
                   src={PLACE_IMAGES.hotel}
                   fill
                   sizes="(max-width: 768px) 100vw, 25vw"
-                  className="object-cover opacity-25 group-hover:scale-105 transition-transform duration-700"
+                  className="object-cover opacity-65 group-hover:scale-108 group-hover:opacity-85 transition-all duration-700 ease-out"
                   alt="Hotels Background"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
@@ -290,15 +290,15 @@ export default function HomePage() {
 
             {/* Expenses */}
             <Link href="/expenses" className="brutal-card lg:col-span-2 p-8 flex flex-col justify-center group bg-[var(--card-tint-cool)] text-[var(--text-primary)] relative overflow-hidden">
-              <div className="absolute inset-0 z-0">
+              <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <Image
                   src={PLACE_IMAGES.hero}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover opacity-15 group-hover:scale-105 transition-transform duration-700"
+                  className="object-cover opacity-60 dark:opacity-40 group-hover:scale-108 group-hover:opacity-80 transition-all duration-700 ease-out"
                   alt="Ledger Background"
                 />
-                <div className="absolute inset-0 card-bg-overlay opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-light)] via-[var(--surface-light)]/40 to-transparent dark:from-[var(--surface-light)] dark:via-[var(--surface-light)]/50" />
               </div>
               <div className="relative z-10">
                 <div className="flex items-center gap-6 mb-4">

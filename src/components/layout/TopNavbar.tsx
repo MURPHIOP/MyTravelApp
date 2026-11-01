@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Compass, Menu, X, LogIn, LogOut, ChevronDown, Globe, Check, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -9,6 +10,7 @@ import { useTrip } from '@/context/TripContext';
 import { useTheme } from '@/context/ThemeProvider';
 
 export default function TopNavbar() {
+  const pathname = usePathname();
   const { user, openLoginModal } = useAuth();
   const { trips, activeTrip, activeTripId, switchActiveTrip } = useTrip();
   const { toggleTheme, isDark } = useTheme();
@@ -17,6 +19,20 @@ export default function TopNavbar() {
   const tripMenuRef = useRef<HTMLDivElement>(null);
 
   const toggleMenu = () => setIsOpen(!isOpen);
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname === href || pathname?.startsWith(href + '/');
+  };
+
+  const navLinks = [
+    { href: '/itinerary', label: 'Route' },
+    { href: '/places', label: 'Sites' },
+    { href: '/hotels', label: 'Stays' },
+    { href: '/trains', label: 'Logistics' },
+    { href: '/vault', label: 'Vault' },
+    { href: '/photos', label: 'Photos' },
+  ];
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -69,15 +85,34 @@ export default function TopNavbar() {
           </div>
           
           {/* DESKTOP LINKS */}
-          <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-mono font-bold text-sm tracking-wider uppercase text-[var(--text-primary)]">
-            <Link href="/itinerary" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Route</Link>
-            <Link href="/places" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Sites</Link>
-            <Link href="/hotels" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Stays</Link>
-            <Link href="/trains" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Logistics</Link>
-            <Link href="/vault" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Vault</Link>
-            <Link href="/photos" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Photos</Link>
+          <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-mono font-bold text-sm tracking-wider uppercase">
+            {navLinks.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`transition-all duration-150 relative py-1 ${
+                    active
+                      ? 'text-[var(--accent)] font-black border-b-2 border-[var(--accent)] shadow-[0_2px_0_0_var(--accent)]'
+                      : 'text-[var(--text-primary)] hover:text-[var(--accent)]'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
             {user?.role === 'FAMILY_HEAD' && (
-              <Link href="/expenses" className="hover:text-[var(--accent)] hover:underline decoration-2 transition-colors">Ledger</Link>
+              <Link
+                href="/expenses"
+                className={`transition-all duration-150 relative py-1 ${
+                  isActive('/expenses')
+                    ? 'text-[var(--accent)] font-black border-b-2 border-[var(--accent)] shadow-[0_2px_0_0_var(--accent)]'
+                    : 'text-[var(--text-primary)] hover:text-[var(--accent)]'
+                }`}
+              >
+                Ledger
+              </Link>
             )}
           </div>
 
@@ -244,15 +279,15 @@ export default function TopNavbar() {
             </div>
 
             <div className="flex flex-col gap-6 text-white font-black text-3xl sm:text-4xl uppercase tracking-tighter">
-              <Link href="/" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Home</Link>
-              <Link href="/itinerary" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Route Plan</Link>
-              <Link href="/places" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Destinations</Link>
-              <Link href="/hotels" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Hotels & Stays</Link>
-              <Link href="/trains" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Train Tickets</Link>
-              <Link href="/vault" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Secure Vault</Link>
-              <Link href="/photos" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Photos Gallery</Link>
+              <Link href="/" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Home</Link>
+              <Link href="/itinerary" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/itinerary') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Route Plan</Link>
+              <Link href="/places" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/places') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Destinations</Link>
+              <Link href="/hotels" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/hotels') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Hotels & Stays</Link>
+              <Link href="/trains" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/trains') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Train Tickets</Link>
+              <Link href="/vault" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/vault') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Secure Vault</Link>
+              <Link href="/photos" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/photos') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Photos Gallery</Link>
               {user?.role === 'FAMILY_HEAD' && (
-                <Link href="/expenses" onClick={toggleMenu} className="hover:pl-4 transition-all border-b-2 border-white/20 pb-4">Auto Ledger</Link>
+                <Link href="/expenses" onClick={toggleMenu} className={`hover:pl-4 transition-all border-b-2 border-white/20 pb-4 ${isActive('/expenses') ? 'pl-3 border-l-4 border-white text-white bg-white/10' : ''}`}>Auto Ledger</Link>
               )}
             </div>
             

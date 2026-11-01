@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useTripData } from '@/context/TripDataContext';
 import { useTrip } from '@/context/TripContext';
 import GodCursor from '@/components/admin/GodCursor';
+import InteractiveCanvasBackground from '@/components/ui/InteractiveCanvasBackground';
 import { Save, RefreshCw, Terminal, Hotel, Train, MapPin, Globe, Plus, Compass, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { 
@@ -311,7 +312,8 @@ export default function GodModeAdminPage() {
   };
 
   return (
-    <div className="w-full pt-32 pb-24 min-h-screen bg-[#0a0a0a] text-white selection:bg-[var(--accent)]">
+    <div className="w-full pt-32 pb-24 min-h-screen relative text-white selection:bg-[var(--accent)]">
+      <InteractiveCanvasBackground variant="admin" />
       <GodCursor />
       
       <div className="container-wide">
